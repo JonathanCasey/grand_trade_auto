@@ -21,3 +21,6 @@ indent_size = 4
 
 [*.service]
 indent_size = 4
+
+[*.{yml,yaml}]
+indent_size = 2
