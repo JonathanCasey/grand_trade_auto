@@ -9,14 +9,6 @@ workflows:
             - docker-hub-creds
 
 
-default_image: &default_image
-  docker:
-    - image: circleci/python:3.8
-      auth:
-        username: $DOCKERHUB_USERNAME
-        password: $DOCKERHUB_PASSWORD
-
-
 jobs:
   pylint:
     <<: *default_image
@@ -37,3 +29,9 @@ jobs:
       - run: echo "this is the test"
 
 
+default_image: &default_image
+  docker:
+    - image: circleci/python:3.8
+      auth:
+        username: $DOCKERHUB_USERNAME
+        password: $DOCKERHUB_PASSWORD
