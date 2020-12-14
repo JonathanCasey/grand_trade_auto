@@ -45,6 +45,6 @@ jobs:
       - *default_restore_cache
       - *default_install_deps
       - *default_save_cache
-      - run: echo "this is the test"
-
-
+      - run:
+          name: Run pylint
+          command: pylint grand_trade_auto
