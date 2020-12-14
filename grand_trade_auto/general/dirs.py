@@ -18,12 +18,12 @@ def get_root_path():
     Returns:
       (os.path): Path to root dir.
     """
-    repo_root_dir = os.path.dirname(get_src_root_path())
+    repo_root_dir = os.path.dirname(get_src_app_root_path())
     return repo_root_dir
 
 
 
-def get_src_root_path():
+def get_src_app_root_path():
     """Get the path to project/app source root dir.
 
     Returns:
