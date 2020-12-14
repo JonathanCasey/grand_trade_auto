@@ -9,16 +9,14 @@ workflows:
             - docker-hub-creds
 
 
-
-default_image: &default_image
-  docker:
-    - image: circleci/python:3.8
-      auth:
-        username: $DOCKERHUB_USERNAME
-        password: $DOCKERHUB_PASSWORD
-
-
 aliases:
+  - &default_image
+    docker:
+      - image: circleci/python:3.8
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+
   - &default_restore_cache
     restore_cache:
       key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
