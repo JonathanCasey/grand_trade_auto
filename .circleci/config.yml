@@ -18,15 +18,19 @@ default_image: &default_image
         password: $DOCKERHUB_PASSWORD
 
 
-default_dep_cache: &default_dep_cache
+default_restore_cache: &default_restore_cache
   - restore_cache:
       key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+
+default_install_deps: &default_install_deps
   - run:
       name: Install Python deps in a venv
       command: |
         python3 -m venv venv
         . venv/bin/activate
         pip install -r requirements.txt
+
+default_save_cache: &default_save_cache
   - save_cache:
       key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
       paths:
@@ -39,7 +43,9 @@ jobs:
     <<: *default_image
     steps:
       - checkout
-      <<: *default_dep_cache
+      - *default_restore_cache
+      - *default_install_deps
+      - *default_save_cache
       - run: echo "this is the test"
 
 
