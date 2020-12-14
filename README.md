@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/JonathanCasey/grand_trade_auto.svg?style=shield)](https://circleci.com/gh/JonathanCasey/grand_trade_auto)
+
+
 # Grand Trade Auto
 
 Full stack for trading/investment automation, with strategy abstracted out to
