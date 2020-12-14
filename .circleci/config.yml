@@ -9,25 +9,6 @@ workflows:
             - docker-hub-creds
 
 
-jobs:
-  pylint:
-    <<: *default_image
-    steps:
-      - checkout
-      - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
-      - run:
-          name: Install Python deps in a venv
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r requirements.txt
-      - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
-          paths:
-            - "venv"
-      - run: echo "this is the test"
-
 
 default_image: &default_image
   docker:
@@ -35,3 +16,30 @@ default_image: &default_image
       auth:
         username: $DOCKERHUB_USERNAME
         password: $DOCKERHUB_PASSWORD
+
+
+default_dep_cache: &default_dep_cache
+  - restore_cache:
+      key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+  - run:
+      name: Install Python deps in a venv
+      command: |
+        python3 -m venv venv
+        . venv/bin/activate
+        pip install -r requirements.txt
+  - save_cache:
+      key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      paths:
+        - "venv"
+
+
+
+jobs:
+  pylint:
+    <<: *default_image
+    steps:
+      - checkout
+      <<: *default_dep_cache
+      - run: echo "this is the test"
+
+
