@@ -16,5 +16,5 @@ workflows:
   main:
     jobs:
       - pylint:
-        context:
-          - docker-hub-creds
+          context:
+            - docker-hub-creds
