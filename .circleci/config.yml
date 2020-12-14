@@ -47,4 +47,4 @@ jobs:
       - *default_save_cache
       - run:
           name: Run pylint
-          command: pylint grand_trade_auto
+          command: python -m pylint grand_trade_auto
