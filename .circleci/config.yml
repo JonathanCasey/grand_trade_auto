@@ -1,0 +1,53 @@
+version: 2.1
+
+
+workflows:
+  main:
+    jobs:
+      - pylint:
+          context:
+            - docker-hub-creds
+
+
+
+aliases:
+  - &default_image
+    docker:
+      - image: circleci/python:3.8
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+
+  - &default_restore_cache
+    restore_cache:
+      key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+
+  - &default_install_deps
+    run:
+      name: Install Python deps in a venv
+      command: |
+        python -m venv venv
+        . venv/bin/activate
+        pip install -r requirements.txt
+
+  - &default_save_cache
+    save_cache:
+      key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      paths:
+        - "venv"
+
+
+
+jobs:
+  pylint:
+    <<: *default_image
+    steps:
+      - checkout
+      - *default_restore_cache
+      - *default_install_deps
+      - *default_save_cache
+      - run:
+          name: Run pylint
+          command: |
+            . venv/bin/activate
+            python -m pylint grand_trade_auto
