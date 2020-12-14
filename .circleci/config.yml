@@ -25,7 +25,7 @@ aliases:
     run:
       name: Install Python deps in a venv
       command: |
-        python3 -m venv venv
+        python -m venv venv
         . venv/bin/activate
         pip install -r requirements.txt
 
@@ -47,4 +47,6 @@ jobs:
       - *default_save_cache
       - run:
           name: Run pylint
-          command: python -m pylint grand_trade_auto
+          command: |
+            . venv/bin/activate
+            python -m pylint grand_trade_auto
