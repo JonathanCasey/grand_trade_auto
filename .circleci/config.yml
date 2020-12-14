@@ -1,5 +1,14 @@
 version: 2.1
 
+
+workflows:
+  main:
+    jobs:
+      - pylint:
+          context:
+            - docker-hub-creds
+
+
 jobs:
   pylint:
     docker:
@@ -12,9 +21,3 @@ jobs:
       - run: echo "this is the test"
 
 
-workflows:
-  main:
-    jobs:
-      - pylint:
-          context:
-            - docker-hub-creds
