@@ -80,4 +80,5 @@ jobs:
           name: Run pylint
           command: |
             . venv/bin/activate
-            pytest
+            pytest --cov-report=xml --cov=grand_trade_auto
+            bash <(curl -s https://codecov.io/bash)
