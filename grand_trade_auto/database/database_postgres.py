@@ -22,10 +22,12 @@ class DatabasePostgres(database_meta.DatabaseMeta):
       host (str): The host URL.
       post (int): The port number on that host for accessing the database.
       database (str): The database to open.
-      username (str): The username to use for logging in.
-      password (str): The password to use for logging in.
+      cp_db_id (str): The id used as the section name in the database conf.
+        Will be used for loading credentials on-demand.
+      cp_secrets_id (str): The id used as the section name in the secrets
+        conf.  Will be used for loading credentials on-demand.
     """
-    def __init__(self, host, port, database, username, password):
+    def __init__(self, host, port, database, cp_db_id, cp_secrets_id):
         """
         Creates the database handle.
 
@@ -33,15 +35,17 @@ class DatabasePostgres(database_meta.DatabaseMeta):
           host (str): The host URL.
           post (int): The port number on that host for accessing the database.
           database (str): The database to open.
-          username (str): The username to use for logging in.
-          password (str): The password to use for logging in.
+          cp_db_id (str): The id used as the section name in the database conf.
+            Will be used for loading credentials on-demand.
+          cp_secrets_id (str): The id used as the section name in the secrets
+            conf.  Will be used for loading credentials on-demand.
         """
         self.host = host
         self.port = port
         self.database = database
-        self.username = username
-        self.password = password
-        super().__init__(host, port, database, username, password)
+        self.cp_db_id = cp_db_id
+        self.cp_secrets_id = cp_secrets_id
+        super().__init__(host, port, database, cp_db_id, cp_secrets_id)
 
 
 
@@ -69,12 +73,8 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         kwargs['host'] = db_cp[db_id]['host url']
         kwargs['database'] = db_cp[db_id]['database']
         kwargs['port'] = db_cp.getint(db_id, 'port', fallback=5432)
-        kwargs['username'] = db_cp.get(db_id, 'username', fallback=None)
-
-        kwargs['password'] = secrets_cp.get(secrets_id, 'password',
-                fallback=None)
-        kwargs['username'] = secrets_cp.get(secrets_id, 'username',
-                fallback=kwargs['username'])
+        kwargs['cp_db_id'] = db_id
+        kwargs['cp_secrets_id'] = secrets_id
 
         db_handle = DatabasePostgres(**kwargs)
         return db_handle
@@ -97,3 +97,9 @@ class DatabasePostgres(database_meta.DatabaseMeta):
     # def open_or_create_database(self):
     #     """
     #     """
+    #     kwargs['username'] = db_cp.get(db_id, 'username', fallback=None)
+
+    #     kwargs['password'] = secrets_cp.get(secrets_id, 'password',
+    #             fallback=None)
+    #     kwargs['username'] = secrets_cp.get(secrets_id, 'username',
+    #             fallback=kwargs['username'])

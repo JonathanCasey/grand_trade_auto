@@ -23,10 +23,16 @@ class DatabaseMeta(ABC):
       N/A
 
     Instance Attributes:
-      N/A
+      host (str): The host URL.
+      post (int): The port number on that host for accessing the database.
+      database (str): The database to open.
+      cp_db_id (str): The id used as the section name in the database conf.
+        Will be used for loading credentials on-demand.
+      cp_secrets_id (str): The id used as the section name in the secrets
+        conf.  Will be used for loading credentials on-demand.
     """
     @abstractmethod
-    def __init__(self, host, port, database, username, password):
+    def __init__(self, host, port, database, cp_db_id, cp_secrets_id):
         """
         Creates the database handle.
 
@@ -34,8 +40,10 @@ class DatabaseMeta(ABC):
           host (str): The host URL.
           post (int): The port number on that host for accessing the database.
           database (str): The database to open.
-          username (str): The username to use for logging in.
-          password (str): The password to use for logging in.
+          cp_db_id (str): The id used as the section name in the database conf.
+            Will be used for loading credentials on-demand.
+          cp_secrets_id (str): The id used as the section name in the secrets
+            conf.  Will be used for loading credentials on-demand.
         """
 
 
