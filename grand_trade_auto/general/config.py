@@ -22,8 +22,8 @@ import dirs
 
 
 
-def read_conf_file_fake_header(conf_rel_file, fake_section='',
-        conf_base_dir=dirs.get_conf_path()):
+def read_conf_file_fake_header(conf_rel_file,
+        conf_base_dir=dirs.get_conf_path(), fake_section='',):
     """Read config file in configparser format, but insert a fake header for
     first section.  This is aimed at files that are close to configparser
     format, but do not have a section header for the first section.
@@ -32,20 +32,20 @@ def read_conf_file_fake_header(conf_rel_file, fake_section='',
 
     Args:
       conf_rel_file (str): Relative file path to config file.
-      fake_section (str): Fake section name, if needed.
       conf_base_dir (str): Base file path to use with relative path.  If not
         provided, this will use the absolute path of this module.
+      fake_section (str): Fake section name, if needed.
 
     Returns:
-      config (configparser.ConfigParser): ConfigParser for file loaded.
+      parser (configparser.ConfigParser): ConfigParser for file loaded.
     """
     conf_file = os.path.join(conf_base_dir, conf_rel_file)
 
-    config = configparser.ConfigParser()
+    parser = configparser.ConfigParser()
     file = open(conf_file, encoding="utf_8")
-    config.read_file(itertools.chain(['[' + fake_section + ']'], file))
+    parser.read_file(itertools.chain(['[' + fake_section + ']'], file))
 
-    return config
+    return parser
 
 
 
@@ -58,11 +58,11 @@ def read_conf_file(conf_rel_file, conf_base_dir=dirs.get_conf_path()):
         provided, this will use the absolute path of this module.
 
     Returns:
-      config (configparser.ConfigParser): ConfigParser for file loaded.
+      parser (configparser.ConfigParser): ConfigParser for file loaded.
     """
     conf_file = os.path.join(conf_base_dir, conf_rel_file)
 
-    config = configparser.ConfigParser()
-    config.read(conf_file)
+    parser = configparser.ConfigParser()
+    parser.read(conf_file)
 
-    return config
+    return parser
