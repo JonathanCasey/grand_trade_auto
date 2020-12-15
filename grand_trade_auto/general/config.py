@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""This module handles access to the configuration files.  The configuration
+"""
+This module handles access to the configuration files.  The configuration
 files--including the environment files--are accessed by the other python scripts
 through this file.
 
@@ -9,7 +10,7 @@ all the loading and caching will happen automatically internal to this file.
 As of right now, this is hard-coded to access configuration files at a specific
 name and path.
 
-Attributes:
+Module Attributes:
   N/A
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
@@ -24,7 +25,8 @@ import dirs
 
 def read_conf_file_fake_header(conf_rel_file,
         conf_base_dir=dirs.get_conf_path(), fake_section='',):
-    """Read config file in configparser format, but insert a fake header for
+    """
+    Read config file in configparser format, but insert a fake header for
     first section.  This is aimed at files that are close to configparser
     format, but do not have a section header for the first section.
 
@@ -50,7 +52,8 @@ def read_conf_file_fake_header(conf_rel_file,
 
 
 def read_conf_file(conf_rel_file, conf_base_dir=dirs.get_conf_path()):
-    """Read config file in configparser format.
+    """
+    Read config file in configparser format.
 
     Args:
       conf_rel_file (str): Relative file path to config file.
