@@ -81,4 +81,8 @@ jobs:
           command: |
             . venv/bin/activate
             pytest --cov-report=xml --cov=grand_trade_auto
+      - run:
+          name: Upload coverage results
+          command: |
+            . venv/bin/activate
             bash <(curl -s https://codecov.io/bash)
