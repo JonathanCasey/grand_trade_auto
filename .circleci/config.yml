@@ -2,7 +2,7 @@ version: 2.1
 
 
 workflows:
-  main:
+  lint-and-test:
     jobs:
       - pylint-app:
           context:
