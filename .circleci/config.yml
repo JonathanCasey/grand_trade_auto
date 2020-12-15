@@ -4,7 +4,13 @@ version: 2.1
 workflows:
   main:
     jobs:
-      - pylint:
+      - pylint-app:
+          context:
+            - docker-hub-creds
+      - pylint-tests:
+          context:
+            - docker-hub-creds
+      - unit-tests:
           context:
             - docker-hub-creds
 
@@ -39,7 +45,7 @@ aliases:
 
 
 jobs:
-  pylint:
+  pylint-app:
     <<: *default_image
     steps:
       - checkout
@@ -51,3 +57,27 @@ jobs:
           command: |
             . venv/bin/activate
             python -m pylint grand_trade_auto
+  pylint-tests:
+    <<: *default_image
+    steps:
+      - checkout
+      - *default_restore_cache
+      - *default_install_deps
+      - *default_save_cache
+      - run:
+          name: Run pylint
+          command: |
+            . venv/bin/activate
+            python -m pylint tests
+  unit-tests:
+    <<: *default_image
+    steps:
+      - checkout
+      - *default_restore_cache
+      - *default_install_deps
+      - *default_save_cache
+      - run:
+          name: Run pylint
+          command: |
+            . venv/bin/activate
+            pytest
