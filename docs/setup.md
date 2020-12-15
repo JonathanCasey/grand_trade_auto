@@ -15,7 +15,10 @@ the repo:
     "python.testing.pytestArgs": [
         "."
     ],
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "terminal.integrated.env.windows": {
+        "PYTHONPATH": "${workspaceFolder}/grand_trade_auto;${env:PYTHONPATH}",
+    }
 }
 ```
 
@@ -26,6 +29,13 @@ PYTHONPATH=C:\path\to\the\repo\root;${PYTHONPATH}
 
 Note that in the above, if not on Windows, the semicolon `;` separator should be
 replaced with a colon `:`.
+
+This only works when opening the folder.  If opened as part of a multi-folder
+project, the `"terminal.integrated.env.windows"` will not be applied.  While not
+the most elegant, running
+`$env:PYTHONPATH = 'C:\path\to\repo\grand_trade_auto;' + $env:PYTHONPATH` will
+do the trick (the last part for the plus `+` sign and onwards can be omitted if
+it is not set at all yet).
 
 
 ### CircleCI
