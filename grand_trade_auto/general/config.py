@@ -19,7 +19,7 @@ import configparser
 import itertools
 import os.path
 
-import dirs
+from grand_trade_auto.general import dirs
 
 
 

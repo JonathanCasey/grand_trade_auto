@@ -8,3 +8,5 @@ init-hook='from pylint.config import find_pylintrc;
         sys.path.append(os.path.join(
                         os.path.join(os.path.dirname(find_pylintrc()),
                                 'grand_trade_auto'), 'general'));'
+
+max-args=10

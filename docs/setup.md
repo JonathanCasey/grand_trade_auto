@@ -2,6 +2,13 @@
 
 # Using
 
+### Database: PostgreSQL
+If using PostgreSQL as a database for some or all data, the
+[Getting Started docs on PostgreSQL](https://www.postgresqltutorial.com/postgresql-getting-started/)
+are fantastic.
+
+
+
 # Contributing
 
 ## One-time Setup

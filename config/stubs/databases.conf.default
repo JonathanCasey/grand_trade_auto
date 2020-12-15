@@ -1,0 +1,7 @@
+
+[friendly-name-for-database]
+type : <postgres>
+host url :
+port :
+database : grand_trade_auto
+username :
