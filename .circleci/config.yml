@@ -94,7 +94,7 @@ jobs:
           name: Setup mock files
           command: |
             mv .circleci/databases.conf.circleci config/databases.conf
-            mv .circle/.secrets.conf.circleci config/.secrets.conf
+            mv .circleci/.secrets.conf.circleci config/.secrets.conf
       - run:
           name: Run pylint
           command: |
