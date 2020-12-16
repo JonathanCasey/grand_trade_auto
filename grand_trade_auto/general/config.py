@@ -24,7 +24,7 @@ from grand_trade_auto.general import dirs
 
 
 def read_conf_file_fake_header(conf_rel_file,
-        conf_base_dir=dirs.get_conf_path(), fake_section='',):
+        conf_base_dir=dirs.get_conf_path(), fake_section='fake',):
     """
     Read config file in configparser format, but insert a fake header for
     first section.  This is aimed at files that are close to configparser
