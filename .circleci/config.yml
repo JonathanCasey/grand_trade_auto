@@ -30,13 +30,13 @@ aliases:
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD
-    - image: circleci/postgres:12-ram
-      auth:
-        username: $DOCKERHUB_USERNAME
-        password: $DOCKERHUB_PASSWORD
-      environment:
-        POSTGRES_USER: circleci-user
-        POSTGRES_PASSWORD: circleci-password
+      - image: circleci/postgres:12-ram
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+        environment:
+          POSTGRES_USER: circleci-user
+          POSTGRES_PASSWORD: circleci-password
 
   - &default_restore_cache
     restore_cache:
