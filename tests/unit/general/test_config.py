@@ -25,7 +25,7 @@ def test_read_conf_file_fake_header():
     default was used.
     """
     this_dir = os.path.dirname(os.path.realpath(__file__))
-    conf_dir = os.path.join(this_dir, 'mock')
+    conf_dir = os.path.join(this_dir, 'test_config')
     parser = config.read_conf_file_fake_header('mock_config_no_header.conf',
             conf_dir)
     assert parser['fake']['test key no header'] == 'test-val-no-header'
@@ -43,7 +43,7 @@ def test_read_conf_file():
     couple values.
     """
     this_dir = os.path.dirname(os.path.realpath(__file__))
-    conf_dir = os.path.join(this_dir, 'mock')
+    conf_dir = os.path.join(this_dir, 'test_config')
     parser = config.read_conf_file('mock_config.conf', conf_dir)
     assert parser['test-section']['test key str'] == 'test-val-str'
     assert parser.getint('test-section', 'test key int') == 123
