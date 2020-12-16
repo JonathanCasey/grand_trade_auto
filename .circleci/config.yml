@@ -24,7 +24,7 @@ aliases:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD
 
-  - &default_postgres_image
+  - &default_python_postgres_image
     docker:
       - image: circleci/python:3.8
         auth:
