@@ -134,6 +134,22 @@ class DatabasePostgres(database_meta.DatabaseMeta):
 
 
 
+    def get_conn(self):
+        """
+        Gets the database connection, creating the connection if needed.  Does
+        NOT handle the database not existing -- that must be handled outside of
+        this when opening/creating the database.
+
+        Returns:
+          (connection): The connection it opened, which is also stored within
+            this object.
+        """
+        if self.conn is None:
+            self.conn = self.connect()
+        return self.conn
+
+
+
     # def open_or_create_database(self):
     #     """
 
