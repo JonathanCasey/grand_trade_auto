@@ -96,7 +96,7 @@ jobs:
             mv .circleci/databases.conf.circleci config/databases.conf
             mv .circleci/.secrets.conf.circleci config/.secrets.conf
       - run:
-          name: Run pylint
+          name: Run pytest unit tests
           command: |
             . venv/bin/activate
             pytest --cov-report=xml --cov=grand_trade_auto
