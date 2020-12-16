@@ -7,7 +7,10 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+import psycopg2
+
 from grand_trade_auto.database import database_meta
+from grand_trade_auto.general import config
 
 
 
@@ -46,6 +49,8 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         self.cp_db_id = cp_db_id
         self.cp_secrets_id = cp_secrets_id
         super().__init__(host, port, database, cp_db_id, cp_secrets_id)
+
+        self.conn = None
 
 
 
@@ -94,12 +99,42 @@ class DatabasePostgres(database_meta.DatabaseMeta):
 
 
 
+    def connect(self, database=None):
+        """
+        Connect to PostgreSQL.  The database can be overridden, which is useful
+        when a default database is needed for initial connections.
+
+        Args:
+          database (str or None): The name of the database to conenct.  If None
+            provided, will use the database name stored in this object.
+
+        Returns:
+          (connection): The new database connection established.
+        """
+        db_cp = config.read_conf_file('databases.conf')
+        secrets_cp = config.read_conf_file('.secrets.conf')
+
+        kwargs = {
+            'host': self.host,
+            'port': self.port,
+        }
+        if database is not None:
+            kwargs['database'] = database
+        else:
+            kwargs['database'] = self.database
+
+        kwargs['user'] = db_cp.get(self.cp_db_id, 'username',
+                fallback=None)
+        kwargs['password'] = secrets_cp.get(self.cp_secrets_id, 'password',
+                fallback=None)
+        kwargs['user'] = secrets_cp.get(self.cp_secrets_id, 'username',
+                fallback=kwargs['user'])
+
+        return psycopg2.connect(**kwargs)
+
+
+
     # def open_or_create_database(self):
     #     """
-    #     """
-    #     kwargs['username'] = db_cp.get(db_id, 'username', fallback=None)
 
-    #     kwargs['password'] = secrets_cp.get(secrets_id, 'password',
-    #             fallback=None)
-    #     kwargs['username'] = secrets_cp.get(secrets_id, 'username',
-    #             fallback=kwargs['username'])
+    #     """
