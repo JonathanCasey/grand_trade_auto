@@ -12,7 +12,6 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
-# pylint: disable=redefined-outer-name  # Otherwise fixtures produce warning
 import psycopg2
 import pytest
 
@@ -21,8 +20,8 @@ from grand_trade_auto.database import databases
 
 
 
-@pytest.fixture
-def pg_test_db():
+@pytest.fixture(name='pg_test_db')
+def fixture_pg_test_db():
     """
     Gets the test database handle for postgres.
 
