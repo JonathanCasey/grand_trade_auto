@@ -17,10 +17,13 @@ DB_HANDLE = None
 
 
 
-def load_databases_from_config():
+def load_databases_from_config(env):
     """
     Loads the databases from the config file and sets the first one it finds to
     be the valid one to use.  Stores for later access.
+
+    Arg:
+      env (str): The environment for which to load database config.
 
     Raises:
       (AssertionError): Raised if database already loaded or cannot be loaded.
@@ -32,6 +35,9 @@ def load_databases_from_config():
     secrets_cp = config.read_conf_file('.secrets.conf')
 
     for db_id in db_cp.sections():
+        if env != db_cp[db_id]['env']:
+            continue
+
         secrets_id = None
         for secrets_section_name in secrets_cp:
             try:
@@ -58,5 +64,5 @@ def load_databases_from_config():
 
 if __name__ == '__main__':
     # TEMP: Just for initial dev tests until real tests written
-    load_databases_from_config()
+    load_databases_from_config('development')
     print('Done')

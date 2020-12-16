@@ -1,5 +1,6 @@
 
 [friendly-name-for-database]
+env : <production/development/test>
 type : <postgres>
 host url :
 port :
