@@ -13,36 +13,23 @@ Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+import pytest
+
 from grand_trade_auto.database import databases
-from grand_trade_auto.general import config
 
 
 
-def test_load_databases_from_config(monkeypatch):
+def test_load_databases_from_config():
     """
-    Tests that the `load_databases_from_config()` method works properly.
+    Tests that the `load_databases_from_config()` method works properly,
+    including in unintended paths.
     """
-    original_read_conf_file = config.read_conf_file
-
-    def mock_read_conf_file(conf_rel_file):
-        """
-        Overrides `read_conf_file()` (taking only arguments relevant to calls in
-        this test), to alter values before returning.
-
-        See grand_trade_auto.general.config.read_conf_file() for rest of args
-        and returns.
-        """
-        parser = original_read_conf_file(conf_rel_file)
-        for section in parser.sections():
-            if 'database' in parser[section]:
-                parser[section]['database'] = parser[section]['database'] \
-                            + '_TEST'
-        return parser
-
-
-    monkeypatch.setattr(config, 'read_conf_file', mock_read_conf_file)
-
+    with pytest.raises(AssertionError):
+        databases.load_databases_from_config('invalid-env')
+    assert databases.DB_HANDLE is None
 
     databases.load_databases_from_config('test')
     assert databases.DB_HANDLE is not None
-    # assert databases.DB_HANDLE.database == 'grand_trade_auto'
+
+    with pytest.raises(AssertionError):
+        databases.load_databases_from_config('test')

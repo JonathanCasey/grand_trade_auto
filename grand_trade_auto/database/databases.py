@@ -59,10 +59,3 @@ def load_databases_from_config(env):
                 break
 
     assert DB_HANDLE is not None, "No valid database configuration found."
-
-
-
-if __name__ == '__main__':
-    # TEMP: Just for initial dev tests until real tests written
-    load_databases_from_config('development')
-    print('Done')

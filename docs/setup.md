@@ -8,6 +8,18 @@ If using PostgreSQL as a database for some or all data, the
 are fantastic.
 
 
+### Config files
+The config files in `/config/stubs` must be copied to `/config` with the
+`.default` suffix dropped; the rest of the filename must remain unchanged (e.g.
+`/config/stubs/databases.conf.default` -> `/config/databases.conf`).
+
+**DATA LOSS WARNING**: If planning to run unit tests, a test env database config
+will need to be provided.  This MUST be different from the database used for
+production and development, as it will create, add/modify data, and then drop
+the database.  IF YOU USE THE SAME DATABASE AS YOUR PRODUCTION OR DEVELOPMENT
+DATABASE, YOU WILL LOSE THAT DATABASE!
+
+
 
 # Contributing
 
