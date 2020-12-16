@@ -17,13 +17,15 @@ DB_HANDLE = None
 
 
 
-def load_databases_from_config(env):
+def load_databases_from_config(env, db_type=None):
     """
     Loads the databases from the config file and sets the first one it finds to
     be the valid one to use.  Stores for later access.
 
     Arg:
       env (str): The environment for which to load database config.
+      db_type (str or None): The database type to be forced as the one to load;
+        or None to simply take the first one found.
 
     Raises:
       (AssertionError): Raised if database already loaded or cannot be loaded.
@@ -35,22 +37,18 @@ def load_databases_from_config(env):
     secrets_cp = config.read_conf_file('.secrets.conf')
 
     for db_id in db_cp.sections():
-        if env != db_cp[db_id]['env']:
+        if env != db_cp[db_id]['env'].strip():
             continue
 
-        secrets_id = None
-        for secrets_section_name in secrets_cp:
-            try:
-                submod, sid = secrets_section_name.split('::')
-                if submod.strip().lower() == 'database' \
-                        and sid.strip().lower() == db_id.strip().lower():
-                    secrets_id = secrets_section_name
-            except ValueError:
+        secrets_id = config.get_matching_secrets_id(secrets_cp, 'database',
+                db_id)
+
+        postgres_type_names = \
+                database_postgres.DatabasePostgres.get_type_names()
+        if db_cp[db_id]['type'].strip() in postgres_type_names:
+            if db_type is not None and db_type not in postgres_type_names:
                 continue
 
-        db_type = db_cp[db_id]['type'].strip()
-
-        if db_type in database_postgres.DatabasePostgres.get_type_names():
             db_handle = database_postgres.DatabasePostgres.load_from_config(
                     db_cp, db_id, secrets_cp, secrets_id)
 

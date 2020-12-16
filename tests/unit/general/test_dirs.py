@@ -7,7 +7,7 @@ all tiles, classes, and methods will be prefaced with `test_/Test` to comply
 with auto-discovery (others may exist, but will not be part of test suite
 directly).
 
-Attributes:
+Module Attributes:
   APP_NAME (str): The name of the app as it appears in its folder name in the
     repo root.
 

@@ -7,7 +7,7 @@ all tiles, classes, and methods will be prefaced with `test_/Test` to comply
 with auto-discovery (others may exist, but will not be part of test suite
 directly).
 
-Attributes:
+Module Attributes:
   APP_NAME (str): The name of the app as it appears in its folder name in the
     repo root.
 
@@ -20,7 +20,8 @@ from grand_trade_auto.general import config
 
 
 def test_read_conf_file_fake_header():
-    """Tests that the `read_conf_file_fake_header()` will correctly read a file
+    """
+    Tests that the `read_conf_file_fake_header()` will correctly read a file
     with no header, regardless of whether a fake header name was provided or the
     default was used.
     """
@@ -29,17 +30,20 @@ def test_read_conf_file_fake_header():
     parser = config.read_conf_file_fake_header('mock_config_no_header.conf',
             conf_dir)
     assert parser['fake']['test key no header'] == 'test-val-no-header'
-    assert parser['test-section']['test key str'] == 'test-val-str'
+    assert parser['test-submod :: test-section']['test key str'] \
+            == 'test-val-str'
 
     parser = config.read_conf_file_fake_header('mock_config_no_header.conf',
             conf_dir, 'new fake')
     assert parser['new fake']['test key no header'] == 'test-val-no-header'
-    assert parser['test-section']['test key str'] == 'test-val-str'
+    assert parser['test-submod :: test-section']['test key str'] \
+            == 'test-val-str'
 
 
 
 def test_read_conf_file():
-    """Tests that the `read_conf_file()` will correctly read a file, checking a
+    """
+    Tests that the `read_conf_file()` will correctly read a file, checking a
     couple values.
     """
     this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -47,3 +51,29 @@ def test_read_conf_file():
     parser = config.read_conf_file('mock_config.conf', conf_dir)
     assert parser['test-section']['test key str'] == 'test-val-str'
     assert parser.getint('test-section', 'test key int') == 123
+
+
+
+def test_get_matching_secrets_id():
+    """
+    Tests the `get_matching_secrets_id()`.
+    """
+    this_dir = os.path.dirname(os.path.realpath(__file__))
+    conf_dir = os.path.join(this_dir, 'test_config')
+
+    main_cp = config.read_conf_file('mock_config.conf', conf_dir)
+    secrets_cp = config.read_conf_file_fake_header(
+            'mock_config_no_header.conf', conf_dir)
+    main_id = main_cp.sections()[0]
+
+    section_id = config.get_matching_secrets_id(secrets_cp, 'test-submod',
+            main_id)
+    assert section_id == 'test-submod :: test-section'
+
+    section_id = config.get_matching_secrets_id(secrets_cp, 'test-submod',
+            'bad-id')
+    assert section_id is None
+
+    section_id = config.get_matching_secrets_id(secrets_cp, 'bad-submod',
+            main_id)
+    assert section_id is None

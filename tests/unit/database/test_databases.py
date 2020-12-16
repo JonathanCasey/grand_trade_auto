@@ -7,9 +7,8 @@ all tiles, classes, and methods will be prefaced with `test_/Test` to comply
 with auto-discovery (others may exist, but will not be part of test suite
 directly).
 
-Attributes:
-  APP_NAME (str): The name of the app as it appears in its folder name in the
-    repo root.
+Module Attributes:
+  N/A
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
@@ -28,7 +27,14 @@ def test_load_databases_from_config():
         databases.load_databases_from_config('invalid-env')
     assert databases.DB_HANDLE is None
 
+    with pytest.raises(AssertionError):
+        databases.load_databases_from_config('test', 'invalid-type')
+
     databases.load_databases_from_config('test')
+    assert databases.DB_HANDLE is not None
+
+    databases.DB_HANDLE = None
+    databases.load_databases_from_config('test', 'postgres')
     assert databases.DB_HANDLE is not None
 
     with pytest.raises(AssertionError):

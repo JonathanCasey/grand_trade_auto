@@ -39,7 +39,7 @@ def read_conf_file_fake_header(conf_rel_file,
       fake_section (str): Fake section name, if needed.
 
     Returns:
-      parser (configparser.ConfigParser): ConfigParser for file loaded.
+      parser (ConfigParser): ConfigParser for file loaded.
     """
     conf_file = os.path.join(conf_base_dir, conf_rel_file)
 
@@ -61,7 +61,7 @@ def read_conf_file(conf_rel_file, conf_base_dir=dirs.get_conf_path()):
         provided, this will use the absolute path of this module.
 
     Returns:
-      parser (configparser.ConfigParser): ConfigParser for file loaded.
+      parser (ConfigParser): ConfigParser for file loaded.
     """
     conf_file = os.path.join(conf_base_dir, conf_rel_file)
 
@@ -69,3 +69,32 @@ def read_conf_file(conf_rel_file, conf_base_dir=dirs.get_conf_path()):
     parser.read(conf_file)
 
     return parser
+
+
+
+def get_matching_secrets_id(secrets_cp, submod, main_id):
+    """
+    Retrieves the section name (ID) for in the .secrets.conf that matches the
+    submodule and main config ID provided.
+
+    Args:
+      secrets_cp (ConfigParser): A config parser for the .secrets.conf file
+        already loaded.
+      submod (str): The name of the submodule that should be the prefix in the
+        section name for this in the .secrets.conf file.
+      main_id (str): The name of section from the relevant submodule's config to
+        ID this element.
+
+    Returns:
+      (str or None): The name of the matching section in the .secrets.conf; or
+        None if no match.
+    """
+    for secrets_section_name in secrets_cp:
+        try:
+            submod_found, id_found = secrets_section_name.split('::')
+            if submod_found.strip().lower() == submod.strip().lower() \
+                    and id_found.strip().lower() == main_id.strip().lower():
+                return secrets_section_name
+        except ValueError:
+            continue
+    return None
