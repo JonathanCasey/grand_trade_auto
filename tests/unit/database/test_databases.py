@@ -18,24 +18,28 @@ from grand_trade_auto.database import databases
 
 
 
-def test_load_databases_from_config():
+def test_load_and_set_main_database_from_config():
     """
-    Tests that the `load_databases_from_config()` method works properly,
-    including in unintended paths.
+    Tests that the `load_and_set_main_database_from_config()` method.
     """
     with pytest.raises(AssertionError):
-        databases.load_databases_from_config('invalid-env')
+        databases.load_and_set_main_database_from_config('invalid-env')
     assert databases.DB_HANDLE is None
 
-    with pytest.raises(AssertionError):
-        databases.load_databases_from_config('test', 'invalid-type')
-
-    databases.load_databases_from_config('test')
-    assert databases.DB_HANDLE is not None
-
-    databases.DB_HANDLE = None
-    databases.load_databases_from_config('test', 'postgres')
+    databases.load_and_set_main_database_from_config('test', 'postgres')
     assert databases.DB_HANDLE is not None
 
     with pytest.raises(AssertionError):
-        databases.load_databases_from_config('test')
+        databases.load_and_set_main_database_from_config('test')
+    assert databases.DB_HANDLE is not None
+
+
+
+def test_get_database_from_config():
+    """
+    Tests that the `get_database_from_config()` method.
+    """
+    assert databases.get_database_from_config('invalid-env') is None
+    assert databases.get_database_from_config('test', 'invalid-type') is None
+    assert databases.get_database_from_config('test') is not None
+    assert databases.get_database_from_config('test', 'postgres') is not None

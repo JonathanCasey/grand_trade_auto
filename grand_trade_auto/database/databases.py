@@ -17,7 +17,28 @@ DB_HANDLE = None
 
 
 
-def load_databases_from_config(env, db_type=None):
+def load_and_set_main_database_from_config(env, db_type=None):
+    """
+    Loads the main database from config and sets it as the main handle open.
+
+    Arg:
+      env (str): The environment for which to load database config.
+      db_type (str or None): The database type to be forced as the one to load;
+        or None to simply take the first one found.
+
+    Raises:
+      (AssertionError): Raised if database already loaded or cannot be loaded.
+    """
+    global DB_HANDLE    # pylint: disable=global-statement
+    assert DB_HANDLE is None, "Cannot load databases: Database already loaded."
+    db_handle = get_database_from_config(env, db_type)
+    if db_handle is not None:
+        DB_HANDLE = db_handle
+    assert DB_HANDLE is not None, "No valid database configuration found."
+
+
+
+def get_database_from_config(env, db_type=None):
     """
     Loads the databases from the config file and sets the first one it finds to
     be the valid one to use.  Stores for later access.
@@ -30,9 +51,6 @@ def load_databases_from_config(env, db_type=None):
     Raises:
       (AssertionError): Raised if database already loaded or cannot be loaded.
     """
-    global DB_HANDLE    # pylint: disable=global-statement
-    assert DB_HANDLE is None, "Cannot load databases: Database already loaded."
-
     db_cp = config.read_conf_file('databases.conf')
     secrets_cp = config.read_conf_file('.secrets.conf')
 
@@ -53,7 +71,5 @@ def load_databases_from_config(env, db_type=None):
                     db_cp, db_id, secrets_cp, secrets_id)
 
             if db_handle is not None:
-                DB_HANDLE = db_handle
-                break
-
-    assert DB_HANDLE is not None, "No valid database configuration found."
+                return db_handle
+    return None
