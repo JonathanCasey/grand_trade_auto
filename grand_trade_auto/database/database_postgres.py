@@ -143,7 +143,7 @@ class DatabasePostgres(database_meta.DatabaseMeta):
 
 
 
-    def check_if_db_exists(self):
+    def _check_if_db_exists(self):
         """
         Checks if the database specified as the database to use in this object
         already exists.
@@ -179,7 +179,7 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         Creates the database specified as the database to use in this object.
         If it already exists, skips.
         """
-        if self.check_if_db_exists():
+        if self._check_if_db_exists():
             return
 
         conn = self.connect(False, 'postgres')
@@ -193,7 +193,7 @@ class DatabasePostgres(database_meta.DatabaseMeta):
 
 
 
-    def drop_db(self):
+    def _drop_db(self):
         """
         This drops the database specified as the database to use in this object.
 

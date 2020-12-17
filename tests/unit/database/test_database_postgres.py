@@ -12,6 +12,8 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+#pylint: disable=protected-access  # Allow for purpose of testing those elements
+
 import psycopg2
 import pytest
 
@@ -28,7 +30,7 @@ def fixture_pg_test_db():
     Returns:
       (DatabasePostgres): The test postgres database handle.
     """
-    return databases.get_database_from_config('test', 'postgres')
+    return databases._get_database_from_config('test', 'postgres')
 
 
 
@@ -75,33 +77,33 @@ def test_connect(pg_test_db):
 
 def test_create_drop_check_if_db_exists(pg_test_db):
     """
-    Tests the `create_db()`, `drop_db()`, and `check_if_db_exists()` methods in
-    `DatabasePostgres`.  Done together since they are already intertwined and
+    Tests the `create_db()`, `_drop_db()`, and `_check_if_db_exists()` methods
+    in `DatabasePostgres`.  Done together since they are already intertwined and
     test steps end up being very similar unless duplicating a bunch of code.
     """
     # Want to ensure db does not exist before starting
-    pg_test_db.drop_db()
-    assert not pg_test_db.check_if_db_exists()
+    pg_test_db._drop_db()
+    assert not pg_test_db._check_if_db_exists()
 
     # Test with cached connection to start
     pg_test_db.connect(True, 'postgres')
 
     pg_test_db.create_db()
-    assert pg_test_db.check_if_db_exists()
+    assert pg_test_db._check_if_db_exists()
 
     # Re-check the non-create path
     pg_test_db.create_db()
-    assert pg_test_db.check_if_db_exists()
+    assert pg_test_db._check_if_db_exists()
 
     # Need to ensure it definitely is dropped when known to exist
-    pg_test_db.drop_db()
-    assert not pg_test_db.check_if_db_exists()
+    pg_test_db._drop_db()
+    assert not pg_test_db._check_if_db_exists()
 
     pg_test_db.conn.close()
     # Retest without open cached conn
 
     pg_test_db.create_db()
-    assert pg_test_db.check_if_db_exists()
+    assert pg_test_db._check_if_db_exists()
 
-    pg_test_db.drop_db()
-    assert not pg_test_db.check_if_db_exists()
+    pg_test_db._drop_db()
+    assert not pg_test_db._check_if_db_exists()

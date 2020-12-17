@@ -31,14 +31,14 @@ def load_and_set_main_database_from_config(env, db_type=None):
     """
     global DB_HANDLE    # pylint: disable=global-statement
     assert DB_HANDLE is None, "Cannot load databases: Database already loaded."
-    db_handle = get_database_from_config(env, db_type)
+    db_handle = _get_database_from_config(env, db_type)
     if db_handle is not None:
         DB_HANDLE = db_handle
     assert DB_HANDLE is not None, "No valid database configuration found."
 
 
 
-def get_database_from_config(env, db_type=None):
+def _get_database_from_config(env, db_type=None):
     """
     Loads the databases from the config file and sets the first one it finds to
     be the valid one to use.  Stores for later access.
