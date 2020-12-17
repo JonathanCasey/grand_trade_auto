@@ -73,47 +73,35 @@ def test_connect(pg_test_db):
 
 
 
-def test_check_if_db_exists(pg_test_db):
+def test_create_drop_check_if_db_exists(pg_test_db):
     """
-    Tests the `check_if_db_exists()` method in `DatabasePostgres`.
-    """
-    pg_test_db.create_db()
-    assert pg_test_db.check_if_db_exists() == True
-
-    pg_test_db.drop_db()
-    assert pg_test_db.check_if_db_exists() == False
-
-
-
-def test_create_db(pg_test_db):
-    """
-    Tests the `get_conn()` method in `DatabasePostgres`.  Testing when the
+    Tests the `create_db()`, `drop_db()`, and `check_if_db_exists()` methods in
+    `DatabasePostgres`.  Done together since they are already intertwined and
+    test steps end up being very similar unless duplicating a bunch of code.
     """
     # Want to ensure db does not exist before starting
     pg_test_db.drop_db()
+    assert not pg_test_db.check_if_db_exists()
 
-    # Ensure database does not exist
-    with pytest.raises(psycopg2.OperationalError):
-        pg_test_db.connect(False)
+    # Test with cached connection to start
+    pg_test_db.connect(True, 'postgres')
 
-    # Create the database successfully
     pg_test_db.create_db()
-    conn = pg_test_db.connect(False)   # This test is expected to pass
-    conn.close()
+    assert pg_test_db.check_if_db_exists()
 
     # Re-check the non-create path
     pg_test_db.create_db()
-    conn = pg_test_db.connect(False)   # This test is expected to pass
-    conn.close()
+    assert pg_test_db.check_if_db_exists()
 
+    # Need to ensure it definitely is dropped when known to exist
+    pg_test_db.drop_db()
+    assert not pg_test_db.check_if_db_exists()
 
+    pg_test_db.conn.close()
+    # Retest without open cached conn
 
-def test_drop_db(pg_test_db):
-    """
-    Tests the `drop_db()` method in `DatabasePostgres`.
-    """
     pg_test_db.create_db()
-    assert pg_test_db.check_if_db_exists() == True
+    assert pg_test_db.check_if_db_exists()
 
     pg_test_db.drop_db()
-    assert pg_test_db.check_if_db_exists() == False
+    assert not pg_test_db.check_if_db_exists()

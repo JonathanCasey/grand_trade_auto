@@ -202,18 +202,13 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         This primarily exists for testing and setup purposes; it is extremely
         unlikely it should be called in main, normal functioning of the app.
         """
-        # Since expectation db may not exist, support conn to default db
-        if self.conn is None or self.conn.closed:
-            conn = self.connect(False, 'postgres')
-        else:
-            conn = self.conn
-
+        # Use fresh connection so can use autocommit without caring about
+        #   restoring state; and not expected to be used frequently.
+        conn = self.connect(False, 'postgres')
         conn.autocommit = True
         cursor = conn.cursor()
         sql_drop_db = sql.SQL('DROP DATABASE IF EXISTS {database};').format(
                     database=sql.Identifier(self.database))
         cursor.execute(sql_drop_db)
         cursor.close()
-
-        if conn != self.conn:
-            conn.close()
+        conn.close()
