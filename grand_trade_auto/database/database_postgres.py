@@ -7,6 +7,7 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+from psycopg2 import sql
 import psycopg2
 
 from grand_trade_auto.database import database_meta
@@ -99,18 +100,24 @@ class DatabasePostgres(database_meta.DatabaseMeta):
 
 
 
-    def connect(self, database=None):
+    def connect(self, cache=True, database=None):
         """
         Connect to PostgreSQL.  The database can be overridden, which is useful
         when a default database is needed for initial connections.
 
         Args:
+          cache (bool): Whether to use the existing connection and store it if
+            created; False will force a new connection that will not be saved.
           database (str or None): The name of the database to conenct.  If None
             provided, will use the database name stored in this object.
 
         Returns:
-          (connection): The new database connection established.
+          (connection): The cached connection if specified and existed;
+            otherwise new database connection established.
         """
+        if cache and self.conn is not None:
+            return self.conn
+
         db_cp = config.read_conf_file('databases.conf')
         secrets_cp = config.read_conf_file('.secrets.conf')
 
@@ -118,10 +125,9 @@ class DatabasePostgres(database_meta.DatabaseMeta):
             'host': self.host,
             'port': self.port,
         }
-        if database is not None:
-            kwargs['database'] = database
-        else:
-            kwargs['database'] = self.database
+        if database is None:
+            database = self.database
+        kwargs['database'] = database
 
         kwargs['user'] = db_cp.get(self.cp_db_id, 'username',
                 fallback=None)
@@ -130,27 +136,27 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         kwargs['user'] = secrets_cp.get(self.cp_secrets_id, 'username',
                 fallback=kwargs['user'])
 
-        return psycopg2.connect(**kwargs)
+        conn = psycopg2.connect(**kwargs)
+        if cache:
+            self.conn = conn
+        return conn
 
 
 
-    def get_conn(self):
+    def create_db(self):
         """
-        Gets the database connection, creating the connection if needed.  Does
-        NOT handle the database not existing -- that must be handled outside of
-        this when opening/creating the database.
-
-        Returns:
-          (connection): The connection it opened, which is also stored within
-            this object.
+        Creates the database specified as the database to use in this object.
+        If it already exists, skips.
         """
-        if self.conn is None:
-            self.conn = self.connect()
-        return self.conn
+        try:
+            self.connect(False, self.database)
+            return
+        except psycopg2.OperationalError:
+            pass
 
-
-
-    # def open_or_create_database(self):
-    #     """
-
-    #     """
+        conn = self.connect(False, 'postgres')
+        conn.autocommit = True
+        cursor = conn.cursor()
+        sql_create_db = sql.SQL('CREATE DATABASE {database};').format(
+                database=sql.Identifier(self.database))
+        cursor.execute(sql_create_db)

@@ -12,6 +12,7 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+from psycopg2 import sql
 import psycopg2
 import pytest
 
@@ -60,19 +61,42 @@ def test_connect(pg_test_db):
     to the default database; connecting to the real test db will be covered by
     another test.
     """
-    conn = pg_test_db.connect('postgres')
+    conn = pg_test_db.connect(cache=False, database='postgres')
     assert conn is not None
 
     pg_test_db.database = 'invalid-database'
     with pytest.raises(psycopg2.OperationalError):
         conn = pg_test_db.connect()
 
-
-
-def test_get_conn(pg_test_db):
-    """
-    Tests the `get_conn()` method in `DatabasePostgres`.
-    """
     pg_test_db.conn = 'test-conn'
-    conn = pg_test_db.get_conn()
-    assert conn == 'test-conn'
+    assert pg_test_db.connect() == 'test-conn'
+    assert pg_test_db.conn == 'test-conn'
+
+
+
+def test_create_db(pg_test_db):
+    """
+    Tests the `get_conn()` method in `DatabasePostgres`.  Testing when the
+    """
+    conn = pg_test_db.connect(False, 'postgres')
+    conn.autocommit = True
+    cursor = conn.cursor()
+    sql_drop_db = sql.SQL('DROP DATABASE IF EXISTS {database};').format(
+                database=sql.Identifier(pg_test_db.database))
+    cursor.execute(sql_drop_db)
+    cursor.close()
+    conn.close()
+
+    # Ensure database does not exist
+    with pytest.raises(psycopg2.OperationalError):
+        pg_test_db.connect(False)
+
+    # Create the database successfully
+    pg_test_db.create_db()
+    conn = pg_test_db.connect(False)   # This test is expected to pass
+    conn.close()
+
+    # Re-check the non-create path
+    pg_test_db.create_db()
+    conn = pg_test_db.connect(False)   # This test is expected to pass
+    conn.close()
