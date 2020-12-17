@@ -143,16 +143,44 @@ class DatabasePostgres(database_meta.DatabaseMeta):
 
 
 
+    def check_if_db_exists(self):
+        """
+        Checks if the database specified as the database to use in this object
+        already exists.
+
+        Returns:
+          (bool): True if it already exists; False otherwise.
+        """
+        # Since expectation db may not exist, support conn to default db
+        if self.conn is None or self.conn.closed:
+            conn = self.connect(False, 'postgres')
+        else:
+            conn = self.conn
+
+        cursor = conn.cursor()
+        sql_check_db = 'SELECT 1 FROM pg_database WHERE datname=%(database)s'
+        cursor.execute(sql_check_db, {'database': self.database})
+        result = cursor.fetchone()
+
+        exists = False
+        if result is not None and result[0] == 1:
+            exists = True
+
+        cursor.close()
+        if conn != self.conn:
+            conn.close()
+
+        return exists
+
+
+
     def create_db(self):
         """
         Creates the database specified as the database to use in this object.
         If it already exists, skips.
         """
-        try:
-            self.connect(False, self.database)
+        if self.check_if_db_exists():
             return
-        except psycopg2.OperationalError:
-            pass
 
         conn = self.connect(False, 'postgres')
         conn.autocommit = True
@@ -160,3 +188,32 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         sql_create_db = sql.SQL('CREATE DATABASE {database};').format(
                 database=sql.Identifier(self.database))
         cursor.execute(sql_create_db)
+        cursor.close()
+        conn.close()
+
+
+
+    def drop_db(self):
+        """
+        This drops the database specified as the database to use in this object.
+
+        WARNING: THIS IS A DESTRUCTIVE ACTION!!
+
+        This primarily exists for testing and setup purposes; it is extremely
+        unlikely it should be called in main, normal functioning of the app.
+        """
+        # Since expectation db may not exist, support conn to default db
+        if self.conn is None or self.conn.closed:
+            conn = self.connect(False, 'postgres')
+        else:
+            conn = self.conn
+
+        conn.autocommit = True
+        cursor = conn.cursor()
+        sql_drop_db = sql.SQL('DROP DATABASE IF EXISTS {database};').format(
+                    database=sql.Identifier(self.database))
+        cursor.execute(sql_drop_db)
+        cursor.close()
+
+        if conn != self.conn:
+            conn.close()

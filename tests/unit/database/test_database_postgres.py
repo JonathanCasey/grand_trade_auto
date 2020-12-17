@@ -12,7 +12,6 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
-from psycopg2 import sql
 import psycopg2
 import pytest
 
@@ -74,18 +73,24 @@ def test_connect(pg_test_db):
 
 
 
+def test_check_if_db_exists(pg_test_db):
+    """
+    Tests the `check_if_db_exists()` method in `DatabasePostgres`.
+    """
+    pg_test_db.create_db()
+    assert pg_test_db.check_if_db_exists() == True
+
+    pg_test_db.drop_db()
+    assert pg_test_db.check_if_db_exists() == False
+
+
+
 def test_create_db(pg_test_db):
     """
     Tests the `get_conn()` method in `DatabasePostgres`.  Testing when the
     """
-    conn = pg_test_db.connect(False, 'postgres')
-    conn.autocommit = True
-    cursor = conn.cursor()
-    sql_drop_db = sql.SQL('DROP DATABASE IF EXISTS {database};').format(
-                database=sql.Identifier(pg_test_db.database))
-    cursor.execute(sql_drop_db)
-    cursor.close()
-    conn.close()
+    # Want to ensure db does not exist before starting
+    pg_test_db.drop_db()
 
     # Ensure database does not exist
     with pytest.raises(psycopg2.OperationalError):
@@ -100,3 +105,15 @@ def test_create_db(pg_test_db):
     pg_test_db.create_db()
     conn = pg_test_db.connect(False)   # This test is expected to pass
     conn.close()
+
+
+
+def test_drop_db(pg_test_db):
+    """
+    Tests the `drop_db()` method in `DatabasePostgres`.
+    """
+    pg_test_db.create_db()
+    assert pg_test_db.check_if_db_exists() == True
+
+    pg_test_db.drop_db()
+    assert pg_test_db.check_if_db_exists() == False
