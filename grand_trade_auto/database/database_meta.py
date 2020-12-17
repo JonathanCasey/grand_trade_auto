@@ -85,8 +85,9 @@ class DatabaseMeta(ABC):
 
 
 
-    # @abstractmethod
-    # def open_or_create_database(self):
-    #     """
-    #     """
-    #     raise NotImplementedError
+    @abstractmethod
+    def create_db(self):
+        """
+        Creates the database specified as the database to use in this object.
+        If it already exists, skips.
+        """

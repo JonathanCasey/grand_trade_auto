@@ -30,11 +30,12 @@ def load_and_set_main_database_from_config(env, db_type=None):
       (AssertionError): Raised if database already loaded or cannot be loaded.
     """
     global DB_HANDLE    # pylint: disable=global-statement
-    assert DB_HANDLE is None, "Cannot load databases: Database already loaded."
+    assert DB_HANDLE is None, 'Cannot load databases: Database already loaded.'
     db_handle = _get_database_from_config(env, db_type)
     if db_handle is not None:
         DB_HANDLE = db_handle
-    assert DB_HANDLE is not None, "No valid database configuration found."
+        db_handle.create_db()
+    assert DB_HANDLE is not None, 'No valid database configuration found.'
 
 
 
