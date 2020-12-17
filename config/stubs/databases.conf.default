@@ -1,0 +1,8 @@
+
+[friendly-name-for-database]
+env : <production/development/test>
+type : <postgres>
+host url :
+port :
+database : grand_trade_auto
+username :

@@ -1,0 +1,8 @@
+
+[circleci-test]
+env : test
+type : postgres
+host url : localhost
+port : 5432
+database : grand_trade_auto_TEST
+username : circleci-user

@@ -17,12 +17,26 @@ workflows:
 
 
 aliases:
-  - &default_image
+  - &default_python_image
     docker:
       - image: circleci/python:3.8
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD
+
+  - &default_python_postgres_image
+    docker:
+      - image: circleci/python:3.8
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+      - image: circleci/postgres:12-ram
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+        environment:
+          POSTGRES_USER: circleci-user
+          POSTGRES_PASSWORD: circleci-password
 
   - &default_restore_cache
     restore_cache:
@@ -46,7 +60,7 @@ aliases:
 
 jobs:
   pylint-app:
-    <<: *default_image
+    <<: *default_python_image
     steps:
       - checkout
       - *default_restore_cache
@@ -58,7 +72,7 @@ jobs:
             . venv/bin/activate
             python -m pylint grand_trade_auto
   pylint-tests:
-    <<: *default_image
+    <<: *default_python_image
     steps:
       - checkout
       - *default_restore_cache
@@ -70,14 +84,19 @@ jobs:
             . venv/bin/activate
             python -m pylint tests
   unit-tests:
-    <<: *default_image
+    <<: *default_python_postgres_image
     steps:
       - checkout
       - *default_restore_cache
       - *default_install_deps
       - *default_save_cache
       - run:
-          name: Run pylint
+          name: Setup mock files
+          command: |
+            mv .circleci/databases.conf.circleci config/databases.conf
+            mv .circleci/.secrets.conf.circleci config/.secrets.conf
+      - run:
+          name: Run pytest unit tests
           command: |
             . venv/bin/activate
             pytest --cov-report=xml --cov=grand_trade_auto

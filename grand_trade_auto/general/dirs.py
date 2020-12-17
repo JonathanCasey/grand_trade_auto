@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""This module provides an interface for getting any directory that is used
+"""
+This module provides an interface for getting any directory that is used
 throughout the project.  This gives a centralized place to update if the
 project installation structure changes.
 
@@ -13,7 +14,8 @@ import os.path
 
 
 def get_root_path():
-    """Get the root path to the project/repo root dir.
+    """
+    Get the root path to the project/repo root dir.
 
     Returns:
       (os.path): Path to root dir.
@@ -24,7 +26,8 @@ def get_root_path():
 
 
 def get_src_app_root_path():
-    """Get the path to project/app source root dir.
+    """
+    Get the path to project/app source root dir.
 
     Returns:
       (os.path): Path to source root dir.
@@ -36,7 +39,8 @@ def get_src_app_root_path():
 
 
 def get_conf_path():
-    """Get the path to configuration files.
+    """
+    Get the path to configuration files.
 
     Returns:
       (os.path): Path to config dir.

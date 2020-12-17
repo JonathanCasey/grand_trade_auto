@@ -1,4 +1,6 @@
 
+config/*.conf
+
 .vscode
 
 # Byte-compiled / optimized / DLL files

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""This module handles access to the configuration files.  The configuration
+"""
+This module handles access to the configuration files.  The configuration
 files--including the environment files--are accessed by the other python scripts
 through this file.
 
@@ -9,7 +10,7 @@ all the loading and caching will happen automatically internal to this file.
 As of right now, this is hard-coded to access configuration files at a specific
 name and path.
 
-Attributes:
+Module Attributes:
   N/A
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
@@ -18,13 +19,14 @@ import configparser
 import itertools
 import os.path
 
-import dirs
+from grand_trade_auto.general import dirs
 
 
 
-def read_conf_file_fake_header(conf_rel_file, fake_section='',
-        conf_base_dir=dirs.get_conf_path()):
-    """Read config file in configparser format, but insert a fake header for
+def read_conf_file_fake_header(conf_rel_file,
+        conf_base_dir=dirs.get_conf_path(), fake_section='fake',):
+    """
+    Read config file in configparser format, but insert a fake header for
     first section.  This is aimed at files that are close to configparser
     format, but do not have a section header for the first section.
 
@@ -32,25 +34,26 @@ def read_conf_file_fake_header(conf_rel_file, fake_section='',
 
     Args:
       conf_rel_file (str): Relative file path to config file.
-      fake_section (str): Fake section name, if needed.
       conf_base_dir (str): Base file path to use with relative path.  If not
         provided, this will use the absolute path of this module.
+      fake_section (str): Fake section name, if needed.
 
     Returns:
-      config (configparser.ConfigParser): ConfigParser for file loaded.
+      parser (ConfigParser): ConfigParser for file loaded.
     """
     conf_file = os.path.join(conf_base_dir, conf_rel_file)
 
-    config = configparser.ConfigParser()
+    parser = configparser.ConfigParser()
     file = open(conf_file, encoding="utf_8")
-    config.read_file(itertools.chain(['[' + fake_section + ']'], file))
+    parser.read_file(itertools.chain(['[' + fake_section + ']'], file))
 
-    return config
+    return parser
 
 
 
 def read_conf_file(conf_rel_file, conf_base_dir=dirs.get_conf_path()):
-    """Read config file in configparser format.
+    """
+    Read config file in configparser format.
 
     Args:
       conf_rel_file (str): Relative file path to config file.
@@ -58,11 +61,40 @@ def read_conf_file(conf_rel_file, conf_base_dir=dirs.get_conf_path()):
         provided, this will use the absolute path of this module.
 
     Returns:
-      config (configparser.ConfigParser): ConfigParser for file loaded.
+      parser (ConfigParser): ConfigParser for file loaded.
     """
     conf_file = os.path.join(conf_base_dir, conf_rel_file)
 
-    config = configparser.ConfigParser()
-    config.read(conf_file)
+    parser = configparser.ConfigParser()
+    parser.read(conf_file)
 
-    return config
+    return parser
+
+
+
+def get_matching_secrets_id(secrets_cp, submod, main_id):
+    """
+    Retrieves the section name (ID) for in the .secrets.conf that matches the
+    submodule and main config ID provided.
+
+    Args:
+      secrets_cp (ConfigParser): A config parser for the .secrets.conf file
+        already loaded.
+      submod (str): The name of the submodule that should be the prefix in the
+        section name for this in the .secrets.conf file.
+      main_id (str): The name of section from the relevant submodule's config to
+        ID this element.
+
+    Returns:
+      (str or None): The name of the matching section in the .secrets.conf; or
+        None if no match.
+    """
+    for secrets_section_name in secrets_cp:
+        try:
+            submod_found, id_found = secrets_section_name.split('::')
+            if submod_found.strip().lower() == submod.strip().lower() \
+                    and id_found.strip().lower() == main_id.strip().lower():
+                return secrets_section_name
+        except ValueError:
+            continue
+    return None
