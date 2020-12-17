@@ -26,19 +26,19 @@ def test_load_and_set_main_database_from_config():
     """
     with pytest.raises(AssertionError):
         databases.load_and_set_main_database_from_config('invalid-env')
-    assert databases.DB_HANDLE is None
+    assert databases._DB_HANDLE is None
 
     databases.load_and_set_main_database_from_config('test', 'postgres')
-    assert databases.DB_HANDLE is not None
-    assert databases.DB_HANDLE._check_if_db_exists()
+    assert databases._DB_HANDLE is not None
+    assert databases._DB_HANDLE._check_if_db_exists()
 
     with pytest.raises(AssertionError):
         databases.load_and_set_main_database_from_config('test')
-    assert databases.DB_HANDLE is not None
+    assert databases._DB_HANDLE is not None
 
     # Cleanup
-    databases.DB_HANDLE._drop_db()
-    assert not databases.DB_HANDLE._check_if_db_exists()
+    databases._DB_HANDLE._drop_db()
+    assert not databases._DB_HANDLE._check_if_db_exists()
 
 
 

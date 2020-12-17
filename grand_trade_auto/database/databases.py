@@ -3,7 +3,7 @@ The database API module.  This is intended to be the item accessed outside of
 the database submodule/folder.
 
 Module Attributes:
-  DB_HANDLE (DatabaseMeta<>): The handle to the database that will be used,
+  _DB_HANDLE (DatabaseMeta<>): The handle to the database that will be used,
     where DatabaseMeta<> is a subclass of DatabaseMeta (e.g. DatabasePostgres).
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
@@ -13,7 +13,7 @@ from grand_trade_auto.general import config
 
 
 
-DB_HANDLE = None
+_DB_HANDLE = None
 
 
 
@@ -29,13 +29,13 @@ def load_and_set_main_database_from_config(env, db_type=None):
     Raises:
       (AssertionError): Raised if database already loaded or cannot be loaded.
     """
-    global DB_HANDLE    # pylint: disable=global-statement
-    assert DB_HANDLE is None, 'Cannot load databases: Database already loaded.'
+    global _DB_HANDLE    # pylint: disable=global-statement
+    assert _DB_HANDLE is None, 'Cannot load databases: Database already loaded.'
     db_handle = _get_database_from_config(env, db_type)
     if db_handle is not None:
-        DB_HANDLE = db_handle
+        _DB_HANDLE = db_handle
         db_handle.create_db()
-    assert DB_HANDLE is not None, 'No valid database configuration found.'
+    assert _DB_HANDLE is not None, 'No valid database configuration found.'
 
 
 
