@@ -26,15 +26,24 @@ with `logging.config.fileConfig()`.  Only the root logger is supported.  The
 `logger.conf.default` has the recommended initial settings, though some details
 like the log file location should be set accordingly.
 
-The conf has one additional section named `[cli arg level override]`.  This
-allows the option for CLI invocation of the python module to provide an argument
-to override the log level of the root logger and for only the handlers specified
-in the comma-delimited `handler keys` in this section.  The `handler keys` must
-match the handler key names used elsewhere in the file.  Note that it is not
-perfect since it can only try to match the handler on some of the config
-parameters because the name is not stored (should be added in python 3.10 as
-indicated by
+The conf has one additional section named `[special tweaks]`.  Any undesired
+option can be commented out / deleted, including the entire section.
+
+The `cli arg level override handlers` key allows the option for CLI invocation
+of the python module to provide an argument to override the log level of the
+root logger and for only the handlers specified in that comma-delimited keyn.
+The handlers in `cli arg level override handlers` must match the handler key
+names used elsewhere in the file.  Note that it is not perfect since it can only
+try to match the handler on some of the config parameters because the name is
+not stored (should be added in python 3.10 as indicated by
 [this commit](https://github.com/python/cpython/commit/b15100fe7def8580c78ed16f0bb4b72b2ae7af3f)).
+
+There is also a `max stdout level` key in the `[special tweaks]` section.  This
+can set the maximum level that will be routed to stdout; above which it will be
+routed to stderr (assuming this still conforms with the logger levels already
+set for those handlers).  It requires at least 1 stdout StreamHandler and 1
+stderr StreamHandler to be defined, but then will apply this filter to ALL
+stdout and stderr StreamHandlers.
 
 The logger provides another logger level of `disabled` to disable a logger -- no
 code will log to that level.  The CLI arg override can specify any of these log

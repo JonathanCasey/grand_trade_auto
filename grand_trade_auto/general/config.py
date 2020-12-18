@@ -113,38 +113,40 @@ class LevelFilter(logging.Filter):
       N/A
 
     Instance Attributes:
-      _min_levelno (int or None): The min log level to be included (inclusive).
-        Can be None to skip min level check.
-      _max_levelno (int or None): The max log level to be included (inclusive).
-        Can be None to skip max level check.
+      _min_exc_levelno (int or None): The min log level above which is to be
+        included (exclusive).  Can be None to skip min level check.
+      _max_inc_levelno (int or None): The max log level below which is to be
+        included (inclusive).  Can be None to skip max level check.
     """
-    def __init__(self, min_level=None, max_level=None):
+    def __init__(self, min_exc_level=None, max_inc_level=None):
         """
         Creates the level filter.
 
         Args:
-          min_level (int/str/None): The min log level to be inclued (inclusive).
-            Can be provided as the int level number or as the level name.  Can
-            be omitted/None to disable filtering the min level.
-          max_level (int/str/None): The max log level to be inclued (inclusive).
-            Can be provided as the int level number or as the level name.  Can
-            be omitted/None to disable filtering the max level.
+          min_exc_level (int/str/None): The min log level above which is to be
+            inclued (exclusive).  Can be provided as the int level number or as
+            the level name.  Can be omitted/None to disable filtering the min
+            level.
+          max_inc_level (int/str/None): The max log level below which is to be
+            inclued (inclusive).  Can be provided as the int level number or as
+            the level name.  Can be omitted/None to disable filtering the max
+            level.
         """
         try:
-            self._min_levelno = int(min_level)
+            self._min_exc_levelno = int(min_exc_level)
         except ValueError:
             # Level name dict is bi-directional lookup -- See python source
-            self._min_levelno = logging.getLevelName(min_level.upper())
+            self._min_exc_levelno = logging.getLevelName(min_exc_level.upper())
         except TypeError:
-            self._min_levelno = None
+            self._min_exc_levelno = None
 
         try:
-            self._max_levelno = int(max_level)
+            self._max_inc_levelno = int(max_inc_level)
         except ValueError:
             # Level name dict is bi-directional lookup -- See python source
-            self._max_levelno = logging.getLevelName(max_level.upper())
+            self._max_inc_levelno = logging.getLevelName(max_inc_level.upper())
         except TypeError:
-            self._max_levelno = None
+            self._max_inc_levelno = None
 
         super().__init__()
 
@@ -161,9 +163,11 @@ class LevelFilter(logging.Filter):
         Returns:
           (bool): True if should log; False to drop.
         """
-        if self._min_levelno is not None and record.levelno < self._min_levelno:
+        if self._min_exc_levelno is not None \
+                and record.levelno <= self._min_exc_levelno:
             return False
-        if self._max_levelno is not None and record.levelno > self._max_levelno:
+        if self._max_inc_levelno is not None \
+                and record.levelno > self._max_inc_levelno:
             return False
         return True
 
@@ -207,7 +211,8 @@ def init_logger(override_log_level=None):
         logger_cp.read(conf_file)
 
         handler_names = [h.strip() for h in \
-                logger_cp['cli arg level override']['handler keys'].split(',')]
+                logger_cp['special tweaks']['cli arg level override handlers'] \
+                    .split(',')]
 
         stdout_handlers = []
         stderr_handlers = []
@@ -237,7 +242,9 @@ def init_logger(override_log_level=None):
                     stderr_handlers.append(h_existing)
 
         if len(stdout_handlers) > 0 and len(stderr_handlers) > 0:
+            cutoff_level = logger_cp['special tweaks']['max stdout level'] \
+                    .strip()
             for h_stdout in stdout_handlers:
-                h_stdout.addFilter(LevelFilter(max_level='info'))
+                h_stdout.addFilter(LevelFilter(max_inc_level=cutoff_level))
             for h_stderr in stderr_handlers:
-                h_stderr.addFilter(LevelFilter(min_level='warning'))
+                h_stderr.addFilter(LevelFilter(min_exc_level=cutoff_level))

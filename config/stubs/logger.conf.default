@@ -21,5 +21,6 @@ args=('tmp-file.log',)
 [formatter_simpleFormatter]
 format=%(asctime)s %(name)s - %(levelname)s:%(message)s
 
-[cli arg level override]
-handler keys=fileHandler
+[special tweaks]
+cli arg level override handlers=stdoutHandler
+max stdout level=INFO
