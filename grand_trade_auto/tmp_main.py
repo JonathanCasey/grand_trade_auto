@@ -17,6 +17,7 @@ from grand_trade_auto.general import dirs
 
 
 
+logging.addLevelName(99, 'DISABLED')
 logging.config.fileConfig(os.path.join(dirs.get_conf_path(), 'logger.conf'),
         disable_existing_loggers=False)
 
@@ -26,6 +27,9 @@ def main():
     """
     Launches the main app.
     """
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
     databases.load_and_set_main_database_from_config('test')
 
 

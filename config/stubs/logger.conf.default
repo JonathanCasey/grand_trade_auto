@@ -9,12 +9,12 @@ keys=fileHandler
 keys=simpleFormatter
 
 [logger_root]
-level=DEBUG
+level=DISABLED
 handlers=fileHandler
 
 [handler_fileHandler]
 class=FileHandler
-level=DEBUG
+level=NOTSET
 formatter=simpleFormatter
 args=('tmp-file.log',)
 
