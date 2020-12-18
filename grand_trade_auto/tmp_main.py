@@ -9,12 +9,16 @@ Module Attributes:
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 import logging
+import logging.config
+import os.path
 
 from grand_trade_auto.database import databases
+from grand_trade_auto.general import dirs
 
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.config.fileConfig(os.path.join(dirs.get_conf_path(), 'logger.conf'),
+        disable_existing_loggers=False)
 
 
 
