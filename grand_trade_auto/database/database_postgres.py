@@ -7,11 +7,16 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+import logging
 from psycopg2 import sql
 import psycopg2
 
 from grand_trade_auto.database import database_meta
 from grand_trade_auto.general import config
+
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -137,6 +142,7 @@ class DatabasePostgres(database_meta.DatabaseMeta):
                 fallback=kwargs['user'])
 
         conn = psycopg2.connect(**kwargs)
+        logger.info(f'Connected to database \'{database}\' successfully.')
         if cache:
             self.conn = conn
         return conn
@@ -188,6 +194,7 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         sql_create_db = sql.SQL('CREATE DATABASE {database};').format(
                 database=sql.Identifier(self.database))
         cursor.execute(sql_create_db)
+        logger.info(f'Database \'{self.database}\' created successfully.')
         cursor.close()
         conn.close()
 
