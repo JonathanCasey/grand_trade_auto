@@ -198,53 +198,75 @@ def init_logger(override_log_level=None):
     logging.config.fileConfig(os.path.join(dirs.get_conf_path(), 'logger.conf'),
             disable_existing_loggers=False)
 
+    root_logger = logging.getLogger()
+
+    conf_file = os.path.join(dirs.get_conf_path(), 'logger.conf')
+    logger_cp = configparser.RawConfigParser()
+    logger_cp.read(conf_file)
+
+    try:
+        handler_names = [h.strip() for h in \
+                logger_cp['special tweaks']['cli arg level override handlers'] \
+                    .split(',')]
+    except KeyError:
+        handler_names = []
+
+    try:
+        cutoff_level = logger_cp['special tweaks']['max stdout level'].strip()
+    except KeyError:
+        cutoff_level = None
+
+    override_level_handlers = []
+    stdout_handlers = []
+    stderr_handlers = []
+
+    for h_existing in root_logger.handlers:
+        for h_name in handler_names:
+            # Until v3.10, handler name not stored from fileConfig :(
+            # Will attempt match on some other parameters, but not perfectly
+            try:
+                h_conf = logger_cp[f'handler_{h_name}']
+            except KeyError:
+                root_logger.warning(          # pylint: disable=logging-not-lazy
+                        'Invalid handler name in logger.conf >'
+                        + ' [special tweaks] > cli arg level override handlers:'
+                        + f' {h_name}')
+                continue
+
+            if type(h_existing).__name__ != h_conf['class']:
+                continue
+
+            if logging.getLevelName(h_existing.level) \
+                    != h_conf['level'].strip().upper():
+                continue
+
+            h_conf_fmt = logger_cp[ \
+                    f'formatter_{h_conf["formatter"]}']['format'].strip()
+            if h_existing.formatter._fmt \
+                    != h_conf_fmt:            # pylint: disable=protected-access
+                continue
+
+            override_level_handlers.append(h_existing)
+
+        if isinstance(h_existing, logging.StreamHandler):
+            if h_existing.stream.name == '<stdout>':
+                stdout_handlers.append(h_existing)
+            elif h_existing.stream.name == '<stderr>':
+                stderr_handlers.append(h_existing)
+
     if override_log_level is not None:
         new_level = override_log_level.upper()
         if new_level in ['ALL', 'VERBOSE']:
             new_level = 'NOTSET'
 
-        root_logger = logging.getLogger()
         root_logger.setLevel(new_level)
+        for h_override in override_level_handlers:
+            h_override.setLevel(new_level)
 
-        conf_file = os.path.join(dirs.get_conf_path(), 'logger.conf')
-        logger_cp = configparser.RawConfigParser()
-        logger_cp.read(conf_file)
 
-        handler_names = [h.strip() for h in \
-                logger_cp['special tweaks']['cli arg level override handlers'] \
-                    .split(',')]
-
-        stdout_handlers = []
-        stderr_handlers = []
-        for h_existing in root_logger.handlers:
-            for h_conf in [logger_cp[f'handler_{h}'] for h in handler_names]:
-                # Until v3.10, handler name not stored from fileConfig :(
-                # Will attempt match on some other parameters, but not perfectly
-                if type(h_existing).__name__ != h_conf['class']:
-                    continue
-
-                if logging.getLevelName(h_existing.level) \
-                        != h_conf['level'].strip().upper():
-                    continue
-
-                h_conf_fmt = logger_cp[ \
-                        f'formatter_{h_conf["formatter"]}']['format'].strip()
-                if h_existing.formatter._fmt \
-                        != h_conf_fmt:  # pylint: disable=protected-access
-                    continue
-
-                h_existing.setLevel(new_level)
-
-            if isinstance(h_existing, logging.StreamHandler):
-                if h_existing.stream.name == '<stdout>':
-                    stdout_handlers.append(h_existing)
-                elif h_existing.stream.name == '<stderr>':
-                    stderr_handlers.append(h_existing)
-
-        if len(stdout_handlers) > 0 and len(stderr_handlers) > 0:
-            cutoff_level = logger_cp['special tweaks']['max stdout level'] \
-                    .strip()
-            for h_stdout in stdout_handlers:
-                h_stdout.addFilter(LevelFilter(max_inc_level=cutoff_level))
-            for h_stderr in stderr_handlers:
-                h_stderr.addFilter(LevelFilter(min_exc_level=cutoff_level))
+    if cutoff_level is not None \
+            and len(stdout_handlers) > 0 and len(stderr_handlers) > 0:
+        for h_stdout in stdout_handlers:
+            h_stdout.addFilter(LevelFilter(max_inc_level=cutoff_level))
+        for h_stderr in stderr_handlers:
+            h_stderr.addFilter(LevelFilter(min_exc_level=cutoff_level))
