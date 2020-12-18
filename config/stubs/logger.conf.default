@@ -13,10 +13,15 @@ level=DISABLED
 handlers=fileHandler
 
 [handler_fileHandler]
-class=FileHandler
-level=NOTSET
-formatter=simpleFormatter
-args=('tmp-file.log',)
+class=handlers.RotatingFileHandler
+level=WARNING
+formatter=standardFormatter
+kwargs={
+        'filename': 'tmp-file.log',
+        'mode': 'a',
+        'maxBytes': 1048576,
+        'backupCount': 5,
+    }
 
 [formatter_simpleFormatter]
 format=%(asctime)s %(name)s - %(levelname)s:%(message)s

@@ -233,7 +233,9 @@ def init_logger(override_log_level=None):
                         + f' {h_name}')
                 continue
 
-            if type(h_existing).__name__ != h_conf['class']:
+            if type(h_existing).__name__ != h_conf['class'] \
+                    and f'handlers.{type(h_existing).__name__}' \
+                        != h_conf['class']:
                 continue
 
             if logging.getLevelName(h_existing.level) \
