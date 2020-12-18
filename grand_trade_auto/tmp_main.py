@@ -8,8 +8,17 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+import logging
+
 from grand_trade_auto.database import databases
 from grand_trade_auto.general import config
+
+
+
+if __name__ == '__main__':
+    logger = logging.getLogger('grand_trade_auto.tmp_main')
+else:
+    logger = logging.getLogger(__name__)
 
 
 
@@ -19,6 +28,9 @@ def main():
     """
     config.init_logger('DEBUG')
     databases.load_and_set_main_database_from_config('test')
+    logger.error('error message')
+    logger.warning('warning message')
+    logger.log(99, 'disabled message?')
 
 
 
