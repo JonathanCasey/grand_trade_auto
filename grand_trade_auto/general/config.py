@@ -103,11 +103,84 @@ def get_matching_secrets_id(secrets_cp, submod, main_id):
 
 
 
+class LevelFilter(logging.Filter):
+    """
+    A logging filter for the level to set min and max log levels for a handler.
+    While the min level is redundant given logging already implements this with
+    the base level functionality, the max level adds a new control.
+
+    Class Attributes:
+      N/A
+
+    Instance Attributes:
+      _min_levelno (int or None): The min log level to be included (inclusive).
+        Can be None to skip min level check.
+      _max_levelno (int or None): The max log level to be included (inclusive).
+        Can be None to skip max level check.
+    """
+    def __init__(self, min_level=None, max_level=None):
+        """
+        Creates the level filter.
+
+        Args:
+          min_level (int/str/None): The min log level to be inclued (inclusive).
+            Can be provided as the int level number or as the level name.  Can
+            be omitted/None to disable filtering the min level.
+          max_level (int/str/None): The max log level to be inclued (inclusive).
+            Can be provided as the int level number or as the level name.  Can
+            be omitted/None to disable filtering the max level.
+        """
+        try:
+            self._min_levelno = int(min_level)
+        except ValueError:
+            # Level name dict is bi-directional lookup -- See python source
+            self._min_levelno = logging.getLevelName(min_level.upper())
+        except TypeError:
+            self._min_levelno = None
+
+        try:
+            self._max_levelno = int(max_level)
+        except ValueError:
+            # Level name dict is bi-directional lookup -- See python source
+            self._max_levelno = logging.getLevelName(max_level.upper())
+        except TypeError:
+            self._max_levelno = None
+
+        super().__init__()
+
+
+
+    def filter(self, record):
+        """
+        Filters the provided record according to the logic in this method.
+
+        Args:
+          record (LogRecord): The log record that is being checked whether to
+            log.
+
+        Returns:
+          (bool): True if should log; False to drop.
+        """
+        if self._min_levelno is not None and record.levelno < self._min_levelno:
+            return False
+        if self._max_levelno is not None and record.levelno > self._max_levelno:
+            return False
+        return True
+
+
+
 def init_logger(override_log_level=None):
     """
     Initializes the logger(s).  This is meant to be called once per main entry.
     This does not alter that each module should be getting the logger for their
     module name, most likely from the root logger.
+
+    This will apply the override log level if applicable.
+
+    It will also check for the boundary level between stdout and stderr
+    handlers, if applicable, and set a filter level.  This must be set in the
+    `logging.conf` and must have both a stdout and a stderr handler; but once
+    true, will apply to ALL stdout and ALL stderr StreamHandlers!
 
     Args:
       override_log_level (str): The log level to override and set for the root
@@ -136,10 +209,12 @@ def init_logger(override_log_level=None):
         handler_names = [h.strip() for h in \
                 logger_cp['cli arg level override']['handler keys'].split(',')]
 
+        stdout_handlers = []
+        stderr_handlers = []
         for h_existing in root_logger.handlers:
-            # Until v3.10, handler name not stored from fileConfig :(
-            # Will attempt to match on some other parameters, but not perfectly
             for h_conf in [logger_cp[f'handler_{h}'] for h in handler_names]:
+                # Until v3.10, handler name not stored from fileConfig :(
+                # Will attempt match on some other parameters, but not perfectly
                 if type(h_existing).__name__ != h_conf['class']:
                     continue
 
@@ -154,3 +229,15 @@ def init_logger(override_log_level=None):
                     continue
 
                 h_existing.setLevel(new_level)
+
+            if isinstance(h_existing, logging.StreamHandler):
+                if h_existing.stream.name == '<stdout>':
+                    stdout_handlers.append(h_existing)
+                elif h_existing.stream.name == '<stderr>':
+                    stderr_handlers.append(h_existing)
+
+        if len(stdout_handlers) > 0 and len(stderr_handlers) > 0:
+            for h_stdout in stdout_handlers:
+                h_stdout.addFilter(LevelFilter(max_level='info'))
+            for h_stderr in stderr_handlers:
+                h_stderr.addFilter(LevelFilter(min_level='warning'))
