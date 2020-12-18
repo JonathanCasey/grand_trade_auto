@@ -1,31 +1,53 @@
 
 [loggers]
-keys=root
+keys : root
 
 [handlers]
-keys=fileHandler
+keys : fileHandler, stdoutHandler, stderrHandler
 
 [formatters]
-keys=simpleFormatter
+keys : standardFormatter, stdoutFormatter, stderrFormatter
+
 
 [logger_root]
-level=DISABLED
-handlers=fileHandler
+level : INFO
+handlers : fileHandler, stdoutHandler, stderrHandler
+
 
 [handler_fileHandler]
-class=handlers.RotatingFileHandler
-level=WARNING
-formatter=standardFormatter
-kwargs={
+class : handlers.RotatingFileHandler
+level : WARNING
+formatter : standardFormatter
+kwargs : {
         'filename': 'tmp-file.log',
         'mode': 'a',
         'maxBytes': 1048576,
         'backupCount': 5,
     }
 
-[formatter_simpleFormatter]
-format=%(asctime)s %(name)s - %(levelname)s:%(message)s
+[handler_stdoutHandler]
+class : StreamHandler
+level : INFO
+formatter : stdoutFormatter
+args : (sys.stdout,)
+
+[handler_stderrHandler]
+class : StreamHandler
+level : WARNING
+formatter : stderrFormatter
+args : (sys.stderr,)
+
+
+[formatter_standardFormatter]
+format : %(asctime)s %(levelname)-8s [%(name)s]: %(message)s
+
+[formatter_stdoutFormatter]
+format : %(message)s
+
+[formatter_stderrFormatter]
+format : %(levelname)s: %(message)s
+
 
 [special tweaks]
-cli arg level override handlers=stdoutHandler
-max stdout level=INFO
+cli arg level override handlers : stdoutHandler
+max stdout level : info
