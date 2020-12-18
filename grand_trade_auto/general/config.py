@@ -17,6 +17,8 @@ Module Attributes:
 """
 import configparser
 import itertools
+import logging
+import logging.config
 import os.path
 
 from grand_trade_auto.general import dirs
@@ -98,3 +100,57 @@ def get_matching_secrets_id(secrets_cp, submod, main_id):
         except ValueError:
             continue
     return None
+
+
+
+def init_logger(override_log_level=None):
+    """
+    Initializes the logger(s).  This is meant to be called once per main entry.
+    This does not alter that each module should be getting the logger for their
+    module name, most likely from the root logger.
+
+    Args:
+      override_log_level (str): The log level to override and set for the root
+        logger as well as the specified handlers from the
+        `cli arg level override` section of `logger.conf`.  In addition to the
+        standard logger level names and the `disabled` level added by this app,
+        the names `all` and `verbose` can also be used for `notset` to get
+        everything.
+    """
+    logging.addLevelName(99, 'DISABLED')
+    logging.config.fileConfig(os.path.join(dirs.get_conf_path(), 'logger.conf'),
+            disable_existing_loggers=False)
+
+    if override_log_level is not None:
+        new_level = override_log_level.upper()
+        if new_level in ['ALL', 'VERBOSE']:
+            new_level = 'NOTSET'
+
+        root_logger = logging.getLogger()
+        root_logger.setLevel(new_level)
+
+        conf_file = os.path.join(dirs.get_conf_path(), 'logger.conf')
+        logger_cp = configparser.RawConfigParser()
+        logger_cp.read(conf_file)
+
+        handler_names = [h.strip() for h in \
+                logger_cp['cli arg level override']['handler keys'].split(',')]
+
+        for h_existing in root_logger.handlers:
+            # Until v3.10, handler name not stored from fileConfig :(
+            # Will attempt to match on some other parameters, but not perfectly
+            for h_conf in [logger_cp[f'handler_{h}'] for h in handler_names]:
+                if type(h_existing).__name__ != h_conf['class']:
+                    continue
+
+                if logging.getLevelName(h_existing.level) \
+                        != h_conf['level'].strip().upper():
+                    continue
+
+                h_conf_fmt = logger_cp[ \
+                        f'formatter_{h_conf["formatter"]}']['format'].strip()
+                if h_existing.formatter._fmt \
+                        != h_conf_fmt:  # pylint: disable=protected-access
+                    continue
+
+                h_existing.setLevel(new_level)
