@@ -42,7 +42,7 @@ allow level override raise: True
 
 
 [formatter_standardFormatter]
-format : %(asctime)s %(levelname)-8s [%(name)s]: %(message)s
+format : %(asctime)s %(levelname)-8s [%(name)s:%(lineno)d]: %(message)s
 
 [formatter_stdoutFormatter]
 format : %(message)s
