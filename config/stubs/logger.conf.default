@@ -31,14 +31,14 @@ level : INFO
 max level : INFO
 formatter : stdoutFormatter
 args : (sys.stdout,)
-allow level override : True
+allow level override lower : True
 
 [handler_stderrHandler]
 class : StreamHandler
 level : WARNING
 formatter : stderrFormatter
 args : (sys.stderr,)
-allow level override : True
+allow level override raise: True
 
 
 [formatter_standardFormatter]

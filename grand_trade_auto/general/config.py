@@ -260,9 +260,14 @@ def init_logger(override_log_level=None):
     root_logger = logging.getLogger()
 
     if override_log_level is not None:
-        new_level = override_log_level.upper()
-        if new_level in ['ALL', 'VERBOSE']:
-            new_level = 'NOTSET'
+        try:
+            new_levelno = int(override_log_level)
+            new_level =  logging.getLevelName(new_levelno)
+        except ValueError:
+            new_level = override_log_level.upper()
+            if new_level in ['ALL', 'VERBOSE']:
+                new_level = 'NOTSET'
+            new_levelno = logging.getLevelName(new_level)
 
         root_logger.setLevel(new_level)
 
@@ -285,10 +290,19 @@ def init_logger(override_log_level=None):
         if h_existing is None:
             continue
 
-        if logger_cp.getboolean(f'handler_{h_name}',
-                'allow level override', fallback=False) \
-                and override_log_level is not None:
-            h_existing.setLevel(new_level)
+        if override_log_level is not None:
+            lower_level_override = logger_cp.getboolean(f'handler_{h_name}',
+                    'allow level override lower', fallback=False)
+            raise_level_override = logger_cp.getboolean(f'handler_{h_name}',
+                    'allow level override raise', fallback=False)
+
+            if lower_level_override and not raise_level_override:
+                if new_levelno < h_existing.level:
+                    h_existing.setLevel(new_level)
+            elif raise_level_override and not lower_level_override:
+                if new_levelno > h_existing.level:
+                    h_existing.setLevel(new_level)
+            # Skip both -- would only allow to set to level it already was
 
         max_level = logger_cp.get(f'handler_{h_name}', 'max level',
                 fallback=None)

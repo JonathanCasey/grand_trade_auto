@@ -26,17 +26,27 @@ with `logging.config.fileConfig()`.  Only the root logger is supported.  The
 `logger.conf.default` has the recommended initial settings, though some details
 like the log file location should be set accordingly.
 
-The conf has one additional section named `[special tweaks]`.  Any undesired
-option can be commented out / deleted, including the entire section.
-
-The `cli arg level override handlers` key allows the option for CLI invocation
-of the python module to provide an argument to override the log level of the
-root logger and for only the handlers specified in that comma-delimited keyn.
-The handlers in `cli arg level override handlers` must match the handler key
-names used elsewhere in the file.  Note that it is not perfect since it can only
-try to match the handler on some of the config parameters because the name is
-not stored (should be added in python 3.10 as indicated by
+There are a couple extra items added to the handlers beyond the standard options
+supported by `logging.config.fileConfig()`.  Note that these options are not
+perfect since it can only try to match the handler on some of the config
+parameters because the name is not stored (should be added in python 3.10 as
+indicated by
 [this commit](https://github.com/python/cpython/commit/b15100fe7def8580c78ed16f0bb4b72b2ae7af3f)).
+This should only matter if the class, level, and format specifier all match.
+
+Each handler can specify a `max level` as well.  This can be specified in name
+or in number format, and will setup a filter so messages at this level and below
+(and in accordance with the `level` parameter) are included while ones above are
+not.
+
+The handlers also allow `allow level override lower` and
+`allow level override raise` to be specified.  This allows the option for CLI
+invocation of the python module to provide an argument to override the log level
+of the root logger and of the handlers that have one of these options.  Allowing
+lower will let the handler's level be overridden with a lower value; while
+allowing higher will only allow the handler's level to be overridden with a
+higher one.  It is not recommended to use both together in one handler.  This
+does not impact the `max level` setting at all.
 
 There is also a `max stdout level` key in the `[special tweaks]` section.  This
 can set the maximum level that will be routed to stdout; above which it will be
