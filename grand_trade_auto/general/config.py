@@ -25,6 +25,10 @@ from grand_trade_auto.general import dirs
 
 
 
+logger = logging.getLogger(__name__)
+
+
+
 def read_conf_file_fake_header(conf_rel_file,
         conf_base_dir=dirs.get_conf_path(), fake_section='fake',):
     """
@@ -173,6 +177,61 @@ class LevelFilter(logging.Filter):
 
 
 
+def find_existing_handler_from_config(logger_cp, handler_name):
+    """
+    Finds the handler already existing in the root logger that matches the
+    configuration specified in the provided config parser and with the given
+    handler name.
+
+    Args:
+      logger_cp (ConfigParser): The config parser for the logger.conf file
+        loaded that is the exact same one as used to init the looger with
+        fileConfig().
+      handler_name (str): The name of the handler to try to match.  Should exist
+        in [handler] > keys as well as have a [handler_{handler_name}] section
+        in the logger_cp.
+
+    Returns:
+      h_existing (Handler or None): Returns the first handler loaded into the
+        root logger that matches the provided handler based on the config file.
+        Not a perfect match, but a best guess, so can have false positives if
+        certain criteria are identical for multiple handlers.  None if no match
+        found.
+    """
+    root_logger = logging.getLogger()
+    for h_existing in root_logger.handlers:
+        # Until v3.10, handler name not stored from fileConfig :(
+        # Will attempt match on some other parameters, but not perfectly
+        try:
+            h_conf = logger_cp[f'handler_{handler_name}']
+        except KeyError:
+            logger.warning(          # pylint: disable=logging-not-lazy
+                    f'Handler \'{handler_name}\' provided in'
+                    + ' logging.conf > [handlers] > keys, but missing'
+                    + ' matching handler section.')
+            continue
+
+        if type(h_existing).__name__ != h_conf['class'] \
+                and f'handlers.{type(h_existing).__name__}' \
+                    != h_conf['class']:
+            continue
+
+        if logging.getLevelName(h_existing.level) \
+                != h_conf['level'].strip().upper():
+            continue
+
+        h_conf_fmt = logger_cp[ \
+                f'formatter_{h_conf["formatter"]}']['format'].strip()
+        if h_existing.formatter._fmt \
+                != h_conf_fmt:                # pylint: disable=protected-access
+            continue
+
+        return h_existing
+
+    return None
+
+
+
 def init_logger(override_log_level=None):
     """
     Initializes the logger(s).  This is meant to be called once per main entry.
@@ -200,75 +259,38 @@ def init_logger(override_log_level=None):
 
     root_logger = logging.getLogger()
 
-    conf_file = os.path.join(dirs.get_conf_path(), 'logger.conf')
-    logger_cp = configparser.RawConfigParser()
-    logger_cp.read(conf_file)
-
-    try:
-        handler_names = [h.strip() for h in \
-                logger_cp['special tweaks']['cli arg level override handlers'] \
-                    .split(',')]
-    except KeyError:
-        handler_names = []
-
-    try:
-        cutoff_level = logger_cp['special tweaks']['max stdout level'].strip()
-    except KeyError:
-        cutoff_level = None
-
-    override_level_handlers = []
-    stdout_handlers = []
-    stderr_handlers = []
-
-    for h_existing in root_logger.handlers:
-        for h_name in handler_names:
-            # Until v3.10, handler name not stored from fileConfig :(
-            # Will attempt match on some other parameters, but not perfectly
-            try:
-                h_conf = logger_cp[f'handler_{h_name}']
-            except KeyError:
-                root_logger.warning(          # pylint: disable=logging-not-lazy
-                        'Invalid handler name in logger.conf >'
-                        + ' [special tweaks] > cli arg level override handlers:'
-                        + f' {h_name}')
-                continue
-
-            if type(h_existing).__name__ != h_conf['class'] \
-                    and f'handlers.{type(h_existing).__name__}' \
-                        != h_conf['class']:
-                continue
-
-            if logging.getLevelName(h_existing.level) \
-                    != h_conf['level'].strip().upper():
-                continue
-
-            h_conf_fmt = logger_cp[ \
-                    f'formatter_{h_conf["formatter"]}']['format'].strip()
-            if h_existing.formatter._fmt \
-                    != h_conf_fmt:            # pylint: disable=protected-access
-                continue
-
-            override_level_handlers.append(h_existing)
-
-        if isinstance(h_existing, logging.StreamHandler):
-            if h_existing.stream.name == '<stdout>':
-                stdout_handlers.append(h_existing)
-            elif h_existing.stream.name == '<stderr>':
-                stderr_handlers.append(h_existing)
-
     if override_log_level is not None:
         new_level = override_log_level.upper()
         if new_level in ['ALL', 'VERBOSE']:
             new_level = 'NOTSET'
 
         root_logger.setLevel(new_level)
-        for h_override in override_level_handlers:
-            h_override.setLevel(new_level)
 
 
-    if cutoff_level is not None \
-            and len(stdout_handlers) > 0 and len(stderr_handlers) > 0:
-        for h_stdout in stdout_handlers:
-            h_stdout.addFilter(LevelFilter(max_inc_level=cutoff_level))
-        for h_stderr in stderr_handlers:
-            h_stderr.addFilter(LevelFilter(min_exc_level=cutoff_level))
+    conf_file = os.path.join(dirs.get_conf_path(), 'logger.conf')
+    logger_cp = configparser.RawConfigParser()
+    logger_cp.read(conf_file)
+
+    try:
+        handler_names = [h.strip() \
+                for h in logger_cp['handlers']['keys'].split(',')]
+    except KeyError as ex:
+        logger.warning(
+                f'Missing key in logger.conf > [handlers] > keys: {ex}')
+        handler_names = []
+
+    for h_name in handler_names:
+        h_existing = find_existing_handler_from_config(logger_cp, h_name)
+
+        if h_existing is None:
+            continue
+
+        if logger_cp.getboolean(f'handler_{h_name}',
+                'allow level override', fallback=False) \
+                and override_log_level is not None:
+            h_existing.setLevel(new_level)
+
+        max_level = logger_cp.get(f'handler_{h_name}', 'max level',
+                fallback=None)
+        if max_level is not None:
+            h_existing.addFilter(LevelFilter(max_inc_level=max_level))

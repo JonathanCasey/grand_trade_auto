@@ -28,14 +28,17 @@ kwargs : {
 [handler_stdoutHandler]
 class : StreamHandler
 level : INFO
+max level : INFO
 formatter : stdoutFormatter
 args : (sys.stdout,)
+allow level override : True
 
 [handler_stderrHandler]
 class : StreamHandler
 level : WARNING
 formatter : stderrFormatter
 args : (sys.stderr,)
+allow level override : True
 
 
 [formatter_standardFormatter]
@@ -46,8 +49,3 @@ format : %(message)s
 
 [formatter_stderrFormatter]
 format : %(levelname)s: %(message)s
-
-
-[special tweaks]
-cli arg level override handlers : stdoutHandler
-max stdout level : info
