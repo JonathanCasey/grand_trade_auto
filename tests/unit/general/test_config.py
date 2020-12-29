@@ -13,10 +13,12 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+import configparser
 import logging
 import os.path
 
 from grand_trade_auto.general import config
+from grand_trade_auto.general import dirs
 
 
 
@@ -164,3 +166,47 @@ def test_level_filter(caplog, capsys):
     assert '4. test, msg warning, log WARNING' in stderr
     assert '4. test, msg error, log WARNING' not in stderr
     assert '4. test, msg error, log ERROR' in stderr
+
+
+
+def test_find_existing_handler_from_config(monkeypatch):
+    """
+    Tests `find_existing_handler_from_config()`.
+    """
+    test_config_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+            'test_config')
+
+    def mock_get_conf_path():
+        """
+        Replaces the conf path with the one for mock confs in unit tests.
+        """
+        return test_config_dir
+
+    monkeypatch.setattr(dirs, 'get_conf_path', mock_get_conf_path)
+
+    config.init_logger()
+
+    logger_conf_file = os.path.join(test_config_dir, 'logger.conf')
+    logger_cp = configparser.RawConfigParser()
+    logger_cp.read(logger_conf_file)
+
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'fileHandler') is not None
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'stdoutHandler') is not None
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'stderrHandler') is not None
+
+    mismatch_logger_conf_file = os.path.join(test_config_dir,
+            'logger_mismatch.conf')
+    mismatch_logger_cp = configparser.RawConfigParser()
+    mismatch_logger_cp.read(mismatch_logger_conf_file)
+
+    assert config.find_existing_handler_from_config(
+            mismatch_logger_cp, 'fileHandler') is None
+    assert config.find_existing_handler_from_config(
+            mismatch_logger_cp, 'stdoutHandler') is None
+    assert config.find_existing_handler_from_config(
+            mismatch_logger_cp, 'stderrHandler') is None
+    assert config.find_existing_handler_from_config(
+            mismatch_logger_cp, 'nonexistentHandler') is None
