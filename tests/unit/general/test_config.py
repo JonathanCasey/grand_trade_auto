@@ -85,11 +85,10 @@ def test_level_filter(caplog, capsys):
     """
     Tests `LevelFilter` entirely.
 
-    Note that caplog does NOT respect filters added to handlers, so results
-    must also be checked against capsys to confirm logging actually went through
-    or did not as expected (stderr used for all as default).  For ease of test,
-    does not check for multiple of same log entry from multiple loggers in
-    stderr.
+    Note that caplog does NOT respect filters added to handlers, so results in
+    records/record_tuples must then also be checked against capsys to confirm
+    logging actually went through or did not as expected (stderr used for all as
+    default).
     """
     filter_above_info = config.LevelFilter(min_exc_level=logging.INFO)
     filter_above_info_upto_warning = config.LevelFilter('info', 30)
@@ -110,52 +109,58 @@ def test_level_filter(caplog, capsys):
 
     caplog.clear()
     for level in test_levels:
-        loggers[level].info('1. test msg info')
+        loggers[level].info(f'1. test, msg info, log {level}')
     assert caplog.record_tuples == [
-            ('test logger info', logging.INFO, '1. test msg info'),
+            ('test logger info', logging.INFO, '1. test, msg info, log INFO'),
     ]
-    assert '1. test msg info' in capsys.readouterr().err
+    assert '1. test, msg info, log INFO' in capsys.readouterr().err
 
     caplog.clear()
     for level in test_levels:
-        loggers[level].warning('2. test msg warning')
+        loggers[level].warning(f'2. test, msg warning, log {level}')
     assert caplog.record_tuples == [
-            ('test logger info', logging.WARNING, '2. test msg warning'),
-            ('test logger warning', logging.WARNING, '2. test msg warning'),
+            ('test logger info', logging.WARNING, '2. test, msg warning, log INFO'),
+            ('test logger warning', logging.WARNING, '2. test, msg warning, log WARNING'),
     ]
-    assert '2. test msg warning' in capsys.readouterr().err
+    stderr = capsys.readouterr().err
+    assert '2. test, msg warning, log INFO' in stderr
+    assert '2. test, msg warning, log WARNING' in stderr
 
     caplog.clear()
     handlers['INFO'].addFilter(filter_above_info)
     for level in test_levels:
-        loggers[level].info('3. test msg info')
-        loggers[level].warning('3. test msg warning')
+        loggers[level].info(f'3. test, msg info, log {level}')
+        loggers[level].warning(f'3. test, msg warning, log {level}')
     assert caplog.record_tuples == [
-            ('test logger info', logging.INFO, '3. test msg info'),
-            ('test logger info', logging.WARNING, '3. test msg warning'),
-            ('test logger warning', logging.WARNING, '3. test msg warning'),
+            ('test logger info', logging.INFO, '3. test, msg info, log INFO'),
+            ('test logger info', logging.WARNING, '3. test, msg warning, log INFO'),
+            ('test logger warning', logging.WARNING, '3. test, msg warning, log WARNING'),
     ]
     stderr = capsys.readouterr().err
-    assert '3. test msg info' not in stderr
-    assert '3. test msg warning' in stderr
+    assert '3. test, msg info, log INFO' not in stderr
+    assert '3. test, msg warning, log INFO' in stderr
+    assert '3. test, msg warning, log WARNING' in stderr
 
     handlers['INFO'].removeFilter(filter_above_info)
     caplog.clear()
     handlers['INFO'].addFilter(filter_above_info_upto_warning)
     handlers['WARNING'].addFilter(filter_upto_warning)
     for level in test_levels:
-        loggers[level].info('4. test msg info')
-        loggers[level].warning('4. test msg warning')
-        loggers[level].error('4. test msg error')
+        loggers[level].info(f'4. test, msg info, log {level}')
+        loggers[level].warning(f'4. test, msg warning, log {level}')
+        loggers[level].error(f'4. test, msg error, log {level}')
     assert caplog.record_tuples == [
-            ('test logger info', logging.INFO, '4. test msg info'),
-            ('test logger info', logging.WARNING, '4. test msg warning'),
-            ('test logger info', logging.ERROR, '4. test msg error'),
-            ('test logger warning', logging.WARNING, '4. test msg warning'),
-            ('test logger warning', logging.ERROR, '4. test msg error'),
-            ('test logger error', logging.ERROR, '4. test msg error'),
+            ('test logger info', logging.INFO, '4. test, msg info, log INFO'),
+            ('test logger info', logging.WARNING, '4. test, msg warning, log INFO'),
+            ('test logger info', logging.ERROR, '4. test, msg error, log INFO'),
+            ('test logger warning', logging.WARNING, '4. test, msg warning, log WARNING'),
+            ('test logger warning', logging.ERROR, '4. test, msg error, log WARNING'),
+            ('test logger error', logging.ERROR, '4. test, msg error, log ERROR'),
     ]
     stderr = capsys.readouterr().err
-    assert '4. test msg info' not in stderr
-    assert '4. test msg warning' in stderr
-    assert '4. test msg error' in stderr
+    assert '4. test, msg info, log INFO' not in stderr
+    assert '4. test, msg warning, log INFO' in stderr
+    assert '4. test, msg error, log INFO' not in stderr
+    assert '4. test, msg warning, log WARNING' in stderr
+    assert '4. test, msg error, log WARNING' not in stderr
+    assert '4. test, msg error, log ERROR' in stderr
