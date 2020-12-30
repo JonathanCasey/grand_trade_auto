@@ -8,21 +8,14 @@ coverage:
   status:
     project:
       default:
-        target: 96%
-        threshold: 4%
-        only_pulls: true
-        branches: null
-      stable:
-        target: 100%
+        target: 95%
         threshold: 0%
-        branches:
-          - stable
+        only_pulls: true
     patch:
       default:
         target: 80%
-        threshold: 5%
+        threshold: 0%
         only_pulls: true
-
 
 parsers:
   gcov:
