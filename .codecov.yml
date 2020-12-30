@@ -8,8 +8,8 @@ coverage:
   status:
     project:
       default:
-        target: 90%
-        threshold: 3%
+        target: 96%
+        threshold: 5%
         only_pulls: true
         branches: null
       stable:
