@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 The database API module.  This is intended to be the item accessed outside of
 the database submodule/folder.
@@ -13,7 +14,7 @@ from grand_trade_auto.general import config
 
 
 
-_DB_HANDLE = None
+_DB_HANDLE = None   # Init'd later; but once init'd, should never change
 
 
 

@@ -1,5 +1,15 @@
 # Usage
 
+## Executing
+Main scripts intended for execution are in the root of `grand_trade_auto`.
+These need to be run from the repo root to make paths work correctly.  E.g.:
+```bash
+cd /path/to/repo/root
+python grand_trade_auto/tmp_main.py
+```
+
+
+
 # Contributing
 
 ## Logger
