@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 PostgreSQL functionality to implement the generic interface components defined
 by the metaclass.
