@@ -261,7 +261,7 @@ def test_init_logger(monkeypatch):
             root_logger.removeHandler(h_existing)
 
     clear_handlers()
-    config.init_logger(10)
+    config.init_logger('VeRBoSe')
     # Since level changed, cannot use existing function
     # Only matching on format -- expected to be unique in this mock conf
     for h_existing in root_logger.handlers:
@@ -274,10 +274,10 @@ def test_init_logger(monkeypatch):
         stdout_handler = h_existing
         break
 
-    assert stdout_handler.level == 10
+    assert stdout_handler.level == logging.NOTSET
 
     clear_handlers()
-    config.init_logger('eRRoR')
+    config.init_logger(40)
     # Since level changed, cannot use existing function
     # Only matching on format -- expected to be unique in this mock conf
     for h_existing in root_logger.handlers:
@@ -290,4 +290,8 @@ def test_init_logger(monkeypatch):
         stderr_handler = h_existing
         break
 
-    assert stderr_handler.level == logging.ERROR
+    assert stderr_handler.level == 40
+
+    # Re-calling this without clearing will trigger re-iteration of existing
+    #   handlers, which at least 1 will not be found now when looping
+    config.init_logger()

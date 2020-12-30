@@ -142,9 +142,12 @@ class DatabasePostgres(database_meta.DatabaseMeta):
                 fallback=kwargs['user'])
 
         conn = psycopg2.connect(**kwargs)
-        logger.info(f'Connected to database \'{database}\' successfully.')
         if cache:
             self.conn = conn
+            logger.info('Connected to'        # pylint: disable=logging-not-lazy
+                    + f' database \'{database}\' successfully and cached.')
+        else:
+            logger.info(f'Connected to database \'{database}\' successfully.')
         return conn
 
 
@@ -216,6 +219,7 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         cursor = conn.cursor()
         sql_drop_db = sql.SQL('DROP DATABASE IF EXISTS {database};').format(
                     database=sql.Identifier(self.database))
+        logger.warning(f'Database \'{self.database}\' dropped!')
         cursor.execute(sql_drop_db)
         cursor.close()
         conn.close()

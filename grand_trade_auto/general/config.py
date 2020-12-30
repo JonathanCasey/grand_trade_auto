@@ -107,7 +107,7 @@ def get_matching_secrets_id(secrets_cp, submod, main_id):
 
 
 
-class LevelFilter(logging.Filter):
+class LevelFilter(logging.Filter):      # pylint: disable=too-few-public-methods
     """
     A logging filter for the level to set min and max log levels for a handler.
     While the min level is redundant given logging already implements this with
