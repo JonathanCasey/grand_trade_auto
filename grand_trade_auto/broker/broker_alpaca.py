@@ -23,15 +23,28 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
     The Alpaca broker functionality.
 
     Class Attributes:
-      N/A
+      base_urls ({str:str}): The base URLs, keyed by trade domain.
 
     Instance Attributes:
       N/A
     """
-    def __init__(self):
+    base_urls = {
+        'live': 'https://api.alpaca.markets',
+        'paper': 'https://paper-api.alpaca.markets',
+    }
+
+
+
+    def __init__(self, trade_domain, cp_broker_id, cp_secrets_id):
         """
         Creates the broker handle.
         """
+        self.trade_domain = trade_domain
+        self.cp_broker_id = cp_broker_id
+        self.cp_secrets_id = cp_secrets_id
+
+        self.base_url = self.base_urls[trade_domain]
+
         super().__init__()
 
 
@@ -57,6 +70,10 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
             BrokerMeta (e.g. BrokerAlpaca).
         """
         kwargs = {}
+
+        kwargs['trade_domain'] = broker_cp[broker_id]['trade domain']
+        kwargs['cp_broker_id'] = broker_id
+        kwargs['cp_secrets_id'] = secrets_id
 
         broker_handle = BrokerAlpaca(**kwargs)
         return broker_handle
