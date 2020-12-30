@@ -5,6 +5,23 @@ coverage:
   precision: 2
   round: down
   range: "70...100"
+  status:
+    project:
+      stable:
+        branches:
+          - stable
+        target: 100%
+        threshold: 0%
+      default:
+        target: 95%
+        threshold: 3%
+        only_pulls: true
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+        only_pulls: true
+
 
 parsers:
   gcov:
