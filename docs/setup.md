@@ -48,13 +48,6 @@ allowing higher will only allow the handler's level to be overridden with a
 higher one.  It is not recommended to use both together in one handler.  This
 does not impact the `max level` setting at all.
 
-There is also a `max stdout level` key in the `[special tweaks]` section.  This
-can set the maximum level that will be routed to stdout; above which it will be
-routed to stderr (assuming this still conforms with the logger levels already
-set for those handlers).  It requires at least 1 stdout StreamHandler and 1
-stderr StreamHandler to be defined, but then will apply this filter to ALL
-stdout and stderr StreamHandlers.
-
 The logger provides another logger level of `disabled` to disable a logger -- no
 code will log to that level.  The CLI arg override can specify any of these log
 levels by name, as well as use `all` or `verbose` to be equivalent to `notset`.
