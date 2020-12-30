@@ -276,14 +276,8 @@ def init_logger(override_log_level=None):
     logger_cp = configparser.RawConfigParser()
     logger_cp.read(conf_file)
 
-    try:
-        handler_names = [h.strip() \
-                for h in logger_cp['handlers']['keys'].split(',')]
-    except KeyError as ex:
-        logger.warning(
-                f'Missing key in logger.conf > [handlers] > keys: {ex}')
-        handler_names = []
-
+    handler_names = [h.strip() \
+            for h in logger_cp['handlers']['keys'].split(',')]
     for h_name in handler_names:
         h_existing = find_existing_handler_from_config(logger_cp, h_name)
 
