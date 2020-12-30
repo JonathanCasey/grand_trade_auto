@@ -291,7 +291,3 @@ def test_init_logger(monkeypatch):
         break
 
     assert stderr_handler.level == 40
-
-    # Re-calling this without clearing will trigger re-iteration of existing
-    #   handlers, which at least 1 will not be found now when looping
-    config.init_logger()
