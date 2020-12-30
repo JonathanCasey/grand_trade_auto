@@ -35,7 +35,8 @@ def load_and_set_main_broker_from_config(env, broker_type=None):
     broker_handle = _get_broker_from_config(env, broker_type)
     if broker_handle is not None:
         _BROKER_HANDLE = broker_handle
-        # broker_handle.create_db()
+        # TEMP: connecting here for testing purposes
+        broker_handle.connect()
     assert _BROKER_HANDLE is not None, 'No valid broker configuration found.'
 
 

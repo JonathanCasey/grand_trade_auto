@@ -1,4 +1,6 @@
-alpaca-trade-api=0.51.0
+alpaca-trade-api==0.51.0
+numpy==1.19.3
+pandas
 psycopg2
 pylint
 pytest
