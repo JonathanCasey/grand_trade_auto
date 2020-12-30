@@ -2,6 +2,17 @@
 
 # Contributing
 
+## Logger
+Balancing readability against performance, the pylint warning
+`logging-fstring-interpolation` is disabled.  The intention is largerly for this
+to apply to warnings and more severe log levels as well as anything that would
+be low overhead.  It is recommended that anything info or debug level,
+especially if there are many calls or each call is an time-expensive
+interpolation to use the `logger.debug('log %(name)s', {'name'=name_var})` sort
+of methods instead so that the interpolation is only executed when that logger
+level is enabled.
+
+
 ## Workflows
 Before pushing, it is recommended to run through the checks that CircleCI will
 run.  In short, this is largely running from the repo root:

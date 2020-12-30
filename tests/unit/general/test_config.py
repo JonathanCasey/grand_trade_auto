@@ -13,9 +13,12 @@ Module Attributes:
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+import configparser
+import logging
 import os.path
 
 from grand_trade_auto.general import config
+from grand_trade_auto.general import dirs
 
 
 
@@ -77,3 +80,214 @@ def test_get_matching_secrets_id():
     section_id = config.get_matching_secrets_id(secrets_cp, 'bad-submod',
             main_id)
     assert section_id is None
+
+
+
+def test_level_filter(caplog, capsys):
+    """
+    Tests `LevelFilter` entirely.
+
+    Note that caplog does NOT respect filters added to handlers, so results in
+    records/record_tuples must then also be checked against capsys to confirm
+    logging actually went through or did not as expected (stderr used for all as
+    default).
+    """
+    filter_above_info = config.LevelFilter(min_exc_level=logging.INFO)
+    filter_above_info_upto_warning = config.LevelFilter('info', 30)
+    filter_upto_warning = config.LevelFilter(max_inc_level='WARNING')
+
+    handlers = {}
+    loggers = {}
+    test_levels = ['INFO', 'WARNING', 'ERROR']
+    for level in test_levels:
+        handlers[level] = logging.StreamHandler()
+        handlers[level].setLevel(level)
+
+        loggers[level] = logging.getLogger(f'test logger {level.lower()}')
+        loggers[level].addHandler(handlers[level])
+        loggers[level].setLevel(level)
+
+    caplog.set_level(logging.DEBUG)
+
+    caplog.clear()
+    for level in test_levels:
+        loggers[level].info(f'1. test, msg info, log {level}')
+    assert caplog.record_tuples == [
+            ('test logger info', logging.INFO, '1. test, msg info, log INFO'),
+    ]
+    assert '1. test, msg info, log INFO' in capsys.readouterr().err
+
+    caplog.clear()
+    for level in test_levels:
+        loggers[level].warning(f'2. test, msg warning, log {level}')
+    assert caplog.record_tuples == [
+            ('test logger info', logging.WARNING, '2. test, msg warning, log INFO'),
+            ('test logger warning', logging.WARNING, '2. test, msg warning, log WARNING'),
+    ]
+    stderr = capsys.readouterr().err
+    assert '2. test, msg warning, log INFO' in stderr
+    assert '2. test, msg warning, log WARNING' in stderr
+
+    caplog.clear()
+    handlers['INFO'].addFilter(filter_above_info)
+    for level in test_levels:
+        loggers[level].info(f'3. test, msg info, log {level}')
+        loggers[level].warning(f'3. test, msg warning, log {level}')
+    assert caplog.record_tuples == [
+            ('test logger info', logging.INFO, '3. test, msg info, log INFO'),
+            ('test logger info', logging.WARNING, '3. test, msg warning, log INFO'),
+            ('test logger warning', logging.WARNING, '3. test, msg warning, log WARNING'),
+    ]
+    stderr = capsys.readouterr().err
+    assert '3. test, msg info, log INFO' not in stderr
+    assert '3. test, msg warning, log INFO' in stderr
+    assert '3. test, msg warning, log WARNING' in stderr
+
+    handlers['INFO'].removeFilter(filter_above_info)
+    caplog.clear()
+    handlers['INFO'].addFilter(filter_above_info_upto_warning)
+    handlers['WARNING'].addFilter(filter_upto_warning)
+    for level in test_levels:
+        loggers[level].info(f'4. test, msg info, log {level}')
+        loggers[level].warning(f'4. test, msg warning, log {level}')
+        loggers[level].error(f'4. test, msg error, log {level}')
+    assert caplog.record_tuples == [
+            ('test logger info', logging.INFO, '4. test, msg info, log INFO'),
+            ('test logger info', logging.WARNING, '4. test, msg warning, log INFO'),
+            ('test logger info', logging.ERROR, '4. test, msg error, log INFO'),
+            ('test logger warning', logging.WARNING, '4. test, msg warning, log WARNING'),
+            ('test logger warning', logging.ERROR, '4. test, msg error, log WARNING'),
+            ('test logger error', logging.ERROR, '4. test, msg error, log ERROR'),
+    ]
+    stderr = capsys.readouterr().err
+    assert '4. test, msg info, log INFO' not in stderr
+    assert '4. test, msg warning, log INFO' in stderr
+    assert '4. test, msg error, log INFO' not in stderr
+    assert '4. test, msg warning, log WARNING' in stderr
+    assert '4. test, msg error, log WARNING' not in stderr
+    assert '4. test, msg error, log ERROR' in stderr
+
+
+
+def test_find_existing_handler_from_config(monkeypatch):
+    """
+    Tests `find_existing_handler_from_config()`.
+    """
+    test_config_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+            'test_config')
+
+    def mock_get_conf_path():
+        """
+        Replaces the conf path with the one for mock confs in unit tests.
+        """
+        return test_config_dir
+
+    monkeypatch.setattr(dirs, 'get_conf_path', mock_get_conf_path)
+
+    config.init_logger()
+
+    logger_conf_file = os.path.join(test_config_dir, 'logger.conf')
+    logger_cp = configparser.RawConfigParser()
+    logger_cp.read(logger_conf_file)
+
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'fileHandler') is not None
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'stdoutHandler') is not None
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'stderrHandler') is not None
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'disabledHandler') is not None
+
+    mismatch_logger_conf_file = os.path.join(test_config_dir,
+            'logger_mismatch.conf')
+    mismatch_logger_cp = configparser.RawConfigParser()
+    mismatch_logger_cp.read(mismatch_logger_conf_file)
+
+    assert config.find_existing_handler_from_config(
+            mismatch_logger_cp, 'fileHandler') is None
+    assert config.find_existing_handler_from_config(
+            mismatch_logger_cp, 'stdoutHandler') is None
+    assert config.find_existing_handler_from_config(
+            mismatch_logger_cp, 'stderrHandler') is None
+    assert config.find_existing_handler_from_config(
+            mismatch_logger_cp, 'nonexistentHandler') is None
+
+
+
+def test_init_logger(monkeypatch):
+    """
+    Tests `init_logger()`.
+    """
+    test_config_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+            'test_config')
+
+    def mock_get_conf_path():
+        """
+        Replaces the conf path with the one for mock confs in unit tests.
+        """
+        return test_config_dir
+
+    monkeypatch.setattr(dirs, 'get_conf_path', mock_get_conf_path)
+
+    config.init_logger()
+
+    logger_conf_file = os.path.join(test_config_dir, 'logger.conf')
+    logger_cp = configparser.RawConfigParser()
+    logger_cp.read(logger_conf_file)
+
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'fileHandler') is not None
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'stdoutHandler') is not None
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'stderrHandler') is not None
+    assert config.find_existing_handler_from_config(
+            logger_cp, 'disabledHandler') is not None
+    stdout_handler = config.find_existing_handler_from_config(
+            logger_cp, 'stdoutHandler')
+    assert stdout_handler is not None
+    assert stdout_handler.filters[0]._max_inc_levelno \
+            == logging.INFO                   # pylint: disable=protected-access
+
+    root_logger = logging.getLogger()
+
+    def clear_handlers():
+        """
+        Clears all handlers from the root logger.
+        """
+        existing_handlers = root_logger.handlers
+        for h_existing in existing_handlers:
+            root_logger.removeHandler(h_existing)
+
+    clear_handlers()
+    config.init_logger('VeRBoSe')
+    # Since level changed, cannot use existing function
+    # Only matching on format -- expected to be unique in this mock conf
+    for h_existing in root_logger.handlers:
+        h_conf = logger_cp['handler_stdoutHandler']
+        h_conf_fmt = logger_cp[ \
+                f'formatter_{h_conf["formatter"]}']['format'].strip()
+        if h_existing.formatter._fmt \
+                != h_conf_fmt:                # pylint: disable=protected-access
+            continue
+        stdout_handler = h_existing
+        break
+
+    assert stdout_handler.level == logging.NOTSET
+
+    clear_handlers()
+    config.init_logger(40)
+    # Since level changed, cannot use existing function
+    # Only matching on format -- expected to be unique in this mock conf
+    for h_existing in root_logger.handlers:
+        h_conf = logger_cp['handler_stderrHandler']
+        h_conf_fmt = logger_cp[ \
+                f'formatter_{h_conf["formatter"]}']['format'].strip()
+        if h_existing.formatter._fmt \
+                != h_conf_fmt:                # pylint: disable=protected-access
+            continue
+        stderr_handler = h_existing
+        break
+
+    assert stderr_handler.level == 40

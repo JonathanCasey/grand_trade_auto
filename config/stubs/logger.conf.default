@@ -1,0 +1,51 @@
+
+[loggers]
+keys : root
+
+[handlers]
+keys : fileHandler, stdoutHandler, stderrHandler
+
+[formatters]
+keys : standardFormatter, stdoutFormatter, stderrFormatter
+
+
+[logger_root]
+level : INFO
+handlers : fileHandler, stdoutHandler, stderrHandler
+
+
+[handler_fileHandler]
+class : handlers.RotatingFileHandler
+level : WARNING
+formatter : standardFormatter
+kwargs : {
+        'filename': 'tmp-file.log',
+        'mode': 'a',
+        'maxBytes': 1048576,
+        'backupCount': 5,
+    }
+
+[handler_stdoutHandler]
+class : StreamHandler
+level : INFO
+max level : INFO
+formatter : stdoutFormatter
+args : (sys.stdout,)
+allow level override lower : True
+
+[handler_stderrHandler]
+class : StreamHandler
+level : WARNING
+formatter : stderrFormatter
+args : (sys.stderr,)
+allow level override raise: True
+
+
+[formatter_standardFormatter]
+format : %(asctime)s %(levelname)-8s [%(name)s:%(lineno)d]: %(message)s
+
+[formatter_stdoutFormatter]
+format : %(message)s
+
+[formatter_stderrFormatter]
+format : %(levelname)s: %(message)s
