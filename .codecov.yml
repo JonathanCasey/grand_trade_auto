@@ -9,7 +9,7 @@ coverage:
     project:
       default:
         target: 96%
-        threshold: 5%
+        threshold: 4%
         only_pulls: true
         branches: null
       stable:
