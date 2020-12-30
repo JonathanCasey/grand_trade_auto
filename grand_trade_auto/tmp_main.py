@@ -28,9 +28,6 @@ def main():
     """
     config.init_logger('DEBUG')
     databases.load_and_set_main_database_from_config('test')
-    logger.error('error message')
-    logger.warning('warning message')
-    logger.log(99, 'disabled message?')
 
 
 
