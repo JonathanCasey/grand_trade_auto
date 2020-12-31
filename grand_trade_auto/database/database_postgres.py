@@ -9,6 +9,7 @@ Module Attributes:
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 import logging
+
 from psycopg2 import sql
 import psycopg2
 
@@ -36,6 +37,9 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         Will be used for loading credentials on-demand.
       cp_secrets_id (str): The id used as the section name in the secrets
         conf.  Will be used for loading credentials on-demand.
+
+      conn (connection): The cached database connection; or None if not
+        connected and cached.
     """
     def __init__(self, host, port, database, cp_db_id, cp_secrets_id):
         """
@@ -135,10 +139,10 @@ class DatabasePostgres(database_meta.DatabaseMeta):
 
         kwargs['user'] = db_cp.get(self.cp_db_id, 'username',
                 fallback=None)
-        kwargs['password'] = secrets_cp.get(self.cp_secrets_id, 'password',
-                fallback=None)
         kwargs['user'] = secrets_cp.get(self.cp_secrets_id, 'username',
                 fallback=kwargs['user'])
+        kwargs['password'] = secrets_cp.get(self.cp_secrets_id, 'password',
+                fallback=None)
 
         conn = psycopg2.connect(**kwargs)
         if cache:
