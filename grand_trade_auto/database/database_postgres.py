@@ -62,7 +62,7 @@ class DatabasePostgres(database_meta.DatabaseMeta):
 
 
     @classmethod
-    def load_from_config(cls, db_cp, db_id, secrets_cp, secrets_id):
+    def load_from_config(cls, db_cp, db_id, secrets_id):
         """
         Loads the database config for this database from the configparsers
         from files provided.
@@ -71,8 +71,6 @@ class DatabasePostgres(database_meta.DatabaseMeta):
           db_cp (configparser): The full configparser from the database conf.
           db_id (str): The ID name for this database as it appears as the
             section header in the db_cp.
-          secrets_cp (configparser): The full configparser from the secrets
-            conf.
           secrets_id (str): The ID name for this database's secrets as it
             appears as the section header in the secrets_cp.
 

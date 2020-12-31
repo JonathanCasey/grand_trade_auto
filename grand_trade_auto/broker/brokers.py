@@ -70,7 +70,7 @@ def _get_broker_from_config(env, broker_type=None):
                 continue
 
             broker_handle = broker_alpaca.BrokerAlpaca.load_from_config(
-                    broker_cp, broker_id, secrets_cp, secrets_id)
+                    broker_cp, broker_id, secrets_id)
 
             if broker_handle is not None:
                 return broker_handle
