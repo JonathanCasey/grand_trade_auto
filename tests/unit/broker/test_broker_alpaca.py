@@ -68,7 +68,7 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
     caplog.set_level(logging.INFO)
     caplog.clear()
     alpaca_test_handle.connect('rest')
-    assert alpaca_test_handle.rest_api is not None
+    assert alpaca_test_handle._rest_api is not None
     assert caplog.record_tuples == [
             ('grand_trade_auto.broker.broker_alpaca', logging.INFO,
                 'Established connection to Alpaca via REST.')
@@ -76,16 +76,16 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
 
     caplog.clear()
     alpaca_test_handle.connect('rest')
-    assert alpaca_test_handle.rest_api is not None
+    assert alpaca_test_handle._rest_api is not None
     assert caplog.record_tuples == []
 
     with pytest.raises(NotImplementedError) as ex:
         alpaca_test_handle.connect('stream')
     assert 'Stream connection not implemented for Alpaca' in str(ex.value)
 
-    alpaca_test_handle.stream_conn = 'dummy conn'
+    alpaca_test_handle._stream_conn = 'dummy conn'
     alpaca_test_handle.connect('stream')
-    assert alpaca_test_handle.stream_conn == 'dummy conn'
+    assert alpaca_test_handle._stream_conn == 'dummy conn'
 
     with pytest.raises(ValueError) as ex:
         alpaca_test_handle.connect('invalid interface')
@@ -97,10 +97,10 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
         Replaces the conf file reader with a dummy ConfigParser.
         """
         mock_cp = configparser.ConfigParser()
-        mock_cp[alpaca_test_handle.cp_broker_id] = {
+        mock_cp[alpaca_test_handle._cp_broker_id] = {
                 'api key id': 'dummy key id',
         }
-        mock_cp[alpaca_test_handle.cp_secrets_id] = {
+        mock_cp[alpaca_test_handle._cp_secrets_id] = {
                 'secret key': 'dummy secret key',
         }
         return mock_cp
@@ -108,7 +108,7 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
     monkeypatch.setattr(config, 'read_conf_file', mock_read_conf_file)
 
     caplog.clear()
-    alpaca_test_handle.rest_api = None
+    alpaca_test_handle._rest_api = None
     with pytest.raises(ConnectionRefusedError) as ex:
         alpaca_test_handle.connect('rest')
     assert 'Unable to connect to Alpaca.  API Error:' in str(ex.value)
@@ -138,7 +138,7 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
     monkeypatch.setattr(alpaca_trade_api, 'REST', mock_get_rest_api)
 
     caplog.clear()
-    alpaca_test_handle.rest_api = None
+    alpaca_test_handle._rest_api = None
     with pytest.raises(ConnectionRefusedError) as ex:
         alpaca_test_handle.connect('rest')
     assert 'Unable to connect to Alpaca.  Account status:' in str(ex.value)
@@ -160,12 +160,12 @@ def test_connect_env(caplog, monkeypatch, alpaca_test_handle):
     secrets_cp = config.read_conf_file('.secrets.conf')
 
     creds = {}
-    creds['APCA_API_KEY_ID'] = broker_cp.get(alpaca_test_handle.cp_broker_id,
+    creds['APCA_API_KEY_ID'] = broker_cp.get(alpaca_test_handle._cp_broker_id,
             'api key id', fallback=None)
-    creds['APCA_API_KEY_ID'] = secrets_cp.get(alpaca_test_handle.cp_secrets_id,
+    creds['APCA_API_KEY_ID'] = secrets_cp.get(alpaca_test_handle._cp_secrets_id,
             'api key id', fallback=creds['APCA_API_KEY_ID'])
     creds['APCA_API_SECRET_KEY'] = secrets_cp.get(
-            alpaca_test_handle.cp_secrets_id, 'secret key', fallback=None)
+            alpaca_test_handle._cp_secrets_id, 'secret key', fallback=None)
 
 
     def mock_read_conf_file_empty(file):       # pylint: disable=unused-argument
@@ -177,13 +177,13 @@ def test_connect_env(caplog, monkeypatch, alpaca_test_handle):
     monkeypatch.setattr(config, 'read_conf_file', mock_read_conf_file_empty)
 
     caplog.clear()
-    alpaca_test_handle.rest_api = None
+    alpaca_test_handle._rest_api = None
     for env_var in creds:
         if os.getenv(env_var) is None:
             monkeypatch.setenv(env_var, creds[env_var])
 
     alpaca_test_handle.connect('rest')
-    assert alpaca_test_handle.rest_api is not None
+    assert alpaca_test_handle._rest_api is not None
     assert caplog.record_tuples == [
             ('grand_trade_auto.broker.broker_alpaca', logging.INFO,
                 'Established connection to Alpaca via REST.')
@@ -191,7 +191,7 @@ def test_connect_env(caplog, monkeypatch, alpaca_test_handle):
 
 
     caplog.clear()
-    alpaca_test_handle.rest_api = None
+    alpaca_test_handle._rest_api = None
     for env_var in creds:
         monkeypatch.delenv(env_var)
 

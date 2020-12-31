@@ -30,7 +30,7 @@ def test_load_and_set_main_broker_from_config():
 
     brokers.load_and_set_main_broker_from_config('test', 'alpaca')
     assert brokers._BROKER_HANDLE is not None
-    assert brokers._BROKER_HANDLE.rest_api is not None
+    assert brokers._BROKER_HANDLE._rest_api is not None
 
     with pytest.raises(AssertionError):
         brokers.load_and_set_main_broker_from_config('test')

@@ -26,22 +26,22 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
     The Alpaca broker functionality.
 
     Class Attributes:
-      base_urls ({str:str}): The base URLs, keyed by trade domain.
+      _base_urls ({str:str}): The base URLs, keyed by trade domain.
 
     Instance Attributes:
-      trade_domain (str): The domain for trading (live or paper).
-      cp_broker_id (str): The id used as the section name in the broker
+      _trade_domain (str): The domain for trading (live or paper).
+      _cp_broker_id (str): The id used as the section name in the broker
         conf.  Will be used for loading credentials on-demand.
-      cp_secrets_id (str): The id used as the section name in the secrets
+      _cp_secrets_id (str): The id used as the section name in the secrets
         conf.  Will be used for loading credentials on-demand.
 
-      base_url (str): The base url to use based on trade domain.
-      rest_api (REST): The cached rest API connection; or None if not connected
+      _base_url (str): The base url to use based on trade domain.
+      _rest_api (REST): The cached rest API connection; or None if not connected
         and cached.
-      stream_conn (StreamConn): The cached stream socket connection; or None if
+      _stream_conn (StreamConn): The cached stream socket connection; or None if
         not connected and cached.
     """
-    base_urls = {
+    _base_urls = {
         'live': 'https://api.alpaca.markets',
         'paper': 'https://paper-api.alpaca.markets',
     }
@@ -59,14 +59,14 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
           cp_secrets_id (str): The id used as the section name in the secrets
             conf.  Will be used for loading credentials on-demand.
         """
-        self.trade_domain = trade_domain
-        self.cp_broker_id = cp_broker_id
-        self.cp_secrets_id = cp_secrets_id
+        self._trade_domain = trade_domain
+        self._cp_broker_id = cp_broker_id
+        self._cp_secrets_id = cp_secrets_id
 
-        self.base_url = self.base_urls[trade_domain]
+        self._base_url = self._base_urls[trade_domain]
 
-        self.rest_api = None
-        self.stream_conn = None
+        self._rest_api = None
+        self._stream_conn = None
 
         super().__init__()
 
@@ -130,28 +130,28 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
           (ValueError): interface is something other than 'rest', 'stream'.
           (ConnectionRefusedError): Attempted and failed to connect.
         """
-        if interface == 'rest' and self.rest_api is not None:
+        if interface == 'rest' and self._rest_api is not None:
             return
-        if interface == 'stream' and self.stream_conn is not None:
+        if interface == 'stream' and self._stream_conn is not None:
             return
 
         broker_cp = config.read_conf_file('brokers.conf')
         secrets_cp = config.read_conf_file('.secrets.conf')
 
         kwargs = {
-            'base_url': self.base_url,
+            'base_url': self._base_url,
         }
-        kwargs['key_id'] = broker_cp.get(self.cp_broker_id, 'api key id',
+        kwargs['key_id'] = broker_cp.get(self._cp_broker_id, 'api key id',
                 fallback=None)
-        kwargs['key_id'] = secrets_cp.get(self.cp_secrets_id, 'api key id',
+        kwargs['key_id'] = secrets_cp.get(self._cp_secrets_id, 'api key id',
                 fallback=kwargs['key_id'])
-        kwargs['secret_key'] = secrets_cp.get(self.cp_secrets_id, 'secret key',
+        kwargs['secret_key'] = secrets_cp.get(self._cp_secrets_id, 'secret key',
                 fallback=None)
 
         if interface == 'rest':
             try:
-                self.rest_api = tradeapi.REST(**kwargs)
-                account = self.rest_api.get_account()
+                self._rest_api = tradeapi.REST(**kwargs)
+                account = self._rest_api.get_account()
             except ValueError as ex:
                 msg = 'Unable to connect to Alpaca.' \
                         + f'  API Error: {str(ex)}'
