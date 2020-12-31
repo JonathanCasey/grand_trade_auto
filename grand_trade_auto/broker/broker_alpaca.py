@@ -149,8 +149,20 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
                 fallback=None)
 
         if interface == 'rest':
-            self.rest_api = tradeapi.REST(**kwargs)
-            account = self.rest_api.get_account()
+            try:
+                self.rest_api = tradeapi.REST(**kwargs)
+                account = self.rest_api.get_account()
+            except ValueError as ex:
+                msg = 'Unable to connect to Alpaca.' \
+                        + f'  API Error: {str(ex)}'
+                logger.critical(msg)
+                raise ConnectionRefusedError(msg) from ex
+            except tradeapi.rest.APIError as ex:
+                msg = 'Unable to connect to Alpaca.' \
+                        + f'  API Error: {str(ex)}'
+                logger.critical(msg)
+                raise ConnectionRefusedError(msg) from ex
+
             if account.status == 'ACTIVE':
                 logger.info('Established connection to Alpaca via REST.')
             else:
