@@ -4,7 +4,7 @@ PostgreSQL functionality to implement the generic interface components defined
 by the metaclass.
 
 Module Attributes:
-  N/A
+  logger (Logger): Logger for this module.
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """

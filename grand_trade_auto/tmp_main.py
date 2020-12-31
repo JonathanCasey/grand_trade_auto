@@ -4,7 +4,7 @@ Temporary main file to enable some package testing / dev until the real main
 entry modules are implemented.
 
 Module Attributes:
-  N/A
+  logger (Logger): Logger for this module.
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
