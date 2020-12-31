@@ -30,15 +30,15 @@ class DatabasePostgres(database_meta.DatabaseMeta):
       N/A
 
     Instance Attributes:
-      host (str): The host URL.
-      post (int): The port number on that host for accessing the database.
-      database (str): The database to open.
-      cp_db_id (str): The id used as the section name in the database conf.
+      _host (str): The host URL.
+      _post (int): The port number on that host for accessing the database.
+      _database (str): The database to open.
+      _cp_db_id (str): The id used as the section name in the database conf.
         Will be used for loading credentials on-demand.
-      cp_secrets_id (str): The id used as the section name in the secrets
+      _cp_secrets_id (str): The id used as the section name in the secrets
         conf.  Will be used for loading credentials on-demand.
 
-      conn (connection): The cached database connection; or None if not
+      _conn (connection): The cached database connection; or None if not
         connected and cached.
     """
     def __init__(self, host, port, database, cp_db_id, cp_secrets_id):
@@ -54,14 +54,14 @@ class DatabasePostgres(database_meta.DatabaseMeta):
           cp_secrets_id (str): The id used as the section name in the secrets
             conf.  Will be used for loading credentials on-demand.
         """
-        self.host = host
-        self.port = port
-        self.database = database
-        self.cp_db_id = cp_db_id
-        self.cp_secrets_id = cp_secrets_id
+        self._host = host
+        self._port = port
+        self._database = database
+        self._cp_db_id = cp_db_id
+        self._cp_secrets_id = cp_secrets_id
         super().__init__(host, port, database, cp_db_id, cp_secrets_id)
 
-        self.conn = None
+        self._conn = None
 
 
 
@@ -123,30 +123,30 @@ class DatabasePostgres(database_meta.DatabaseMeta):
           (connection): The cached connection if specified and existed;
             otherwise new database connection established.
         """
-        if cache and self.conn is not None:
-            return self.conn
+        if cache and self._conn is not None:
+            return self._conn
 
         db_cp = config.read_conf_file('databases.conf')
         secrets_cp = config.read_conf_file('.secrets.conf')
 
         kwargs = {
-            'host': self.host,
-            'port': self.port,
+            'host': self._host,
+            'port': self._port,
         }
         if database is None:
-            database = self.database
+            database = self._database
         kwargs['database'] = database
 
-        kwargs['user'] = db_cp.get(self.cp_db_id, 'username',
+        kwargs['user'] = db_cp.get(self._cp_db_id, 'username',
                 fallback=None)
-        kwargs['user'] = secrets_cp.get(self.cp_secrets_id, 'username',
+        kwargs['user'] = secrets_cp.get(self._cp_secrets_id, 'username',
                 fallback=kwargs['user'])
-        kwargs['password'] = secrets_cp.get(self.cp_secrets_id, 'password',
+        kwargs['password'] = secrets_cp.get(self._cp_secrets_id, 'password',
                 fallback=None)
 
         conn = psycopg2.connect(**kwargs)
         if cache:
-            self.conn = conn
+            self._conn = conn
             logger.info('Connected to'        # pylint: disable=logging-not-lazy
                     + f' database \'{database}\' successfully and cached.')
         else:
@@ -164,14 +164,14 @@ class DatabasePostgres(database_meta.DatabaseMeta):
           (bool): True if it already exists; False otherwise.
         """
         # Since expectation db may not exist, support conn to default db
-        if self.conn is None or self.conn.closed:
+        if self._conn is None or self._conn.closed:
             conn = self.connect(False, 'postgres')
         else:
-            conn = self.conn
+            conn = self._conn
 
         cursor = conn.cursor()
         sql_check_db = 'SELECT 1 FROM pg_database WHERE datname=%(database)s'
-        cursor.execute(sql_check_db, {'database': self.database})
+        cursor.execute(sql_check_db, {'database': self._database})
         result = cursor.fetchone()
 
         exists = False
@@ -179,7 +179,7 @@ class DatabasePostgres(database_meta.DatabaseMeta):
             exists = True
 
         cursor.close()
-        if conn != self.conn:
+        if conn != self._conn:
             conn.close()
 
         return exists
@@ -198,9 +198,9 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         conn.autocommit = True
         cursor = conn.cursor()
         sql_create_db = sql.SQL('CREATE DATABASE {database};').format(
-                database=sql.Identifier(self.database))
+                database=sql.Identifier(self._database))
         cursor.execute(sql_create_db)
-        logger.info(f'Database \'{self.database}\' created successfully.')
+        logger.info(f'Database \'{self._database}\' created successfully.')
         cursor.close()
         conn.close()
 
@@ -221,8 +221,8 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         conn.autocommit = True
         cursor = conn.cursor()
         sql_drop_db = sql.SQL('DROP DATABASE IF EXISTS {database};').format(
-                    database=sql.Identifier(self.database))
-        logger.warning(f'Database \'{self.database}\' dropped!')
+                    database=sql.Identifier(self._database))
+        logger.warning(f'Database \'{self._database}\' dropped!')
         cursor.execute(sql_drop_db)
         cursor.close()
         conn.close()
