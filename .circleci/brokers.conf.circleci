@@ -1,0 +1,5 @@
+
+[circleci-alpaca-test]
+env : test
+type : alpaca
+trade domain : paper

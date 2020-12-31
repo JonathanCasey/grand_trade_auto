@@ -1,0 +1,6 @@
+
+[friendly-name-for-database]
+env : <production/development/test>
+type : <alpaca>
+trade domain : <live/paper>
+api key id :
