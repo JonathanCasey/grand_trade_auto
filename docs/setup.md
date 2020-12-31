@@ -13,6 +13,11 @@ The config files in `/config/stubs` must be copied to `/config` with the
 `.default` suffix dropped; the rest of the filename must remain unchanged (e.g.
 `/config/stubs/databases.conf.default` -> `/config/databases.conf`).
 
+For alpaca, the API key and Secrets Key can be omitted from all config files and
+provided as environment variables instead as `APCA_API_KEY_ID` and
+`APCA_API_SECRET_KEY`, respectively, as documented in the
+[alpaca-trade-api-python](https://github.com/alpacahq/alpaca-trade-api-python/).
+
 **DATA LOSS WARNING**: If planning to run unit tests, a test env database config
 will need to be provided.  This MUST be different from the database used for
 production and development, as it will create, add/modify data, and then drop
@@ -115,6 +120,9 @@ it is not set at all yet).
 ### CircleCI
 If forking this project, CircleCI will need contexts setup.  See
 `.circleci/config.yml` for the contexts needed; the contents should be mostly
-obvious (e.g. `docker-hub-creds` is intended to defind the user/pass env vars).
+obvious (e.g. `docker-hub-creds` is intended to define the user/pass env vars).
 For the Docker Hub password, an access token should be created on the Security
 page of your Docker Hub account profile.
+
+For `alpaca-paper-creds` it is STRONGLY REQUIRED the **paper** API credentials
+are used (unless you really want to test with live trading / real money...).
