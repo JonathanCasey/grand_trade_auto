@@ -4,7 +4,7 @@ Alpaca functionality to implement the generic interface components defined
 by the metaclass.
 
 Module Attributes:
-  N/A
+  logger (Logger): Logger for this module.
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
@@ -73,7 +73,7 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
 
 
     @classmethod
-    def load_from_config(cls, broker_cp, broker_id, secrets_cp, secrets_id):
+    def load_from_config(cls, broker_cp, broker_id, secrets_id):
         """
         Loads the broker config for this broker from the configparsers
         from files provided.
@@ -82,8 +82,6 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
           broker_cp (configparser): The full configparser from the broker conf.
           broker_id (str): The ID name for this broker as it appears as the
             section header in the broker_cp.
-          secrets_cp (configparser): The full configparser from the secrets
-            conf.
           secrets_id (str): The ID name for this broker's secrets as it
             appears as the section header in the secrets_cp.
 

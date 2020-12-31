@@ -70,7 +70,7 @@ def _get_database_from_config(env, db_type=None):
                 continue
 
             db_handle = database_postgres.DatabasePostgres.load_from_config(
-                    db_cp, db_id, secrets_cp, secrets_id)
+                    db_cp, db_id, secrets_id)
 
             if db_handle is not None:
                 return db_handle

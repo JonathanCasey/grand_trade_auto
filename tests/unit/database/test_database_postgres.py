@@ -65,13 +65,13 @@ def test_connect(pg_test_db):
     conn = pg_test_db.connect(cache=False, database='postgres')
     assert conn is not None
 
-    pg_test_db.database = 'invalid-database'
+    pg_test_db._database = 'invalid-database'
     with pytest.raises(psycopg2.OperationalError):
         conn = pg_test_db.connect()
 
-    pg_test_db.conn = 'test-conn'
+    pg_test_db._conn = 'test-conn'
     assert pg_test_db.connect() == 'test-conn'
-    assert pg_test_db.conn == 'test-conn'
+    assert pg_test_db._conn == 'test-conn'
 
 
 
@@ -99,7 +99,7 @@ def test_create_drop_check_if_db_exists(pg_test_db):
     pg_test_db._drop_db()
     assert not pg_test_db._check_if_db_exists()
 
-    pg_test_db.conn.close()
+    pg_test_db._conn.close()
     # Retest without open cached conn
 
     pg_test_db.create_db()
