@@ -116,7 +116,14 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
 
 
 
-    def connect(self, interface='rest'):
+    def connect(self):
+        """
+        Connects to the broker's servers.
+        """
+        self._connect()
+
+
+    def _connect(self, interface='rest'):
         """
         Connects via the desired interface.  Connection caching is handled by
         the API module.

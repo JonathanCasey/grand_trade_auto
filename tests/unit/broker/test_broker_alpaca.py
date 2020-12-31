@@ -67,7 +67,7 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
     """
     caplog.set_level(logging.INFO)
     caplog.clear()
-    alpaca_test_handle.connect('rest')
+    alpaca_test_handle.connect()
     assert alpaca_test_handle._rest_api is not None
     assert caplog.record_tuples == [
             ('grand_trade_auto.broker.broker_alpaca', logging.INFO,
@@ -75,20 +75,20 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
     ]
 
     caplog.clear()
-    alpaca_test_handle.connect('rest')
+    alpaca_test_handle._connect('rest')
     assert alpaca_test_handle._rest_api is not None
     assert caplog.record_tuples == []
 
     with pytest.raises(NotImplementedError) as ex:
-        alpaca_test_handle.connect('stream')
+        alpaca_test_handle._connect('stream')
     assert 'Stream connection not implemented for Alpaca' in str(ex.value)
 
     alpaca_test_handle._stream_conn = 'dummy conn'
-    alpaca_test_handle.connect('stream')
+    alpaca_test_handle._connect('stream')
     assert alpaca_test_handle._stream_conn == 'dummy conn'
 
     with pytest.raises(ValueError) as ex:
-        alpaca_test_handle.connect('invalid interface')
+        alpaca_test_handle._connect('invalid interface')
     assert 'Invalid interface for Alpaca' in str(ex.value)
 
 
@@ -110,7 +110,7 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
     caplog.clear()
     alpaca_test_handle._rest_api = None
     with pytest.raises(ConnectionRefusedError) as ex:
-        alpaca_test_handle.connect('rest')
+        alpaca_test_handle._connect('rest')
     assert 'Unable to connect to Alpaca.  API Error:' in str(ex.value)
     assert '(Code = 40110000)' in str(ex.value)
 
@@ -140,7 +140,7 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
     caplog.clear()
     alpaca_test_handle._rest_api = None
     with pytest.raises(ConnectionRefusedError) as ex:
-        alpaca_test_handle.connect('rest')
+        alpaca_test_handle._connect('rest')
     assert 'Unable to connect to Alpaca.  Account status:' in str(ex.value)
     assert 'not active' in str(ex.value)
 
@@ -182,7 +182,7 @@ def test_connect_env(caplog, monkeypatch, alpaca_test_handle):
         if os.getenv(env_var) is None:
             monkeypatch.setenv(env_var, creds[env_var])
 
-    alpaca_test_handle.connect('rest')
+    alpaca_test_handle._connect('rest')
     assert alpaca_test_handle._rest_api is not None
     assert caplog.record_tuples == [
             ('grand_trade_auto.broker.broker_alpaca', logging.INFO,
@@ -196,6 +196,6 @@ def test_connect_env(caplog, monkeypatch, alpaca_test_handle):
         monkeypatch.delenv(env_var)
 
     with pytest.raises(ConnectionRefusedError) as ex:
-        alpaca_test_handle.connect('rest')
+        alpaca_test_handle._connect('rest')
     assert 'Unable to connect to Alpaca.  API Error:' in str(ex.value)
     assert 'Key ID must be given' in str(ex.value)

@@ -67,3 +67,11 @@ class BrokerMeta(ABC):
         Returns:
           ([str]): A list of names that are valid to use for this broker type.
         """
+
+
+
+    @abstractmethod
+    def connect(self):
+        """
+        Connects to the broker's servers.
+        """
