@@ -100,3 +100,4 @@ if __name__ == '__main__':
     `python3 ./grand_trade_auto/general/email_report.py`
     """                             # pylint: disable=pointless-string-statement
     send_email('Test GTA subject', 'Test grand_trade_auto body.')
+    print('Test email sent -- check inbox.')
