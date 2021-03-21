@@ -65,6 +65,32 @@ class MockSmtp:
 
 
 
+@pytest.fixture(name='mock_load_email_conf_dummy')
+def fixture_mock_load_email_conf_dummy(monkeypatch):
+    """
+    Replaces the `load_email_conf()` with one that will return dummy values.
+    """
+
+    def mock_load_data():
+        """
+        Replaces the `load_email_conf()` with one that will return dummy values.
+        """
+        return {
+            'server': 'fake server',
+            'port': 'fake port',
+            'sender': 'fake sender',
+            'password': 'fake password',
+            'sender_name': 'fake sender name',
+            'recipients': [
+                'fake recipient 1',
+                'fake recipient 2',
+            ],
+        }
+
+    monkeypatch.setattr(email_report, 'load_email_conf', mock_load_data)
+
+
+
 def test_load_email_conf(monkeypatch):
     """
     Tests `load_email_conf()`.
@@ -110,7 +136,8 @@ def test_load_email_conf(monkeypatch):
 
 
 
-def test_send_email(monkeypatch):
+def test_send_email(monkeypatch,
+        mock_load_email_conf_dummy):           # pylint: disable=unused-argument
     """
     Tests `send_email()`.
 
@@ -126,23 +153,6 @@ def test_send_email(monkeypatch):
         raise Exception('Fake failure.')
 
 
-    def mock_load_email_conf_dummy():
-        """
-        Replaces the `load_email_conf()` with one that will return dummy values.
-        """
-        return {
-            'server': 'fake server',
-            'port': 'fake port',
-            'sender': 'fake sender',
-            'password': 'fake password',
-            'sender_name': 'fake sender name',
-            'recipients': [
-                'fake recipient 1',
-                'fake recipient 2',
-            ],
-        }
-
-
     def mock_quit_fail():
         """
         Mocks the quit call of SMTP (or any) to raise an exception.
@@ -153,17 +163,6 @@ def test_send_email(monkeypatch):
     monkeypatch.setattr(smtplib, 'SMTP', MockSmtp)
 
 
-    monkeypatch.setattr(email_report, 'load_email_conf',
-            mock_load_email_conf_fail)
-
-    with pytest.raises(EmailConfigError) as ex:
-        email_report.send_email('s', 'b')
-    assert 'Email config load failed.' in str(ex.value)
-
-
-    monkeypatch.setattr(email_report, 'load_email_conf',
-            mock_load_email_conf_dummy)
-
     email_report.send_email('test subject', 'test body')
     # Continuing past this point indicates this test above passed
 
@@ -173,3 +172,11 @@ def test_send_email(monkeypatch):
     with pytest.raises(EmailConnectionError) as ex:
         email_report.send_email('s', 'b')
     assert 'Email send connection error.' in str(ex.value)
+
+
+    monkeypatch.setattr(email_report, 'load_email_conf',
+            mock_load_email_conf_fail)
+
+    with pytest.raises(EmailConfigError) as ex:
+        email_report.send_email('s', 'b')
+    assert 'Email config load failed.' in str(ex.value)
