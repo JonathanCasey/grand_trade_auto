@@ -98,5 +98,5 @@ if __name__ == '__main__':
 
     As with anything else, must still be called from repo root, i.e.
     `python3 ./grand_trade_auto/general/email_report.py`
-    """
+    """                             # pylint: disable=pointless-string-statement
     send_email('Test GTA subject', 'Test grand_trade_auto body.')

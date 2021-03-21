@@ -23,6 +23,48 @@ from grand_trade_auto.general.exceptions import *   # pylint: disable=wildcard-i
 
 
 
+class MockSmtp:
+    """
+    Simple mock object to replace smtplib.SMTP and its relevant methods.
+    """
+    def __init__(self, *args, **kwargs):    # pylint: disable=unused-argument
+        """
+        Creates a dummy object.
+        """
+        return
+
+    def ehlo(self, *args, **kwargs):        # pylint: disable=unused-argument, no-self-use
+        """
+        Dummy ehlo.  Does nothing.
+        """
+        return
+
+    def starttls(self, *args, **kwargs):    # pylint: disable=unused-argument, no-self-use
+        """
+        Dummy start TLS.  Does nothing.
+        """
+        return
+
+    def login(self, *args, **kwargs):       # pylint: disable=unused-argument, no-self-use
+        """
+        Dummy login.  Does nothing.
+        """
+        return
+
+    def sendmail(self, *args, **kwargs):    # pylint: disable=unused-argument, no-self-use
+        """
+        Dummy send mail.  Does nothing.
+        """
+        return
+
+    def quit(self, *args, **kwargs):        # pylint: disable=unused-argument, no-self-use
+        """
+        Dummy quit.  Does nothing.
+        """
+        return
+
+
+
 def test_load_email_conf(monkeypatch):
     """
     Tests `load_email_conf()`.
@@ -101,47 +143,6 @@ def test_send_email(monkeypatch):
         }
 
 
-    class MockSmtp:
-        """
-        Simple mock object to replace smtplib.SMTP and its relevant methods.
-        """
-        def __init__(self, *args, **kwargs):
-            """
-            Creates a dummy object.
-            """
-            return
-
-        def ehlo(self, *args, **kwargs):
-            """
-            Dummy ehlo.  Does nothing.
-            """
-            return
-
-        def starttls(self, *args, **kwargs):
-            """
-            Dummy start TLS.  Does nothing.
-            """
-            return
-
-        def login(self, *args, **kwargs):
-            """
-            Dummy login.  Does nothing.
-            """
-            return
-
-        def sendmail(self, *args, **kwargs):
-            """
-            Dummy send mail.  Does nothing.
-            """
-            return
-
-        def quit(self, *args, **kwargs):
-            """
-            Dummy quit.  Does nothing.
-            """
-            return
-
-
     def mock_quit_fail():
         """
         Mocks the quit call of SMTP (or any) to raise an exception.
@@ -164,6 +165,7 @@ def test_send_email(monkeypatch):
             mock_load_email_conf_dummy)
 
     email_report.send_email('test subject', 'test body')
+    # Continuing past this point indicates this test above passed
 
 
     monkeypatch.setattr(MockSmtp, 'quit', mock_quit_fail)
