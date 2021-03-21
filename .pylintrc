@@ -1,5 +1,6 @@
 
 [MASTER]
+good-names=i,j,k,ex,_,v,x,y
 init-hook='from pylint.config import find_pylintrc;
         import os, sys;
         sys.path.append(os.path.dirname(find_pylintrc()));

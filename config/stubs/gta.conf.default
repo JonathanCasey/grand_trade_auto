@@ -1,0 +1,6 @@
+
+[email]
+# Each email can be in form 'Display Name <email@server.com>'
+
+# Comma separated list, with each item wrapped in quotes as needed, multiline ok
+recipients:
