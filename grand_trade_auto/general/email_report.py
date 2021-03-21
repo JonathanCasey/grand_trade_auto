@@ -10,7 +10,7 @@ from email.mime.text import MIMEText
 import smtplib
 
 from grand_trade_auto.general import config
-from grand_trade_auto.general.exceptions import EmailConnectionError
+from grand_trade_auto.general.exceptions import *   # pylint: disable=wildcard-import, unused-wildcard-import
 
 
 
@@ -58,7 +58,10 @@ def send_email(subject, body):
       (EmailConnectionError): The email could not be sent due to a server
         connection failure.
     """
-    email_conf = load_email_conf()
+    try:
+        email_conf = load_email_conf()
+    except Exception as ex:
+        raise EmailConfigError('Email config load failed.') from ex
 
     recipient = ', '.join(email_conf['recipients'])
 
@@ -75,8 +78,6 @@ def send_email(subject, body):
     msg.attach(html_part)
 
     try:
-        print(email_conf['server'])
-        print(email_conf['port'])
         session = smtplib.SMTP(email_conf['server'], email_conf['port'])
 
         session.ehlo()
@@ -88,3 +89,14 @@ def send_email(subject, body):
         session.quit()
     except Exception as ex:
         raise EmailConnectionError('Email send connection error.') from ex
+
+
+
+if __name__ == '__main__':
+    """
+    Call this module to run a quick manual test to confirm email sending works.
+
+    As with anything else, must still be called from repo root, i.e.
+    `python3 ./grand_trade_auto/general/email_report.py`
+    """
+    send_email('Test GTA subject', 'Test grand_trade_auto body.')

@@ -13,9 +13,13 @@ Module Attributes:
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 import os.path
+import smtplib
+
+import pytest
 
 from grand_trade_auto.general import config
 from grand_trade_auto.general import email_report
+from grand_trade_auto.general.exceptions import *   # pylint: disable=wildcard-import, unused-wildcard-import
 
 
 
@@ -61,3 +65,109 @@ def test_load_email_conf(monkeypatch):
     assert len(data['recipients']) == 2
     assert data['recipients'][0] == 'Fake User 1 <fake-user-1@nowhere.com>'
     assert data['recipients'][1] == 'Fake User 2 <fake-user-2@nowhere.com>'
+
+
+
+def test_send_email(monkeypatch):
+    """
+    Tests `send_email()`.
+
+    Does not actually send any email -- this must be tested outside of unit
+    tests to ensure it works.  A convenience for doing this has been added to
+    `email_report.py` that allows that module to be called directly solely for
+    such a test.
+    """
+    def mock_load_email_conf_fail():
+        """
+        Replaces the `load_email_conf()` with one that will raise an exception.
+        """
+        raise Exception('Fake failure.')
+
+
+    def mock_load_email_conf_dummy():
+        """
+        Replaces the `load_email_conf()` with one that will return dummy values.
+        """
+        return {
+            'server': 'fake server',
+            'port': 'fake port',
+            'sender': 'fake sender',
+            'password': 'fake password',
+            'sender_name': 'fake sender name',
+            'recipients': [
+                'fake recipient 1',
+                'fake recipient 2',
+            ],
+        }
+
+
+    class MockSmtp:
+        """
+        Simple mock object to replace smtplib.SMTP and its relevant methods.
+        """
+        def __init__(self, *args, **kwargs):
+            """
+            Creates a dummy object.
+            """
+            return
+
+        def ehlo(self, *args, **kwargs):
+            """
+            Dummy ehlo.  Does nothing.
+            """
+            return
+
+        def starttls(self, *args, **kwargs):
+            """
+            Dummy start TLS.  Does nothing.
+            """
+            return
+
+        def login(self, *args, **kwargs):
+            """
+            Dummy login.  Does nothing.
+            """
+            return
+
+        def sendmail(self, *args, **kwargs):
+            """
+            Dummy send mail.  Does nothing.
+            """
+            return
+
+        def quit(self, *args, **kwargs):
+            """
+            Dummy quit.  Does nothing.
+            """
+            return
+
+
+    def mock_quit_fail():
+        """
+        Mocks the quit call of SMTP (or any) to raise an exception.
+        """
+        raise Exception('Unit test simulated failure.')
+
+
+    monkeypatch.setattr(smtplib, 'SMTP', MockSmtp)
+
+
+    monkeypatch.setattr(email_report, 'load_email_conf',
+            mock_load_email_conf_fail)
+
+    with pytest.raises(EmailConfigError) as ex:
+        email_report.send_email('s', 'b')
+    assert 'Email config load failed.' in str(ex.value)
+
+
+    monkeypatch.setattr(email_report, 'load_email_conf',
+            mock_load_email_conf_dummy)
+
+    email_report.send_email('test subject', 'test body')
+
+
+    monkeypatch.setattr(MockSmtp, 'quit', mock_quit_fail)
+
+    with pytest.raises(EmailConnectionError) as ex:
+        email_report.send_email('s', 'b')
+    assert 'Email send connection error.' in str(ex.value)

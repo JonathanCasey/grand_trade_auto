@@ -11,3 +11,11 @@ class EmailConnectionError(Exception):
     """
     Raised when an email fails to send for a connection-related reason.
     """
+
+
+
+class EmailConfigError(Exception):
+    """
+    Raised when loading email configuration fails, either due to a
+    misconfiguration or no configuration at all.
+    """

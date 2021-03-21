@@ -14,6 +14,7 @@ from grand_trade_auto.broker import brokers
 from grand_trade_auto.database import databases
 from grand_trade_auto.general import config
 from grand_trade_auto.general import email_report
+from grand_trade_auto.general.exceptions import *   # pylint: disable=wildcard-import, unused-wildcard-import
 
 
 
@@ -31,7 +32,10 @@ def main():
     config.init_logger('DEBUG')
     databases.load_and_set_main_database_from_config('test')
     brokers.load_and_set_main_broker_from_config('test')
-    email_report.send_email('Test GTA email', 'From grand_trade_auto project.')
+    try:
+        email_report.send_email('Test GTA email', 'From grand_trade_auto.')
+    except EmailConfigError:
+        logger.warning('Email config could not be loaded.  Skipping.')
 
 
 
