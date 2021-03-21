@@ -94,6 +94,44 @@ def test_cast_var():
 
 
 
+def test_parse_list_from_conf_string():
+    """
+    Tests `parse_list_from_conf_string()`.
+    """
+    conf_list_strs = ['one', 'two', 'three']
+    conf_str_simple = 'one, two, three'
+    conf_str_newlines = 'one,\r\ntwo,  \r\n\r\n  three'
+    conf_str_quotes = 'one, "two", \'three\''
+    conf_str_delim = 'one | two | three'
+    delim_char = '|'
+
+    conf_list_ints = [1, 2, 3]
+    conf_str_ints = '1, 2, 3'
+    conf_str_ints_mixed = '1, 1.5, 2, two-and-a-third, 3'
+    conf_list_floats = [1.0, 2.00, 3.000]
+    conf_str_floats = '1.0, 2.00, 3.000'
+
+    assert [] == config.parse_list_from_conf_string('', config.CastType.STRING)
+    assert conf_list_strs == config.parse_list_from_conf_string(
+            conf_str_simple, config.CastType.STRING)
+    assert conf_list_strs == config.parse_list_from_conf_string(
+            conf_str_newlines, config.CastType.STRING)
+    assert conf_list_strs != config.parse_list_from_conf_string(
+            conf_str_quotes, config.CastType.STRING)
+    assert conf_list_strs == config.parse_list_from_conf_string(
+            conf_str_quotes, config.CastType.STRING, strip_quotes=True)
+    assert conf_list_strs == config.parse_list_from_conf_string(
+            conf_str_delim, config.CastType.STRING, delim_char)
+
+    assert conf_list_ints == config.parse_list_from_conf_string(
+            conf_str_ints, config.CastType.INT)
+    assert conf_list_ints == config.parse_list_from_conf_string(
+            conf_str_ints_mixed, config.CastType.INT)
+    assert conf_list_floats == config.parse_list_from_conf_string(
+            conf_str_floats, config.CastType.FLOAT)
+
+
+
 def test_get_matching_secrets_id():
     """
     Tests the `get_matching_secrets_id()`.
