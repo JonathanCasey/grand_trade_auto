@@ -17,6 +17,8 @@ import configparser
 import logging
 import os.path
 
+import pytest
+
 from grand_trade_auto.general import config
 from grand_trade_auto.general import dirs
 
@@ -54,6 +56,41 @@ def test_read_conf_file():
     parser = config.read_conf_file('mock_config.conf', conf_dir)
     assert parser['test-section']['test key str'] == 'test-val-str'
     assert parser.getint('test-section', 'test key int') == 123
+
+
+
+def test_cast_var():
+    """
+    Tests `cast_var()` for all `CastType`, so by extention tests that enum also.
+    """
+    good_int_str = '5'
+    good_float_str = '3.14'
+    good_str = 'test str'
+    good_int = int(good_int_str)
+    good_float = float(good_float_str)
+    bad_int_str = 'five'
+    bad_float_str = 'pi'
+
+    assert good_int == config.cast_var(good_int_str, config.CastType.INT)
+    assert good_float == config.cast_var(good_float_str, config.CastType.FLOAT)
+    assert good_str == config.cast_var(good_str, config.CastType.STRING)
+
+    with pytest.raises(TypeError) as ex:
+        config.cast_var(good_int, 'invalid_cast_type')
+    assert 'Cast failed -- unsupported type.' in str(ex.value)
+
+    with pytest.raises(ValueError) as ex:
+        config.cast_var(bad_int_str, config.CastType.INT)
+    assert "invalid literal for int() with base 10: 'five'" in str(ex.value)
+
+    with pytest.raises(ValueError) as ex:
+        config.cast_var(bad_float_str, config.CastType.FLOAT)
+    assert "could not convert string to float: 'pi'" in str(ex.value)
+
+    # Skipping failed string cast due to expected rarity
+
+    assert bad_int_str == config.cast_var(bad_int_str, config.CastType.INT,
+            True)
 
 
 
