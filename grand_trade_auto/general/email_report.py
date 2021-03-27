@@ -92,12 +92,18 @@ def send_email(subject, body):
 
 
 
-if __name__ == '__main__':
+def main():
     """
     Call this module to run a quick manual test to confirm email sending works.
 
     As with anything else, must still be called from repo root, i.e.
     `python3 ./grand_trade_auto/general/email_report.py`
-    """                             # pylint: disable=pointless-string-statement
+    """
     send_email('Test GTA subject', 'Test grand_trade_auto body.')
     print('Test email sent -- check inbox.')
+
+
+
+if __name__ == '__main__':                                  # Ignored by CodeCov
+    # Since no unit testing here, code kept at absolute minimum
+    main()

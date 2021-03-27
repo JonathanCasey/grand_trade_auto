@@ -18,7 +18,8 @@ from grand_trade_auto.general.exceptions import *   # pylint: disable=wildcard-i
 
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':                                  # Ignored by CodeCov
+    # Since no unit testing here, code kept at absolute minimum
     logger = logging.getLogger('grand_trade_auto.tmp_main')
 else:
     logger = logging.getLogger(__name__)
@@ -36,8 +37,11 @@ def main():
         email_report.send_email('Test GTA email', 'From grand_trade_auto.')
     except EmailConfigError:
         logger.warning('Email config could not be loaded.  Skipping.')
+    except EmailConnectionError:
+        logger.warning('Email could not be sent (connection error).  Skipping.')
 
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':                                  # Ignored by CodeCov
+    # Since no unit testing here, code kept at absolute minimum
     main()

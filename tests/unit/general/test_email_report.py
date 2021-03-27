@@ -180,3 +180,17 @@ def test_send_email(monkeypatch,
     with pytest.raises(EmailConfigError) as ex:
         email_report.send_email('s', 'b')
     assert 'Email config load failed.' in str(ex.value)
+
+
+
+def test_main(monkeypatch,
+        mock_load_email_conf_dummy):           # pylint: disable=unused-argument
+    """
+    Tests main().
+
+    Since this main() itself is meant to only be for test purposes, this test is
+    not thorough -- essentially aiming to show all lines execute without
+    exceptions.
+    """
+    monkeypatch.setattr(smtplib, 'SMTP', MockSmtp)
+    email_report.main()
