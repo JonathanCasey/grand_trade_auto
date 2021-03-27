@@ -17,16 +17,14 @@ workflows:
   changelog-updated:
     jobs:
       - diff-changelog-last-commit:
-          filters:
-            branches:
-              ignore:         # TEMP: Should be "only"
-                - stable
-                - develop
+          context:
+            - docker-hub-creds
       - diff-changelog-vs-develop:
-          filters:
-            branches:
-              ignore: develop
+          context:
+            - docker-hub-creds
       - find-changelog-pr-ref:
+          context:
+            - docker-hub-creds
 
 
 
@@ -51,6 +49,13 @@ aliases:
         environment:
           POSTGRES_USER: circleci-user
           POSTGRES_PASSWORD: circleci-password
+
+  - &default_git_image
+    docker:
+      - image: docker:stable-git
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
 
   - &default_restore_cache
     restore_cache:
@@ -124,6 +129,12 @@ jobs:
             . venv/bin/activate
             bash <(curl -s https://codecov.io/bash)
   diff-changelog-last-commit:
+    <<: *&default_git_image
+    filters:
+      branches:
+        ignore:         # TEMP: Should be "only"
+          - stable
+          - develop
     steps:
       - checkout
       - run:
@@ -135,6 +146,10 @@ jobs:
               exit 1
             fi
   diff-changelog-vs-develop:
+    <<: *&default_git_image
+    filters:
+      branches:
+        ignore: develop
     steps:
       - checkout
       - run:
@@ -146,6 +161,7 @@ jobs:
               exit 1
             fi
   find-changelog-pr-ref:
+    <<: *&default_git_image
     steps:
       - checkout
       - run:
