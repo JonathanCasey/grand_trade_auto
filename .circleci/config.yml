@@ -155,7 +155,7 @@ jobs:
       - run:
           name: Find additions to changelog compared to develop
           command: |
-            if [ $(git diff-tree --no-commit-id --numstat -b HEAD develop |
+            if [ $(git diff-tree --no-commit-id --numstat -b develop HEAD |
                 grep -c -E "^[1-9][[:digit:]]*\s+[[:digit:]]+\s+\CHANGELOG\.md$"
                 ) = 0 ]; then
               exit 1
