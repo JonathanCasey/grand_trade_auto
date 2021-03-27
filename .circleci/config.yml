@@ -14,6 +14,19 @@ workflows:
           context:
             - docker-hub-creds
             - alpaca-paper-creds
+  changelog-updated:
+    jobs:
+      - diff-changelog-last-commit:
+          filters:
+            branches:
+              ignore:         # TEMP: Should be "only"
+                - stable
+                - develop
+      - diff-changelog-vs-develop:
+          filters:
+            branches:
+              ignore: develop
+      - find-changelog-pr-ref:
 
 
 
@@ -110,3 +123,37 @@ jobs:
           command: |
             . venv/bin/activate
             bash <(curl -s https://codecov.io/bash)
+  diff-changelog-last-commit:
+    steps:
+      - checkout
+      - run:
+          name: Find additions to changelog since parent commit(s)
+          command: |
+            if [ $(git diff-tree --no-commit-id --numstat -b -m -c HEAD |
+                grep -c -E "^[1-9][[:digit:]]*\s+[[:digit:]]+\s+\CHANGELOG\.md$"
+                ) = 0 ]; then
+              exit 1
+            fi
+  diff-changelog-vs-develop:
+    steps:
+      - checkout
+      - run:
+          name: Find additions to changelog compared to develop
+          command: |
+            if [ $(git diff-tree --no-commit-id --numstat -b HEAD develop |
+                grep -c -E "^[1-9][[:digit:]]*\s+[[:digit:]]+\s+\CHANGELOG\.md$"
+                ) = 0 ]; then
+              exit 1
+            fi
+  find-changelog-pr-ref:
+    steps:
+      - checkout
+      - run:
+          name: Check if this is a PR build and if PR number is in changelog
+          command: |
+            if [[ ! -z $CIRCLE_PULL_REQUEST ]] ; then
+              if [ $(grep -c -E "#${CIRCLE_PULL_REQUEST##*/}([^0-9]|$)" CHANGELOG.md
+                  ) = 0 ]; then
+                exit 1
+              fi
+            fi
