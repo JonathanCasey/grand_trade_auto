@@ -129,7 +129,7 @@ jobs:
             . venv/bin/activate
             bash <(curl -s https://codecov.io/bash)
   diff-changelog-last-commit:
-    <<: *&default_git_image
+    <<: *default_git_image
     filters:
       branches:
         ignore:         # TEMP: Should be "only"
@@ -146,7 +146,7 @@ jobs:
               exit 1
             fi
   diff-changelog-vs-develop:
-    <<: *&default_git_image
+    <<: *default_git_image
     filters:
       branches:
         ignore: develop
@@ -161,7 +161,7 @@ jobs:
               exit 1
             fi
   find-changelog-pr-ref:
-    <<: *&default_git_image
+    <<: *default_git_image
     steps:
       - checkout
       - run:
