@@ -2,4 +2,6 @@
 __all__ = [
         'config',
         'dirs',
+        'email_report',
+        'exceptions',
 ]

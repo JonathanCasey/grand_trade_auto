@@ -16,6 +16,7 @@ Module Attributes:
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 import configparser
+from enum import Enum
 import itertools
 import logging
 import logging.config
@@ -104,6 +105,89 @@ def get_matching_secrets_id(secrets_cp, submod, main_id):
         except ValueError:
             continue
     return None
+
+
+
+class CastType(Enum):
+    """
+    Enum of cast types.
+
+    These are used to specify a target type when casting in `castVar()`.
+    """
+    INT = 'int'
+    FLOAT = 'float'
+    STRING = 'string'
+
+
+
+def cast_var(var, cast_type, fallback_to_original=False):
+    """
+    Cast variable to the specified type.
+
+    Args:
+      var (*): Variable of an unknown type.
+      cast_type (CastType): Type that var should be cast to, if possible.
+      fallback_to_original (bool): If true, will return original var if cast
+        fails; otherwise, failed cast will raise exception.
+
+    Returns:
+      var (CastType, or ?): Same as var provided, but of the type specified by
+        CastType; but if cast failed and fallback to original was true, will
+        return original var in original type.
+
+    Raises:
+      (TypeError): Cannot cast because type specified is not supported.
+      (ValueError): Cast failed and fallback to original was not True.
+    """
+    try:
+        if cast_type == CastType.INT:
+            return int(var)
+        if cast_type == CastType.FLOAT:
+            return float(var)
+        if cast_type == CastType.STRING:
+            return str(var)
+        raise TypeError('Cast failed -- unsupported type.')
+
+    except (TypeError, ValueError):
+        if fallback_to_original:
+            return var
+        raise
+
+
+
+def parse_list_from_conf_string(conf_str, val_type, delim=',',
+        strip_quotes=False):
+    """
+    Parse a string into a list of items based on the provided specifications.
+
+    Args:
+      conf_str (str): The string to be split.
+      val_type (CastType): The type to cast each element to.
+      delim (str): The delimiter on which to split conf_str.
+      strip_quotes (bool): Whether or not there are quotes to be stripped from
+        each item after split and strip.
+
+    Returns:
+      list_out (list of val_type): List of all elements found in conf_str after
+        splitting on delim.  Each element will be of val_type.  This will
+        silently skip any element that cannot be cast.
+    """
+    if not conf_str:
+        return []
+    val_raw_list = conf_str.split(delim)
+
+    list_out = []
+    for val in val_raw_list:
+        try:
+            if strip_quotes:
+                val = val.strip().strip('\'"')
+            cast_val = cast_var(val.strip(), val_type)
+            list_out.append(cast_val)
+        except (ValueError, TypeError):
+            # may have been a blank line without a delim
+            pass
+
+    return list_out
 
 
 

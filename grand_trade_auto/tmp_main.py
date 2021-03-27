@@ -13,10 +13,13 @@ import logging
 from grand_trade_auto.broker import brokers
 from grand_trade_auto.database import databases
 from grand_trade_auto.general import config
+from grand_trade_auto.general import email_report
+from grand_trade_auto.general.exceptions import *   # pylint: disable=wildcard-import, unused-wildcard-import
 
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':                                  # Ignored by CodeCov
+    # Since no unit testing here, code kept at absolute minimum
     logger = logging.getLogger('grand_trade_auto.tmp_main')
 else:
     logger = logging.getLogger(__name__)
@@ -30,8 +33,15 @@ def main():
     config.init_logger('DEBUG')
     databases.load_and_set_main_database_from_config('test')
     brokers.load_and_set_main_broker_from_config('test')
+    try:
+        email_report.send_email('Test GTA email', 'From grand_trade_auto.')
+    except EmailConfigError:
+        logger.warning('Email config could not be loaded.  Skipping.')
+    except EmailConnectionError:
+        logger.warning('Email could not be sent (connection error).  Skipping.')
 
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':                                  # Ignored by CodeCov
+    # Since no unit testing here, code kept at absolute minimum
     main()
