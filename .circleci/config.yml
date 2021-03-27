@@ -19,9 +19,17 @@ workflows:
       - diff-changelog-last-commit:
           context:
             - docker-hub-creds
+          filters:
+            branches:
+              ignore:         # TEMP: Should be "only"
+                - stable
+                - develop
       - diff-changelog-vs-develop:
           context:
             - docker-hub-creds
+          filters:
+            branches:
+              ignore: develop
       - find-changelog-pr-ref:
           context:
             - docker-hub-creds
@@ -130,11 +138,6 @@ jobs:
             bash <(curl -s https://codecov.io/bash)
   diff-changelog-last-commit:
     <<: *default_git_image
-    filters:
-      branches:
-        ignore:         # TEMP: Should be "only"
-          - stable
-          - develop
     steps:
       - checkout
       - run:
@@ -147,9 +150,6 @@ jobs:
             fi
   diff-changelog-vs-develop:
     <<: *default_git_image
-    filters:
-      branches:
-        ignore: develop
     steps:
       - checkout
       - run:
