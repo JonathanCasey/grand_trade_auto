@@ -21,7 +21,7 @@ workflows:
             - docker-hub-creds
           filters:
             branches:
-              ignore:         # TEMP: Should be "only"
+              only:
                 - stable
                 - develop
       - diff-changelog-vs-develop:
