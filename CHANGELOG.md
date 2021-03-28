@@ -75,6 +75,16 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `.env` files added to `.gitignore` ([#9][]).
 - [Added] Good names added to `.pylintrc`, with `v` being the critical addition
       to allow usage without pylint complaints ([#9][]).
+- [Added] This `CHANGELOG.md` file created and updated with all project work
+      to-date (+1 self reference) ([#55][]).
+- [Added] CircleCI workflow added for `changelog-updated`, including 3 jobs to
+      check for changes to `CHANGELOG.md` ([#55][]):
+  - `diff-changelog-last-commit` checks if any additions since last commit for
+        develop and stable branches only.
+  - `diff-changelog-vs-develop` checks if any additions compared to develop for
+        non-develop branches only.
+  - `find-changelog-pr-ref` checks if the current PR number shows up for PRs
+        only.
 
 
 ### Brokers / Meta
@@ -119,7 +129,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] Enum and method for type casting input data added ([#9][]).
 - [Added] Support for parsing a list from a config file added ([#9][]).
 
-#### Unit Tests
+##### Unit Tests
 - [Added] All missing unit tets for initial `config.py` work added ([#2][]).
 
 
@@ -140,7 +150,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `dirs.py` added with basic dir resolution ([#1][]).
 - [Changed] `get_src_root_path()` now named `get_src_app_root_path()` ([#32][]).
 
-#### Unit Tests
+##### Unit Tests
 - [Added] Unit test for `test_get_root_path()` added to initially test `pytest`
       functionality ([#10][]).
 - [Added] All missing units tests for initial `dirs.py` work added ([#39][]).
@@ -194,6 +204,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#39][]
 - [#45][]
 - [#48][]
+- [#55][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -211,6 +222,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#47][] for [#6][]
 - [#49][] for [#48][]
 - [#52][] for [#9][]
+- [#56][] for [#55][]
 
 
 ---
@@ -233,6 +245,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#6]: https://github.com/JonathanCasey/grand_trade_auto/issues/6 'Issue #6'
 [#48]: https://github.com/JonathanCasey/grand_trade_auto/issues/48 'Issue #48'
 [#9]: https://github.com/JonathanCasey/grand_trade_auto/issues/9 'Issue #9'
+[#55]: https://github.com/JonathanCasey/grand_trade_auto/issues/55 'Issue #55'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -249,3 +262,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#47]: https://github.com/JonathanCasey/grand_trade_auto/pull/47 'PR #47'
 [#49]: https://github.com/JonathanCasey/grand_trade_auto/pull/49 'PR #49'
 [#52]: https://github.com/JonathanCasey/grand_trade_auto/pull/52 'PR #52'
+[#56]: https://github.com/JonathanCasey/grand_trade_auto/pull/56 'PR #56'
