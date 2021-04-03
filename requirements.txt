@@ -1,7 +1,9 @@
 alpaca-trade-api==0.51.0
+fastapi
 numpy==1.19.3
 pandas
 psycopg2
 pylint
 pytest
 pytest-cov
+uvicorn
