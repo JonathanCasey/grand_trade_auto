@@ -2,4 +2,5 @@
 __all__ = [
         'test_config',
         'test_dirs',
+        'test_email_report',
 ]
