@@ -13,10 +13,24 @@ Module Attributes:
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+from bs4 import BeautifulSoup
 import jinja2
 import pytest
 
 from . import utils as tt_utils
+
+
+
+def test_html_head():
+    """
+    Tests the contents of the head tag in the HTML is as expected.
+    """
+    context = {
+        'data': {},
+    }
+    html = tt_utils.render('root_index.html', context)
+    soup = BeautifulSoup(html, 'html.parser')
+    assert soup.head.title.contents[0] == 'Root Index Page'
 
 
 
