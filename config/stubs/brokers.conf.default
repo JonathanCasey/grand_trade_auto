@@ -1,5 +1,5 @@
 
-[friendly-name-for-database]
+[friendly-name-for-broker]
 env : <production/development/test>
 type : <alpaca>
 trade domain : <live/paper>

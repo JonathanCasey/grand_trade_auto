@@ -128,6 +128,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       `[email]` section with email `recipients` ([#9][]).
 - [Added] Enum and method for type casting input data added ([#9][]).
 - [Added] Support for parsing a list from a config file added ([#9][]).
+- [Fixed] `brokers.conf.default` now correctly references "brokers" instead of
+      "databases" ([#59][]).
 
 ##### Unit Tests
 - [Added] All missing unit tets for initial `config.py` work added ([#2][]).
@@ -180,6 +182,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 
 ### Exceptions
 - [Added] `EmailConnectionError` and `EmailConfigError` added ([#9][]).
+- [Changed] Exceptions now listed in alphabetical order ([#59][]).
 
 
 ### Ref Links
@@ -205,6 +208,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#45][]
 - [#48][]
 - [#55][]
+- [#59][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -223,6 +227,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#49][] for [#48][]
 - [#52][] for [#9][]
 - [#56][] for [#55][]
+- [#60][] for [#59][]
 
 
 ---
@@ -246,6 +251,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#48]: https://github.com/JonathanCasey/grand_trade_auto/issues/48 'Issue #48'
 [#9]: https://github.com/JonathanCasey/grand_trade_auto/issues/9 'Issue #9'
 [#55]: https://github.com/JonathanCasey/grand_trade_auto/issues/55 'Issue #55'
+[#59]: https://github.com/JonathanCasey/grand_trade_auto/issues/59 'Issue #59'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -263,3 +269,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#49]: https://github.com/JonathanCasey/grand_trade_auto/pull/49 'PR #49'
 [#52]: https://github.com/JonathanCasey/grand_trade_auto/pull/52 'PR #52'
 [#56]: https://github.com/JonathanCasey/grand_trade_auto/pull/56 'PR #56'
+[#60]: https://github.com/JonathanCasey/grand_trade_auto/pull/60 'PR #60'
