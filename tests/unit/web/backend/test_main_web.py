@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tests the grand_trade_auto.web.backend.main functionality.
+Tests the grand_trade_auto.web.backend.main_web functionality.
 
 Per [pytest](https://docs.pytest.org/en/reorganize-docs/new-docs/user/naming_conventions.html),
 all tiles, classes, and methods will be prefaced with `test_/Test` to comply
@@ -15,11 +15,11 @@ Module Attributes:
 """
 from fastapi.testclient import TestClient
 
-from grand_trade_auto.web.backend import main
+from grand_trade_auto.web.backend import main_web
 
 
 
-client = TestClient(main.app)
+client = TestClient(main_web.app)
 
 
 

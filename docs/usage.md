@@ -11,7 +11,7 @@ python grand_trade_auto/tmp_main.py
 The only exception to this is the web interface.  To run with `uvicorn`:
 ```bach
 cd /path/to/repo/root
-uvicorn main:app --app-dir /grand_trade_auto/web/backend
+uvicorn main_web:app --app-dir /grand_trade_auto/web/backend
 # Optionally, use `--reload` in `uvicorn` command during dev
 ```
 
