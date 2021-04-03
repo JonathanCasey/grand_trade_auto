@@ -1,3 +1,4 @@
+aiofiles
 alpaca-trade-api==0.51.0
 beautifulsoup4
 fastapi

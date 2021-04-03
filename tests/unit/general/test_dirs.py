@@ -78,3 +78,16 @@ def test_get_jinja2_templates_path():
     frontend_dir = os.path.join(web_root_dir, 'frontend')
     templates_dir = os.path.join(frontend_dir, 'templates')
     assert templates_dir == dirs.get_jinja2_templates_path()
+
+
+
+def test_get_web_frontend_static_path():
+    """
+    Tests that the `get_web_frontend_static_path()` method will return the correct
+    result by verifying the same result via this alternate traversal path.
+    """
+    src_app_root_dir = os.path.join(get_root_path(), APP_NAME)
+    web_root_dir = os.path.join(src_app_root_dir, 'web')
+    frontend_dir = os.path.join(web_root_dir, 'frontend')
+    templates_dir = os.path.join(frontend_dir, 'static')
+    assert templates_dir == dirs.get_web_frontend_static_path()

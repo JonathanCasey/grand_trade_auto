@@ -11,6 +11,7 @@ Module Attributes:
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from grand_trade_auto.general import dirs
@@ -18,6 +19,9 @@ from grand_trade_auto.general import dirs
 
 
 app = FastAPI()
+app.mount("/static",
+        StaticFiles(directory=dirs.get_web_frontend_static_path()),
+        name='static')
 templates = Jinja2Templates(directory=dirs.get_jinja2_templates_path())
 
 

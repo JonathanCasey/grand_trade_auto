@@ -59,3 +59,16 @@ def get_jinja2_templates_path():
     web_root_dir = os.path.join(get_src_app_root_path(), 'web')
     frontend_dir = os.path.join(web_root_dir, 'frontend')
     return os.path.join(frontend_dir, 'templates')
+
+
+
+def get_web_frontend_static_path():
+    """
+    Get the path to the static frontend items.
+
+    Returns:
+      (os.path): Path to static frontend dir.
+    """
+    web_root_dir = os.path.join(get_src_app_root_path(), 'web')
+    frontend_dir = os.path.join(web_root_dir, 'frontend')
+    return os.path.join(frontend_dir, 'static')
