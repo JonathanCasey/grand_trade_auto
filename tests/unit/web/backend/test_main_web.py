@@ -29,4 +29,6 @@ def test_get_root():
     """
     response = client.get('/')
     assert response.status_code == 200
-    assert response.json() == {'msg': 'Root page'}
+    assert response.template.name == 'root_index.html'
+    assert 'request' in response.context
+    assert response.context['data'] == {'test_msg': 'Root page'}

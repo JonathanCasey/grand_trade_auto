@@ -46,3 +46,16 @@ def get_conf_path():
       (os.path): Path to config dir.
     """
     return os.path.join(get_root_path(), 'config')
+
+
+
+def get_jinja2_templates_path():
+    """
+    Get the path to the jinja2 templates.
+
+    Returns:
+      (os.path): Path to jinja2 templates dir.
+    """
+    web_root_dir = os.path.join(get_src_app_root_path(), 'web')
+    frontend_dir = os.path.join(web_root_dir, 'frontend')
+    return os.path.join(frontend_dir, 'templates')
