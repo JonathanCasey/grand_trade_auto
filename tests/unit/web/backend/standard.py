@@ -24,13 +24,9 @@ def is_favicon_present(rendered_html):
     Args:
       rendered_html (str): The rendered html for the page.
 
-    Returns:
-      success (bool): True if all checks passed; False otherwise.
-
     Raises:
       (Exception): Will raise exceptions for failed tests.
     """
-    success = True
     favicon_found = False
 
     soup = BeautifulSoup(rendered_html, 'html.parser')
@@ -51,8 +47,3 @@ def is_favicon_present(rendered_html):
             break
 
     assert favicon_found
-
-    if not favicon_found:
-        success = False
-
-    return success

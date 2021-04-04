@@ -34,4 +34,4 @@ def test_get_root():
     assert response.template.name == 'root_index.html'
     assert 'request' in response.context
     assert response.context['data'] == {'test_msg': 'Root page'}
-    assert be_std.is_favicon_present(response.text)
+    be_std.is_favicon_present(response.text)
