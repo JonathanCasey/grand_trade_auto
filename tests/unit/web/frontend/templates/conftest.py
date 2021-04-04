@@ -50,7 +50,7 @@ def fixture_sanitized_templates(request):
     request.addfinalizer(delete_tmp_files)
 
     for filename in os.listdir(dirs.get_jinja2_templates_path()):
-        if filename.endswith('.html'):
+        if filename.endswith('.jinja2'):
             sanitized_filenames[filename] = tt_utils.sanitize_non_jinja2(
                     filename)
             tt_utils.sub_sanitized_jinja2_extends(filename)

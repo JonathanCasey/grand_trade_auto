@@ -44,4 +44,4 @@ async def get_root(request: Request):
             'test_msg': 'Root page',
         },
     }
-    return templates.TemplateResponse('root_index.html', context)
+    return templates.TemplateResponse('root_index.jinja2', context)
