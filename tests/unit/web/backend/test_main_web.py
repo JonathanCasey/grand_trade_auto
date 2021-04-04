@@ -17,6 +17,8 @@ from fastapi.testclient import TestClient
 
 from grand_trade_auto.web.backend import main_web
 
+from . import standard as be_std
+
 
 
 client = TestClient(main_web.app)
@@ -32,3 +34,4 @@ def test_get_root():
     assert response.template.name == 'root_index.html'
     assert 'request' in response.context
     assert response.context['data'] == {'test_msg': 'Root page'}
+    assert be_std.is_favicon_present(response.text)
