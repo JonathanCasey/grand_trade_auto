@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 import jinja2
 import pytest
 
+from . import standard as tt_std
 from . import utils as tt_utils
 
 
@@ -45,6 +46,7 @@ def test_template_fields():
     }
     html = tt_utils.render('root_index.html', context)
     assert 'Jinja2 test' in html
+    tt_std.are_style_sheets_scripts_present(html)
 
     context = {
         'data': {},
