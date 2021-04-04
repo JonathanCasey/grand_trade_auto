@@ -37,7 +37,8 @@ def are_style_sheets_scripts_present(rendered_html):
             semantic_stylesheet_found = True
             break
 
-    assert semantic_stylesheet_found
+    assert semantic_stylesheet_found, \
+            'Semantic UI Stylesheet missing from HTML head.'
 
 
     script_tags = soup.head.find_all('script')
@@ -53,4 +54,5 @@ def are_style_sheets_scripts_present(rendered_html):
             semantic_min_js_found = True
             break
 
-    assert semantic_min_js_found
+    assert semantic_min_js_found, \
+            'Semantic UI Min JS script missing from HTML head.'

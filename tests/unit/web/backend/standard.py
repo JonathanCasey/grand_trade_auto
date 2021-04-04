@@ -27,8 +27,6 @@ def is_favicon_present(rendered_html):
     Raises:
       (Exception): Will raise exceptions for failed tests.
     """
-    favicon_found = False
-
     soup = BeautifulSoup(rendered_html, 'html.parser')
     favicon_attrs = {
         'rel': 'icon',
@@ -38,6 +36,7 @@ def is_favicon_present(rendered_html):
 
     favicon_href_ptn = re.compile(r'^http://[^/]+/static/images/favicon\.ico$')
 
+    favicon_found = False
     for link_tag in link_tags:
         if 'href' not in link_tag.attrs:
             continue
@@ -46,4 +45,5 @@ def is_favicon_present(rendered_html):
             favicon_found = True
             break
 
-    assert favicon_found
+    assert favicon_found, \
+            'Favicon link missing from HTML head.'
