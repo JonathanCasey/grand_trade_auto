@@ -10,6 +10,7 @@ Module Attributes:
 import os
 import os.path
 import re
+from string import Template
 
 import jinja2
 
@@ -17,7 +18,11 @@ from grand_trade_auto.general import dirs
 
 
 
-def render(filename, context):
+sanitized_filename_template = Template('tmp_sanitized__$filename')
+
+
+
+def render_sanitized(filename, context):
     """
     Renders a jinja2 template based on the provided template filename and the
     context data provided.
@@ -36,25 +41,13 @@ def render(filename, context):
       rendered_html (str): Rendered html output resulting from this template
         file and the provided context data.
     """
-    sanitized_filename = sanitize_non_jinja2(filename)
-    if sanitized_filename:
-        dir_to_load = get_sanitized_jinja2_templates_test_path()
-        filename_to_load = sanitized_filename
-    else:
-        dir_to_load = dirs.get_jinja2_templates_path()
-        filename_to_load = filename
+    sanitized_filename = sanitized_filename_template.substitute(
+            filename=filename)
+    dir_for_sanitized = get_sanitized_jinja2_templates_test_path()
 
-    try:
-        rendered_html = jinja2.Environment(
-                    loader=jinja2.FileSystemLoader(dir_to_load)
-                ).get_template(filename_to_load).render(context)
-    # Let exception pass through to test case caller if raised
-    finally:
-        if sanitized_filename:
-            sanitized_filepath = os.path.join(
-                    get_sanitized_jinja2_templates_test_path(),
-                    sanitized_filename)
-            os.remove(sanitized_filepath)
+    rendered_html = jinja2.Environment(
+                loader=jinja2.FileSystemLoader(dir_for_sanitized)
+            ).get_template(sanitized_filename).render(context)
 
     return rendered_html
 
@@ -76,12 +69,10 @@ def sanitize_non_jinja2(filename):
       filename (str): Name of the jinja2 template to sanitize.
 
     Returns:
-      sanitized_filename (str or None): Name of the sanitized filename to use
-        from the directory of sanitized templates for test.  None if no changes
-        and original can be used.
+      sanitized_filename (str): Name of the sanitized filename to use from the
+        directory of sanitized templates for test.  File saved with new name
+        even if identical.
     """
-    sanitized_filename = None
-
     url_for_ptn = re.compile(r'{{\s*url_for\([^\)]*\)\s*}}', re.IGNORECASE)
 
     orig_filepath = os.path.join(dirs.get_jinja2_templates_path(), filename)
@@ -91,14 +82,56 @@ def sanitize_non_jinja2(filename):
     sanitized_text = orig_text
     sanitized_text = url_for_ptn.sub('sanitized__url_for', sanitized_text)
 
-    if orig_text != sanitized_text:
-        sanitized_filename = f'tmp_sanitized__{filename}'
-        sanitized_filepath = os.path.join(
-                get_sanitized_jinja2_templates_test_path(), sanitized_filename)
-        with open(sanitized_filepath, 'w') as f:
-            f.write(sanitized_text)
+    sanitized_filename = sanitized_filename_template.substitute(
+            filename=filename)
+    sanitized_filepath = os.path.join(
+            get_sanitized_jinja2_templates_test_path(), sanitized_filename)
+    with open(sanitized_filepath, 'w') as f:
+        f.write(sanitized_text)
 
     return sanitized_filename
+
+
+
+def sub_sanitized_jinja2_extends(filename=None, sanitized_filename=None):
+    """
+    Substitutes any "extends" syntax in jinja2 templates with the sanitized
+    filename versions of those templates.  Assumes the sanitized template
+    already exists.
+
+    Args:
+      filename (str or None): The original template filename.  Must be skipped
+        if `sanitized_filename` provided instead.
+      sanitized_filename (str or None): The sanitized template filename.  Must
+        be skipped if original `filename` provided instead.
+    """
+    assert (filename is None and sanitized_filename is not None) \
+            or (filename is not None and sanitized_filename is None)
+    if sanitized_filename is None:
+        sanitized_filename = sanitized_filename_template.substitute(
+                filename=filename)
+
+    extends_ptn = re.compile(r'{%\s+extends\s+"(?P<filename>[^"]+)"\s+%}',
+            re.IGNORECASE)
+
+    sanitized_filepath = os.path.join(
+            get_sanitized_jinja2_templates_test_path(), sanitized_filename)
+
+    with open(sanitized_filepath, 'r+') as f:
+        orig_text = f.read()
+        new_text = orig_text
+
+        for match in extends_ptn.finditer(new_text):
+            new_filename = sanitized_filename_template.substitute(
+                    filename=match.group('filename'))
+
+            new_text = new_text[:match.start('filename')] \
+                    + new_filename \
+                    + new_text[match.end('filename'):]
+
+        f.seek(0)
+        f.write(new_text)
+        f.truncate()
 
 
 
