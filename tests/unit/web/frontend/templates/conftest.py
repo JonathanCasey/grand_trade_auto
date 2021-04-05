@@ -53,6 +53,6 @@ def fixture_sanitized_templates(request):
         if filename.endswith('.jinja2'):
             sanitized_filenames[filename] = tt_utils.sanitize_non_jinja2(
                     filename)
-            tt_utils.sub_sanitized_jinja2_extends(filename)
+            tt_utils.sub_jinja2_extends_in_sanitized_files(filename)
 
     return sanitized_filenames

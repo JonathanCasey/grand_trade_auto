@@ -29,7 +29,7 @@ def test_html_head():
     context = {
         'data': {},
     }
-    html = tt_utils.render_sanitized('root_index.jinja2', context)
+    html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
     soup = BeautifulSoup(html, 'html.parser')
     assert soup.head.title.contents[0] == 'Root Index Page'
     tt_std.are_style_sheets_scripts_present(html)
@@ -38,24 +38,24 @@ def test_html_head():
 
 def test_template_fields():
     """
-    Tests the jinja2 template fields in 'root_index.html'.
+    Tests the jinja2 template fields in 'root_index.jinja2'.
     """
     context = {
         'data': {
             'test_msg': 'Jinja2 test',
         },
     }
-    html = tt_utils.render_sanitized('root_index.jinja2', context)
+    html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
     assert 'Jinja2 test' in html
 
     context = {
         'data': {},
     }
-    html = tt_utils.render_sanitized('root_index.jinja2', context)
+    html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
     assert 'Jinja2 test' not in html
     # Also tests that it renders at all
 
     context = {}
     with pytest.raises(jinja2.exceptions.UndefinedError) as ex:
-        html = tt_utils.render_sanitized('root_index.jinja2', context)
+        html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
     assert "'data' is undefined" in str(ex.value)
