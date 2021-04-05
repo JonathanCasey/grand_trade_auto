@@ -23,7 +23,7 @@ SANITIZED_FILENAME_TEMAPLTE = Template('tmp_sanitized__$filename')
 
 
 
-def render_sanitized(filename, context):
+def render_sanitized(filename, context=None):
     """
     Renders a jinja2 template based on the provided template filename and the
     context data provided.
@@ -35,13 +35,16 @@ def render_sanitized(filename, context):
 
     Args:
       filename (str): Name of the jinja2 template to render.
-      context ({str:str/int/etc}): The context data to populate into the
-        template fields in the template.
+      context ({str:str/int/etc} or None): The context data to populate into the
+        template fields in the template.  Can be omitted if no context needed.
 
     Returns:
       rendered_html (str): Rendered html output resulting from this template
         file and the provided context data.
     """
+    if context is None:
+        context = {}
+
     sanitized_filename = SANITIZED_FILENAME_TEMAPLTE.substitute(
             filename=filename)
     dir_for_sanitized = get_sanitized_jinja2_templates_test_path()
