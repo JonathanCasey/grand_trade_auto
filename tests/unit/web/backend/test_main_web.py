@@ -33,5 +33,5 @@ def test_get_root():
     assert response.status_code == 200
     assert response.template.name == 'root_index.jinja2'
     assert 'request' in response.context
-    assert response.context['data'] == {'test_msg': 'Root page'}
+    assert response.context['data'] == {'test_msg': '<b>Root page</b>'}
     be_std.is_favicon_present(response.text)

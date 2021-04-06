@@ -50,7 +50,8 @@ def render_sanitized_from_file(filename, context=None):
     dir_for_sanitized = get_sanitized_jinja2_templates_test_path()
 
     rendered_html = jinja2.Environment(
-                loader=jinja2.FileSystemLoader(dir_for_sanitized)
+                loader=jinja2.FileSystemLoader(dir_for_sanitized),
+                autoescape=True
             ).get_template(sanitized_filename).render(context)
 
     return rendered_html
@@ -83,7 +84,8 @@ def render_sanitized_from_str(template_str, context=None):
     dir_for_sanitized = get_sanitized_jinja2_templates_test_path()
 
     rendered_html = jinja2.Environment(
-                loader=jinja2.FileSystemLoader(dir_for_sanitized)
+                loader=jinja2.FileSystemLoader(dir_for_sanitized),
+                autoescape=True
             ).from_string(sanitized_template).render(context)
 
     return rendered_html

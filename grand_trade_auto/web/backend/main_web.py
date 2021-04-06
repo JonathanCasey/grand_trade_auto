@@ -13,6 +13,7 @@ Module Attributes:
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+import markupsafe
 
 from grand_trade_auto.general import dirs
 
@@ -41,7 +42,7 @@ async def get_root(request: Request):
     context = {
         'request': request,
         'data': {
-            'test_msg': 'Root page',
+            'test_msg': markupsafe.Markup('<b>Root page</b>'),
         },
     }
     return templates.TemplateResponse('root_index.jinja2', context)
