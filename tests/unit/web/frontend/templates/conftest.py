@@ -14,7 +14,7 @@ import pytest
 
 from grand_trade_auto.general import dirs
 
-from . import utils as tt_utils
+from . import utils as templates_utils
 
 
 
@@ -44,15 +44,16 @@ def fixture_sanitized_templates(request):
         """
         for sfn in sanitized_filenames.values():
             filepath = os.path.join(
-                    tt_utils.get_sanitized_jinja2_templates_test_path(), sfn)
+                    templates_utils.get_sanitized_jinja2_templates_test_path(),
+                    sfn)
             os.remove(filepath)
 
     request.addfinalizer(delete_tmp_files)
 
     for filename in os.listdir(dirs.get_jinja2_templates_path()):
         if filename.endswith('.jinja2'):
-            sanitized_filenames[filename] = tt_utils.sanitize_non_jinja2(
+            sanitized_filenames[filename] = templates_utils.sanitize_non_jinja2(
                     filename)
-            tt_utils.sub_jinja2_extends_in_sanitized_files(filename)
+            templates_utils.sub_jinja2_extends_in_sanitized_files(filename)
 
     return sanitized_filenames

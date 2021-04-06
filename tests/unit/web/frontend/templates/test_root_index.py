@@ -18,8 +18,8 @@ import jinja2
 import markupsafe
 import pytest
 
-from . import standard as tt_std
-from . import utils as tt_utils
+from . import standard as templates_std
+from . import utils as templates_utils
 
 
 
@@ -30,10 +30,11 @@ def test_html_head():
     context = {
         'data': {},
     }
-    html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
+    html = templates_utils.render_sanitized_from_file('root_index.jinja2',
+            context)
     soup = BeautifulSoup(html, 'html.parser')
     assert soup.head.title.contents[0] == 'Root Index Page'
-    tt_std.are_style_sheets_scripts_present(html)
+    templates_std.are_style_sheets_scripts_present(html)
 
 
 
@@ -46,13 +47,15 @@ def test_template_fields():
             'test_msg': 'Jinja2 test',
         },
     }
-    html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
+    html = templates_utils.render_sanitized_from_file('root_index.jinja2',
+            context)
     assert 'Jinja2 test' in html
 
     context = {
         'data': {},
     }
-    html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
+    html = templates_utils.render_sanitized_from_file('root_index.jinja2',
+            context)
     assert 'Jinja2 test' not in html
     # Also tests that it renders at all
 
@@ -61,7 +64,8 @@ def test_template_fields():
             'test_msg': '<p>Jinja2 test</p>',
         },
     }
-    html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
+    html = templates_utils.render_sanitized_from_file('root_index.jinja2',
+            context)
     assert '&lt;p&gt;Jinja2 test&lt;/p&gt;' in html
 
     context = {
@@ -69,10 +73,12 @@ def test_template_fields():
             'test_msg': markupsafe.Markup('<p>Jinja2 test</p>'),
         },
     }
-    html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
+    html = templates_utils.render_sanitized_from_file('root_index.jinja2',
+            context)
     assert '<p>Jinja2 test</p>' in html
 
     context = {}
     with pytest.raises(jinja2.exceptions.UndefinedError) as ex:
-        html = tt_utils.render_sanitized_from_file('root_index.jinja2', context)
+        html = templates_utils.render_sanitized_from_file('root_index.jinja2',
+                context)
     assert "'data' is undefined" in str(ex.value)

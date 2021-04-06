@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 
 from grand_trade_auto.web.backend import main_web
 
-from . import standard as be_std
+from . import standard as backend_std
 
 
 
@@ -34,4 +34,4 @@ def test_get_root():
     assert response.template.name == 'root_index.jinja2'
     assert 'request' in response.context
     assert response.context['data'] == {'test_msg': '<b>Root page</b>'}
-    be_std.is_favicon_present(response.text)
+    backend_std.is_favicon_present(response.text)
