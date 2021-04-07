@@ -78,3 +78,10 @@ a browser may show the actual characters `<` and such rather than performing the
 HTML instructions indicated by that tag.  This is really a difference in how the
 browser may choose to display this, as viewing the source (not inspection in
 Chrome) will show the `lt;`.
+
+Unit tests will generate temporary copies of the jinja2 templates so that
+fastapi elements can be factored out.  These are done on a pytest session basis,
+so they will be created in the `/tests/unit/web/frontend/templates` dir with a
+`tmp_sanitized__` prefix at the start of running a test session and will be
+deleted when those tests are complete.  If these files do remain for any reason,
+it is fine and perhaps preferable to manually delete them.
