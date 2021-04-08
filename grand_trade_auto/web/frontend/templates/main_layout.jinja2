@@ -1,0 +1,12 @@
+<html>
+  <head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', path='/images/favicon.ico') }}" sizes="64x64" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+  </head>
+  <body>
+    {% block body_content %}
+    {% endblock %}
+  </body>
+</html>
