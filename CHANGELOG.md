@@ -85,6 +85,12 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
         non-develop branches only.
   - `find-changelog-pr-ref` checks if the current PR number shows up for PRs
         only.
+- [Added] EditorConifg setting for html and jinja2 files added, indent size set
+      ([#11][]).
+- [Added] Temporary sanitized jinja2 files added to `.gitignore` ([#11][]).
+- [Added] `f` added to `good-names` list in `.pylintrc` ([#11][]).
+- [Added] `aiofiles`, `beautifulsoup4`, `fastapi`, `jinja2`, and `uvicorn` added
+      to `requirements.txt` ([#11][]).
 
 
 ### Brokers / Meta
@@ -151,6 +157,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 ### Dirs
 - [Added] `dirs.py` added with basic dir resolution ([#1][]).
 - [Changed] `get_src_root_path()` now named `get_src_app_root_path()` ([#32][]).
+- [Added] Methods to get the jinj2 templates dir and the web frontend static dir
+      ([#11][]).
 
 ##### Unit Tests
 - [Added] Unit test for `test_get_root_path()` added to initially test `pytest`
@@ -171,6 +179,10 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] Added notes on how to run main modules (`tmp_main` only for now)
       ([#45][]).
 - [Added] Alpaca credential setup added to setup docs ([#6][]).
+- [Added] `uvicorn` usage added ([#11][]).
+- [Added] Unit testing jinja2 notes added regarding autoescape handling and
+      temporary sanitized file handling ([#11][]).
+- [Added] Color scheme palette added ([#11][]).
 
 
 ### Email Report
@@ -183,6 +195,54 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 ### Exceptions
 - [Added] `EmailConnectionError` and `EmailConfigError` added ([#9][]).
 - [Changed] Exceptions now listed in alphabetical order ([#59][]).
+
+
+### Web: Backend / Meta
+
+##### Unit Tests: Standard
+- [Added] Standard test for testing if favicon present added for use on all
+      endpoints ([#11][]).
+
+
+### Web: Backend: Main Web
+- [Added] `main_web.py` started with `fastapi` setup, including static dir and
+      jinja2 templates; and a root page added with html data example ([#11][]).
+
+
+### Web: Frontend: Static: Images
+- [Added] `favicon.ico` (which is really a `png`) and `gta_logo_compact.svg`
+      artwork file that created it added ([#11][]).
+
+
+### Web: Frontend: Templates / Meta
+
+##### Unit Tests: Conftest
+- [Added] `conftest.py` created with shared fixture to create and delete
+      sanitized jinja2 template files ([#11][]).
+
+##### Unit Tests: Standard
+- [Added] Common test to check if universal style elements (stylesheets,
+      scripts, etc.) are present ([#11][]).
+
+##### Unit Tests: Utils
+- [Added] Rendering of sanitized jinja2 templates either from file or from a
+      string added ([#11][]).
+- [Added] Sanitization of jinja2 template files for unit tests replaces
+      `url_for()` elements ([#11][]).
+- [Added] `extends` jinja2 blocks updated in sanitized template files to point
+      to the sanitized versions of those targets for unit testing ([#11][]).
+- [Added] Method for getting the path to the sanitized jinja2 templates for unit
+     testing added ([#11][]).
+
+
+### Web: Frontend: Templates: Main Layout
+- [Added] Main layout added with icon, semantic UI style, and jinja2 blocks for
+      title and body content ([#11][]).
+
+
+### Web: Frontend: Templates: Root Index
+- [Added] Root index page started with placeholder text for title and body
+      content ([#11][]).
 
 
 ### Ref Links
@@ -200,6 +260,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#8][]
 - [#9][]
 - [#10][]
+- [#11][]
 - [#13][]
 - [#26][]
 - [#32][]
@@ -228,6 +289,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#52][] for [#9][]
 - [#56][] for [#55][]
 - [#60][] for [#59][]
+- [#61][] for [#11][]
 
 
 ---
@@ -252,6 +314,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#9]: https://github.com/JonathanCasey/grand_trade_auto/issues/9 'Issue #9'
 [#55]: https://github.com/JonathanCasey/grand_trade_auto/issues/55 'Issue #55'
 [#59]: https://github.com/JonathanCasey/grand_trade_auto/issues/59 'Issue #59'
+[#11]: https://github.com/JonathanCasey/grand_trade_auto/issues/11 'Issue #11'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -270,3 +333,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#52]: https://github.com/JonathanCasey/grand_trade_auto/pull/52 'PR #52'
 [#56]: https://github.com/JonathanCasey/grand_trade_auto/pull/56 'PR #56'
 [#60]: https://github.com/JonathanCasey/grand_trade_auto/pull/60 'PR #60'
+[#61]: https://github.com/JonathanCasey/grand_trade_auto/pull/61 'PR #61'
