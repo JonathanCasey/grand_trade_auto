@@ -85,3 +85,13 @@ so they will be created in the `/tests/unit/web/frontend/templates` dir with a
 `tmp_sanitized__` prefix at the start of running a test session and will be
 deleted when those tests are complete.  If these files do remain for any reason,
 it is fine and perhaps preferable to manually delete them.
+
+
+## Color Palette
+The following is the color scheme used for this project.
+
+ Type      | RGB Color | Name
+:----------|:----------|:------
+ Primary   | `#85BB65` | Pistachio / Dollar bill
+ Secondary | `#363636` | Jet
+ Tertiary  | `#7D869C` | Roman Silver
