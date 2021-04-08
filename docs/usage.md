@@ -92,6 +92,6 @@ The following is the color scheme used for this project.
 
  Type      | RGB Color | Name
 :----------|:----------|:------
- Primary   | `#85BB65` | Pistachio / Dollar bill
- Secondary | `#363636` | Jet
- Tertiary  | `#7D869C` | Roman Silver
+ Primary   | ![#85BB65](https://via.placeholder.com/15/85BB65/000000?text=+) `#85BB65` | Pistachio / Dollar bill
+ Secondary | ![#363636](https://via.placeholder.com/15/363636/000000?text=+) `#363636` | Jet
+ Tertiary  | ![#7D869C](https://via.placeholder.com/15/7D869C/000000?text=+) `#7D869C` | Roman Silver
