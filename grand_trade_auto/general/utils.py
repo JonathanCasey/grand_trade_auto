@@ -24,7 +24,10 @@ def bypass_for_test(mod_or_meth_ref, sub_id):  # pylint: disable=unused-argument
 
     While this does allow module references, it is highly recommended to avoid
     this, as it will require reloading the module.  If really necessary, it can
-    be done likely with something like `importlib.reload(package_name)`.
+    be done likely with something like `importlib.reload(package_name)`.  To a
+    much lesser degree, it is also discouraged because ensuring unique `sub_id`s
+    for things at module scope is harder given how spread out this can be, but
+    this is easier to solve.  Could probably even be checked with CI...
 
     Args:
       mod_or_meth_ref (function/str/?): A unique reference to a module or
