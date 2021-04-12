@@ -16,29 +16,28 @@ from grand_trade_auto.general import utils
 
 
 
-def test_bypass_name_main_for_test(monkeypatch):
+def test_bypass_for_test(monkeypatch):
     """
     Tests `bypass_name_main_for_test()`.
     """
-    assert not utils.bypass_name_main_for_test(test_bypass_name_main_for_test,
+    assert not utils.bypass_for_test(test_bypass_for_test,
             1)
 
-    def allow_test_bypass_name_main_for_test(mod_or_meth_ref, sub_id):
+    def allow_test_bypass_for_test(mod_or_meth_ref, sub_id):
         """
+        Will allow a specific case to pass in order to test bypass.
+
+        Args: Same as utils.bypass_for_test().
         """
-        if mod_or_meth_ref == test_bypass_name_main_for_test \
+        if mod_or_meth_ref == test_bypass_for_test \
                 and sub_id == 2:   # pylint: disable=comparison-with-callable
             return True
         return False
 
-    original_bypass_name_main_for_test = utils.bypass_name_main_for_test
-    monkeypatch.setattr(utils, 'bypass_name_main_for_test',
-            allow_test_bypass_name_main_for_test)
-    assert not utils.bypass_name_main_for_test(test_bypass_name_main_for_test,
-            1)
-    assert utils.bypass_name_main_for_test(test_bypass_name_main_for_test, 2)
+    original_bypass_for_test = utils.bypass_for_test
+    monkeypatch.setattr(utils, 'bypass_for_test', allow_test_bypass_for_test)
+    assert not utils.bypass_for_test(test_bypass_for_test, 1)
+    assert utils.bypass_for_test(test_bypass_for_test, 2)
 
-    monkeypatch.setattr(utils, 'bypass_name_main_for_test',
-            original_bypass_name_main_for_test)
-    assert not utils.bypass_name_main_for_test(test_bypass_name_main_for_test,
-            2)
+    monkeypatch.setattr(utils, 'bypass_for_test', original_bypass_for_test)
+    assert not utils.bypass_for_test(test_bypass_for_test, 2)
