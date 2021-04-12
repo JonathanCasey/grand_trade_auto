@@ -4,4 +4,5 @@ __all__ = [
         'dirs',
         'email_report',
         'exceptions',
+        'utils',
 ]
