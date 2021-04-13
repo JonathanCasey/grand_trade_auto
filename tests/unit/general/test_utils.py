@@ -23,13 +23,13 @@ def test_bypass_for_test(monkeypatch):
     assert not utils.bypass_for_test(test_bypass_for_test,
             1)
 
-    def allow_test_bypass_for_test(mod_or_meth_ref, sub_id):
+    def allow_test_bypass_for_test(scope_ref, sub_id):
         """
         Will allow a specific case to pass in order to test bypass.
 
         Args: Same as utils.bypass_for_test().
         """
-        if mod_or_meth_ref == test_bypass_for_test \
+        if scope_ref == test_bypass_for_test \
                 and sub_id == 2:   # pylint: disable=comparison-with-callable
             return True
         return False
