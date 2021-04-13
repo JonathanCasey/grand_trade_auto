@@ -197,6 +197,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] Exceptions now listed in alphabetical order ([#59][]).
 
 
+### Utils
+- [Added] `bypass_for_test()` added to allow mocking to be able to enter blocks
+      of code otherwise not easily reachable, if at all ([#63][]).
+
+
 ### Web: Backend / Meta
 
 ##### Unit Tests: Standard
@@ -270,6 +275,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#48][]
 - [#55][]
 - [#59][]
+- [#63][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -290,6 +296,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#56][] for [#55][]
 - [#60][] for [#59][]
 - [#61][] for [#11][]
+- [#64][] for [#63][]
 
 
 ---
@@ -315,6 +322,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#55]: https://github.com/JonathanCasey/grand_trade_auto/issues/55 'Issue #55'
 [#59]: https://github.com/JonathanCasey/grand_trade_auto/issues/59 'Issue #59'
 [#11]: https://github.com/JonathanCasey/grand_trade_auto/issues/11 'Issue #11'
+[#63]: https://github.com/JonathanCasey/grand_trade_auto/issues/63 'Issue #63'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -334,3 +342,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#56]: https://github.com/JonathanCasey/grand_trade_auto/pull/56 'PR #56'
 [#60]: https://github.com/JonathanCasey/grand_trade_auto/pull/60 'PR #60'
 [#61]: https://github.com/JonathanCasey/grand_trade_auto/pull/61 'PR #61'
+[#64]: https://github.com/JonathanCasey/grand_trade_auto/pull/64 'PR #64'
