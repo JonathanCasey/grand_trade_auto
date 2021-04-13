@@ -18,7 +18,7 @@ from grand_trade_auto.general import utils
 
 def test_bypass_for_test(monkeypatch):
     """
-    Tests `bypass_name_main_for_test()`.
+    Tests `bypass_for_test()`.
     """
     assert not utils.bypass_for_test(test_bypass_for_test,
             1)
