@@ -247,6 +247,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 ### Docs: CHANGELOG
 - [Added] This `CHANGELOG.md` file created and updated with all project work
       to-date (+1 self reference) ([#55][]).
+- [Changed] Rearranged to have subsections for `Project & Toolchain` (was
+      `Repo / Toolchain`), supersection for `General` subpackage, and
+      subsections for `Docs` ([#66][]).
 
 
 ### Docs: README
@@ -302,6 +305,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#55][]
 - [#59][]
 - [#63][]
+- [#66][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -323,6 +327,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#60][] for [#59][]
 - [#61][] for [#11][]
 - [#64][] for [#63][]
+- [#68][] for [#66][]
 
 
 ---
@@ -349,6 +354,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#59]: https://github.com/JonathanCasey/grand_trade_auto/issues/59 'Issue #59'
 [#11]: https://github.com/JonathanCasey/grand_trade_auto/issues/11 'Issue #11'
 [#63]: https://github.com/JonathanCasey/grand_trade_auto/issues/63 'Issue #63'
+[#66]: https://github.com/JonathanCasey/grand_trade_auto/issues/66 'Issue #66'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -369,3 +375,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#60]: https://github.com/JonathanCasey/grand_trade_auto/pull/60 'PR #60'
 [#61]: https://github.com/JonathanCasey/grand_trade_auto/pull/61 'PR #61'
 [#64]: https://github.com/JonathanCasey/grand_trade_auto/pull/64 'PR #64'
+[#68]: https://github.com/JonathanCasey/grand_trade_auto/pull/68 'PR #68'
