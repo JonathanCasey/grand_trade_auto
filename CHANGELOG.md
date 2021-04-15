@@ -30,53 +30,29 @@ Release change log convention via
 Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/stable...develop)
 
 
-### Repo / Toolchain
+### Project & Toolchain: `.git*`, `.editorconfig`
 - [Added] `.editorconfig` and `.gitattributes` added ([#26][]).
-- [Added] `.pylintrc` added to configure pylint, with source code paths added
-      ([#4][]).
-- [Added] CircleCI implemented, with `.circleci/config.yml` file that ensures
-      project builds successfully ([#3][]).
-- [Added] `requirements.txt` added, with `pylint` only entry ([#3][]).
-- [Fixed] Added pylint disable in `__init__.py` files since no module docstring
-      ([#3][]).
 - [Added] Indent size for `.yml/.yaml` files added to `.editorconfig` ([#3][]).
-- [Added] `pytest` being used for unit tested -- added to `requirements.txt`
-      ([#10][]).
-- [Added] `pylint` job added to CircleCI main workflow ([#10][]).
-- [Added] `pytest` job added to CircleCI main workflow ([#10][]).
 - [Added] VS Code related items added to `.gitignore` ([#10][]).
-- [Changed] CircleCI `main` workflow now named `lint-and-test` ([#36][]).
-- [Added] CodeCov support added to project (`.codecov.yml`) and CircleCI
-      ([#13][]).
-- [Added] `pytest-cov` added to `requirements.txt` ([#13][]).
-- [Added] CodeCov badge for develop added to top of `README.md` ([#13][]).
-- [Added] Postgres image added to CircleCI with mock config file and steps to
-      move into the right dir when CI run ([#2][]).
 - [Added] `.conf` files in `/config` added to `.gitignore` ([#2][]).
-- [Changed] `.pylintrc` updated with an explicit override for max args, now set
-      to 10 ([#2][]).
-- [Added] `psycopg2` added to `requirements.txt` ([#2][]).
-- [Added] CodeCov pass/fail criteria added ([#8][]).
 - [Added] `.gitignore` updated to exclude logger output files (unless there are
       over 1000...) ([#8][]).
-- [Added] `.pylintrc` set to always disable `logging-fstring-interpolation`, as
-      it is flagging too many places where it does not matter ([#8][]).
-- [Added] `tmp_main.py` added to execute code for testing until real modules
-      that will be main entry points added ([#8][]).
+- [Added] `.env` files added to `.gitignore` ([#9][]).
+- [Added] EditorConifg setting for html and jinja2 files added, indent size set
+      ([#11][]).
+- [Added] Temporary sanitized jinja2 files added to `.gitignore` ([#11][]).
+
+
+### Project & Toolchain: CircleCI
+- [Added] CircleCI implemented, with `.circleci/config.yml` file that ensures
+      project builds successfully ([#3][]).
+- [Added] `pylint` job added to CircleCI main workflow ([#10][]).
+- [Added] `pytest` job added to CircleCI main workflow ([#10][]).
+- [Changed] CircleCI `main` workflow now named `lint-and-test` ([#36][]).
+- [Added] Postgres image added to CircleCI with mock config file and steps to
+      move into the right dir when CI run ([#2][]).
 - [Added] Mock `brokers.conf` file and steps to move to properly load for Alpaca
       added to CircleCI ([#6][]).
-- [Added] `alpaca-trade-api`, `numpy`, and `pandas` added to `requirements.txt`
-      ([#6][]).
-- [Changed] Set convention to use leading `_` for class instance members only
-      intended for private access ([#48][]).
-- [Added] `.coveragerc` added, set to have CodeCov ignore
-      `if __name__ == '__main__'` blocks since they cannot be unit tested
-      ([#9][]).
-- [Added] `.env` files added to `.gitignore` ([#9][]).
-- [Added] Good names added to `.pylintrc`, with `v` being the critical addition
-      to allow usage without pylint complaints ([#9][]).
-- [Added] This `CHANGELOG.md` file created and updated with all project work
-      to-date (+1 self reference) ([#55][]).
 - [Added] CircleCI workflow added for `changelog-updated`, including 3 jobs to
       check for changes to `CHANGELOG.md` ([#55][]):
   - `diff-changelog-last-commit` checks if any additions since last commit for
@@ -85,12 +61,49 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
         non-develop branches only.
   - `find-changelog-pr-ref` checks if the current PR number shows up for PRs
         only.
-- [Added] EditorConifg setting for html and jinja2 files added, indent size set
-      ([#11][]).
-- [Added] Temporary sanitized jinja2 files added to `.gitignore` ([#11][]).
-- [Added] `f` added to `good-names` list in `.pylintrc` ([#11][]).
+
+
+### Project & Toolchain: CodeCov
+- [Added] CodeCov support added to project (`.codecov.yml`) and CircleCI
+      ([#13][]).
+- [Added] CodeCov pass/fail criteria added ([#8][]).
+- [Added] `.coveragerc` added, set to have CodeCov ignore
+      `if __name__ == '__main__'` blocks since they cannot be unit tested
+      ([#9][]).
+
+
+### Project & Toolchain: Conventions
+- [Fixed] Added pylint disable in `__init__.py` files since no module docstring
+      ([#3][]).
+- [Changed] Set convention to use leading `_` for class instance members only
+      intended for private access ([#48][]).
+
+
+### Project & Toolchain: Package, Requirements
+- [Added] `requirements.txt` added, with `pylint` only entry ([#3][]).
+- [Added] `pytest` being used for unit tested -- added to `requirements.txt`
+      ([#10][]).
+- [Added] `pytest-cov` added to `requirements.txt` ([#13][]).
+- [Added] `psycopg2` added to `requirements.txt` ([#2][]).
+- [Added] `alpaca-trade-api`, `numpy`, and `pandas` added to `requirements.txt`
+      ([#6][]).
 - [Added] `aiofiles`, `beautifulsoup4`, `fastapi`, `jinja2`, and `uvicorn` added
       to `requirements.txt` ([#11][]).
+
+
+### Project & Toolchain: Pylint
+- [Added] `.pylintrc` added to configure pylint, with source code paths added
+      ([#4][]).
+- [Added] `.pylintrc` set to always disable `logging-fstring-interpolation`, as
+      it is flagging too many places where it does not matter ([#8][]).
+- [Added] Good names added to `.pylintrc`, with `v` being the critical addition
+      to allow usage without pylint complaints ([#9][]).
+- [Added] `f` added to `good-names` list in `.pylintrc` ([#11][]).
+
+
+### Project & Toolchain: Tmp Main
+- [Added] `tmp_main.py` added to execute code for testing until real modules
+      that will be main entry points added ([#8][]).
 
 
 ### Brokers / Meta
@@ -105,7 +118,20 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       config and connect ([#6][]).
 
 
-### Config
+### Databases / Meta
+- [Added] `DatabaseMeta` file and class started, defining initial interface
+      requirements ([#2][]).
+- [Added] `databases` file started, loads a default main database handle from
+      config ([#2][]).
+
+
+### Database: Postgres
+- [Added] `DatabasePostgres` file and class started, with ability to load from
+      config, connect, create/drop/check-exists DB ([#2][]).
+- [Added] Logging setup and logger usage added to existing code ([#8][]).
+
+
+### General: Config
 - [Added] `config.py` added with basic `ConfigParser` file loading, including
       without a section header ([#1][]).
 - [Added] Default `.secrets.conf` added to `/config/stubs` with database section
@@ -141,20 +167,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] All missing unit tets for initial `config.py` work added ([#2][]).
 
 
-### Databases / Meta
-- [Added] `DatabaseMeta` file and class started, defining initial interface
-      requirements ([#2][]).
-- [Added] `databases` file started, loads a default main database handle from
-      config ([#2][]).
-
-
-### Database: Postgres
-- [Added] `DatabasePostgres` file and class started, with ability to load from
-      config, connect, create/drop/check-exists DB ([#2][]).
-- [Added] Logging setup and logger usage added to existing code ([#8][]).
-
-
-### Dirs
+### General: Dirs
 - [Added] `dirs.py` added with basic dir resolution ([#1][]).
 - [Changed] `get_src_root_path()` now named `get_src_app_root_path()` ([#32][]).
 - [Added] Methods to get the jinj2 templates dir and the web frontend static dir
@@ -166,38 +179,19 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] All missing units tests for initial `dirs.py` work added ([#39][]).
 
 
-### Docs
-- [Added] CircleCI badge for `develop` added to top of `README.md` ([#3][]).
-- [Added] `setup.md` added with notes on setuping up CirleCI for forks ([#3][]).
-- [Added] `usage.md` added with workflow tips ([#10][]).
-- [Added] Environment setup tips added to docs ([#10][]).
-- [Added] Postgres setup/usage and config file setup added ([#2][]).
-- [Added] Further environment setup tips added ([#2][]).
-- [Added] Setup updated for how to use the logger config ([#8][]).
-- [Added] Contributing updated with why `logging-fstring-interpolation` disabled
-      for pylint and what needs to be considered ([#8][]).
-- [Added] Added notes on how to run main modules (`tmp_main` only for now)
-      ([#45][]).
-- [Added] Alpaca credential setup added to setup docs ([#6][]).
-- [Added] `uvicorn` usage added ([#11][]).
-- [Added] Unit testing jinja2 notes added regarding autoescape handling and
-      temporary sanitized file handling ([#11][]).
-- [Added] Color scheme palette added ([#11][]).
-
-
-### Email Report
+### General: Email Report
 - [Added] Ability to load an email config and send an email implemented
       ([#9][]).
 - [Added] Added main entry for `email_report` module so can call script to test
       email setup by itself ([#9][]).
 
 
-### Exceptions
+### General: Exceptions
 - [Added] `EmailConnectionError` and `EmailConfigError` added ([#9][]).
 - [Changed] Exceptions now listed in alphabetical order ([#59][]).
 
 
-### Utils
+### General: Utils
 - [Added] `bypass_for_test()` added to allow mocking to be able to enter blocks
       of code otherwise not easily reachable, if at all ([#63][]).
 
@@ -250,6 +244,41 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       content ([#11][]).
 
 
+### Docs: CHANGELOG
+- [Added] This `CHANGELOG.md` file created and updated with all project work
+      to-date (+1 self reference) ([#55][]).
+- [Changed] Rearranged to have subsections for `Project & Toolchain` (was
+      `Repo / Toolchain`), supersection for `General` subpackage, and
+      subsections for `Docs` ([#66][]).
+
+
+### Docs: README
+- [Added] CircleCI badge for `develop` added to top of `README.md` ([#3][]).
+- [Added] CodeCov badge for develop added to top of `README.md` ([#13][]).
+
+
+### Docs: Setup
+- [Added] `setup.md` added with notes on setuping up CirleCI for forks ([#3][]).
+- [Added] Environment setup tips added to docs ([#10][]).
+- [Added] Postgres setup and config file setup added ([#2][]).
+- [Added] Further environment setup tips added ([#2][]).
+- [Added] Setup updated for how to use the logger config ([#8][]).
+- [Added] Alpaca credential setup added to setup docs ([#6][]).
+
+
+### Docs: Usage
+- [Added] `usage.md` added with workflow tips ([#10][]).
+- [Added] Postgres usage added ([#2][]).
+- [Added] Contributing updated with why `logging-fstring-interpolation` disabled
+      for pylint and what needs to be considered ([#8][]).
+- [Added] Added notes on how to run main modules (`tmp_main` only for now)
+      ([#45][]).
+- [Added] `uvicorn` usage added ([#11][]).
+- [Added] Unit testing jinja2 notes added regarding autoescape handling and
+      temporary sanitized file handling ([#11][]).
+- [Added] Color scheme palette added ([#11][]).
+
+
 ### Ref Links
 
 #### Milestones & Projects
@@ -276,6 +305,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#55][]
 - [#59][]
 - [#63][]
+- [#66][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -297,6 +327,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#60][] for [#59][]
 - [#61][] for [#11][]
 - [#64][] for [#63][]
+- [#68][] for [#66][]
 
 
 ---
@@ -323,6 +354,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#59]: https://github.com/JonathanCasey/grand_trade_auto/issues/59 'Issue #59'
 [#11]: https://github.com/JonathanCasey/grand_trade_auto/issues/11 'Issue #11'
 [#63]: https://github.com/JonathanCasey/grand_trade_auto/issues/63 'Issue #63'
+[#66]: https://github.com/JonathanCasey/grand_trade_auto/issues/66 'Issue #66'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -343,3 +375,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#60]: https://github.com/JonathanCasey/grand_trade_auto/pull/60 'PR #60'
 [#61]: https://github.com/JonathanCasey/grand_trade_auto/pull/61 'PR #61'
 [#64]: https://github.com/JonathanCasey/grand_trade_auto/pull/64 'PR #64'
+[#68]: https://github.com/JonathanCasey/grand_trade_auto/pull/68 'PR #68'
