@@ -255,6 +255,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 ### Docs: README
 - [Added] CircleCI badge for `develop` added to top of `README.md` ([#3][]).
 - [Added] CodeCov badge for develop added to top of `README.md` ([#13][]).
+- [Fixed] Added missing link for `usage.md` ([#67][]).
 
 
 ### Docs: Setup
@@ -306,6 +307,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#59][]
 - [#63][]
 - [#66][]
+- [#67][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -355,6 +357,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#11]: https://github.com/JonathanCasey/grand_trade_auto/issues/11 'Issue #11'
 [#63]: https://github.com/JonathanCasey/grand_trade_auto/issues/63 'Issue #63'
 [#66]: https://github.com/JonathanCasey/grand_trade_auto/issues/66 'Issue #66'
+[#67]: https://github.com/JonathanCasey/grand_trade_auto/issues/67 'Issue #67'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
