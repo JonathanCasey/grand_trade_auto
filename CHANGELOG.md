@@ -8,7 +8,8 @@ the right to do whatever the hell it wants with pre-release versioning.
 Observe format below, particularly:
 - version headings (with links)
 - diff quick link(s) under each version heading
-- project section (dir) sub-headings for each version
+- project section (dir) sub-headings for each version, alphabetical with
+      `Project & Toolchain` at top, then all subpackages/modules, then docs.
 - type-of-change prefix for each change line
 - each change only a line or 2, maybe 3 (sub-lists allowed in select cases)
 - issue (not PR) link for every change line
@@ -250,6 +251,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] Rearranged to have subsections for `Project & Toolchain` (was
       `Repo / Toolchain`), supersection for `General` subpackage, and
       subsections for `Docs` ([#66][]).
+- [Added] Note regarding the order of files here added to top bullets ([#62][],
+      really [#66][]).
 
 
 ### Docs: CONTRIBUTING
