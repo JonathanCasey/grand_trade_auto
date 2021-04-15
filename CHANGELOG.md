@@ -252,10 +252,16 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       subsections for `Docs` ([#66][]).
 
 
+### Docs: CONTRIBUTING
+- [Added] `CONTRIBUTING.md` added to project root; relevant parts from
+      `setup.md` and `usage.md` migrated ([#62][]).
+
+
 ### Docs: README
 - [Added] CircleCI badge for `develop` added to top of `README.md` ([#3][]).
 - [Added] CodeCov badge for develop added to top of `README.md` ([#13][]).
 - [Fixed] Added missing link for `usage.md` ([#67][]).
+- [Added] Link to `CONTRIBUTING.md` added ([#62][]).
 
 
 ### Docs: Setup
@@ -305,6 +311,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#48][]
 - [#55][]
 - [#59][]
+- [#62][]
 - [#63][]
 - [#66][]
 - [#67][]
@@ -330,6 +337,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#61][] for [#11][]
 - [#64][] for [#63][]
 - [#68][] for [#66][]
+- [#69][] for [#62][], [#67][]
 
 
 ---
@@ -358,6 +366,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#63]: https://github.com/JonathanCasey/grand_trade_auto/issues/63 'Issue #63'
 [#66]: https://github.com/JonathanCasey/grand_trade_auto/issues/66 'Issue #66'
 [#67]: https://github.com/JonathanCasey/grand_trade_auto/issues/67 'Issue #67'
+[#62]: https://github.com/JonathanCasey/grand_trade_auto/issues/62 'Issue #62'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -379,3 +388,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#61]: https://github.com/JonathanCasey/grand_trade_auto/pull/61 'PR #61'
 [#64]: https://github.com/JonathanCasey/grand_trade_auto/pull/64 'PR #64'
 [#68]: https://github.com/JonathanCasey/grand_trade_auto/pull/68 'PR #68'
+[#69]: https://github.com/JonathanCasey/grand_trade_auto/pull/69 'PR #69'
