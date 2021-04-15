@@ -9,6 +9,8 @@ allow privatization of that in a separate repo.
 
 
 - [Setup](docs/setup.md)
+- [Usage](docs/usage.md)
+- [Contributing](CONTRIBUTING.md)
 
 
 

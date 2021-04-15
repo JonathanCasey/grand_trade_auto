@@ -8,7 +8,8 @@ the right to do whatever the hell it wants with pre-release versioning.
 Observe format below, particularly:
 - version headings (with links)
 - diff quick link(s) under each version heading
-- project section (dir) sub-headings for each version
+- project section (dir) sub-headings for each version, alphabetical with
+      `Project & Toolchain` at top, then all subpackages/modules, then docs.
 - type-of-change prefix for each change line
 - each change only a line or 2, maybe 3 (sub-lists allowed in select cases)
 - issue (not PR) link for every change line
@@ -250,11 +251,20 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] Rearranged to have subsections for `Project & Toolchain` (was
       `Repo / Toolchain`), supersection for `General` subpackage, and
       subsections for `Docs` ([#66][]).
+- [Added] Note regarding the order of files here added to top bullets ([#62][],
+      really [#66][]).
+
+
+### Docs: CONTRIBUTING
+- [Added] `CONTRIBUTING.md` added to project root; relevant parts from
+      `setup.md` and `usage.md` migrated ([#62][]).
 
 
 ### Docs: README
 - [Added] CircleCI badge for `develop` added to top of `README.md` ([#3][]).
 - [Added] CodeCov badge for develop added to top of `README.md` ([#13][]).
+- [Fixed] Added missing link for `usage.md` ([#67][]).
+- [Added] Link to `CONTRIBUTING.md` added ([#62][]).
 
 
 ### Docs: Setup
@@ -304,8 +314,10 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#48][]
 - [#55][]
 - [#59][]
+- [#62][]
 - [#63][]
 - [#66][]
+- [#67][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -328,6 +340,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#61][] for [#11][]
 - [#64][] for [#63][]
 - [#68][] for [#66][]
+- [#69][] for [#62][], [#67][]
 
 
 ---
@@ -355,6 +368,8 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#11]: https://github.com/JonathanCasey/grand_trade_auto/issues/11 'Issue #11'
 [#63]: https://github.com/JonathanCasey/grand_trade_auto/issues/63 'Issue #63'
 [#66]: https://github.com/JonathanCasey/grand_trade_auto/issues/66 'Issue #66'
+[#67]: https://github.com/JonathanCasey/grand_trade_auto/issues/67 'Issue #67'
+[#62]: https://github.com/JonathanCasey/grand_trade_auto/issues/62 'Issue #62'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -376,3 +391,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#61]: https://github.com/JonathanCasey/grand_trade_auto/pull/61 'PR #61'
 [#64]: https://github.com/JonathanCasey/grand_trade_auto/pull/64 'PR #64'
 [#68]: https://github.com/JonathanCasey/grand_trade_auto/pull/68 'PR #68'
+[#69]: https://github.com/JonathanCasey/grand_trade_auto/pull/69 'PR #69'
