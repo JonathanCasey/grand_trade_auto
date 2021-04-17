@@ -10,6 +10,12 @@ workflows:
       - pylint-tests:
           context:
             - docker-hub-creds
+      - pylint-ci_support:
+          context:
+            - docker-hub-creds
+      - init-py-checker:
+          context:
+            - docker-hub-creds
       - unit-tests:
           context:
             - docker-hub-creds
@@ -43,6 +49,9 @@ aliases:
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD
+        environment:
+          # By default there is no PYTHONPATH defined at all, so nothing to lose
+          PYTHONPATH: /home/circleci/project
 
   - &default_python_postgres_image
     docker:
@@ -57,6 +66,8 @@ aliases:
         environment:
           POSTGRES_USER: circleci-user
           POSTGRES_PASSWORD: circleci-password
+          # By default there is no PYTHONPATH defined at all, so nothing to lose
+          PYTHONPATH: /home/circleci/project
 
   - &default_git_image
     docker:
@@ -110,6 +121,32 @@ jobs:
           command: |
             . venv/bin/activate
             python -m pylint tests
+  pylint-ci_support:
+    <<: *default_python_image
+    steps:
+      - checkout
+      - *default_restore_cache
+      - *default_install_deps
+      - *default_save_cache
+      - run:
+          name: Run pylint
+          command: |
+            . venv/bin/activate
+            python -m pylint ci_support
+  init-py-checker:
+    <<: *default_python_image
+    steps:
+      - checkout
+      - *default_restore_cache
+      - *default_install_deps
+      - *default_save_cache
+      - run:
+          name: Run init py dir checker on all dirs
+          command: |
+            . venv/bin/activate
+            python ci_support/dir_init_checker.py ci_support
+            python ci_support/dir_init_checker.py grand_trade_auto
+            python ci_support/dir_init_checker.py tests
   unit-tests:
     <<: *default_python_postgres_image
     steps:
@@ -120,9 +157,9 @@ jobs:
       - run:
           name: Setup mock files
           command: |
-            mv .circleci/databases.conf.circleci config/databases.conf
-            mv .circleci/.secrets.conf.circleci config/.secrets.conf
-            mv .circleci/brokers.conf.circleci config/brokers.conf
+            mv ci_support/databases.conf.ci config/databases.conf
+            mv ci_support/.secrets.conf.ci config/.secrets.conf
+            mv ci_support/brokers.conf.ci config/brokers.conf
             echo '\n[brokers :: circleci-alpaca-test]\n' >> config/.secrets.conf
             echo 'api key id : $APCA_API_KEY_ID\n'  >> config/.secrets.conf
             echo 'secret key : $APCA_API_SECRET_KEY\n' >> config/.secrets.conf
