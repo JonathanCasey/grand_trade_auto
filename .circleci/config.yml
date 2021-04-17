@@ -49,6 +49,9 @@ aliases:
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD
+        environment:
+          # By default there is no PYTHONPATH defined at all, so nothing to lose
+          PYTHONPATH: /home/circleci/project
 
   - &default_python_postgres_image
     docker:
@@ -63,6 +66,8 @@ aliases:
         environment:
           POSTGRES_USER: circleci-user
           POSTGRES_PASSWORD: circleci-password
+          # By default there is no PYTHONPATH defined at all, so nothing to lose
+          PYTHONPATH: /home/circleci/project
 
   - &default_git_image
     docker:
