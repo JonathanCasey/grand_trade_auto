@@ -3,6 +3,11 @@
 
 # Explicitly declare text files you want to always be normalized and converted
 # to native line endings on checkout.
+.coveragerc     text    eol=lf
+.editorconfig   text    eol=lf
+.gitattributes  text    eol=lf
+.gitignore      text    eol=lf
+.pylintrc       text    eol=lf
 *.conf          text    eol=lf
 *.conf.ci       text    eol=lf
 *.conf.default  text    eol=lf
