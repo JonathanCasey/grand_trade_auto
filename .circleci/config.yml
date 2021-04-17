@@ -116,7 +116,7 @@ jobs:
           command: |
             . venv/bin/activate
             python -m pylint tests
-  pylint-circleci:
+  pylint-ci_support:
     <<: *default_python_image
     steps:
       - checkout
