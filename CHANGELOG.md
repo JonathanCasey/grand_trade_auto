@@ -62,6 +62,18 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
         non-develop branches only.
   - `find-changelog-pr-ref` checks if the current PR number shows up for PRs
         only.
+- [Added] `pylint-ci_support` job added for `ci_support` dir ([#58][]).
+- [Added] `init-py-checker` job added to check all `__init__.py` files are
+      up to date ([#58][]).
+- [Added] `PYTHONPATH` environment variable added to all python docker images
+      ([#58][]).
+
+
+### Project & Toolchain: CI Support
+- [Added] `dir_init_checker.py` added to new `ci_support` dir to run code for
+      checking `__init__.py` files are up to date ([#58][]).
+- [Changed] `.circleci/*.conf.circleci` files moved and renamed to
+      `ci_support/*.conf.ci` ([#58][]).
 
 
 ### Project & Toolchain: CodeCov
@@ -313,6 +325,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#45][]
 - [#48][]
 - [#55][]
+- [#58][]
 - [#59][]
 - [#62][]
 - [#63][]
@@ -341,6 +354,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#64][] for [#63][]
 - [#68][] for [#66][]
 - [#69][] for [#62][], [#67][]
+- [#70][] for [#58][]
 
 
 ---
@@ -370,6 +384,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#66]: https://github.com/JonathanCasey/grand_trade_auto/issues/66 'Issue #66'
 [#67]: https://github.com/JonathanCasey/grand_trade_auto/issues/67 'Issue #67'
 [#62]: https://github.com/JonathanCasey/grand_trade_auto/issues/62 'Issue #62'
+[#58]: https://github.com/JonathanCasey/grand_trade_auto/issues/58 'Issue #58'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -392,3 +407,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#64]: https://github.com/JonathanCasey/grand_trade_auto/pull/64 'PR #64'
 [#68]: https://github.com/JonathanCasey/grand_trade_auto/pull/68 'PR #68'
 [#69]: https://github.com/JonathanCasey/grand_trade_auto/pull/69 'PR #69'
+[#70]: https://github.com/JonathanCasey/grand_trade_auto/pull/70 'PR #70'

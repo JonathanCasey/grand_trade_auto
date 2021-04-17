@@ -3,5 +3,4 @@ __all__ = [
         'database_meta',
         'database_postgres',
         'databases',
-        'tmp_failure',
 ]

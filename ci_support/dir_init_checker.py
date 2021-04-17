@@ -45,9 +45,10 @@ def main():
                     f' dir "{dir_path}"')
 
     if any_missing:
+        print(f'Failure in dir(s) {", ".join(args.dirs)} -- see above.')
         sys.exit(1)
     else:
-        print('Passed!')
+        print(f'Passed for dir(s) {", ".join(args.dirs)}!')
 
 
 
