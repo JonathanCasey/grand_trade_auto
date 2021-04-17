@@ -10,6 +10,9 @@ workflows:
       - pylint-tests:
           context:
             - docker-hub-creds
+      - pylint-ci_support:
+          context:
+            - docker-hub-creds
       - unit-tests:
           context:
             - docker-hub-creds
@@ -110,6 +113,18 @@ jobs:
           command: |
             . venv/bin/activate
             python -m pylint tests
+  pylint-circleci:
+    <<: *default_python_image
+    steps:
+      - checkout
+      - *default_restore_cache
+      - *default_install_deps
+      - *default_save_cache
+      - run:
+          name: Run pylint
+          command: |
+            . venv/bin/activate
+            python -m pylint ci_support
   unit-tests:
     <<: *default_python_postgres_image
     steps:
