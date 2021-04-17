@@ -42,6 +42,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] EditorConifg setting for html and jinja2 files added, indent size set
       ([#11][]).
 - [Added] Temporary sanitized jinja2 files added to `.gitignore` ([#11][]).
+- [Added] `.coveragerc`, `.gitattributes`, `.pylintrc`, `*.conf.ci`,
+      `*.conf.default`, `*.env.default`, `*.txt` added to `.editorconfig`
+      ([#71][]).
+- [Added] `*.conf.ci`, `*.conf.default`, `*.env.default`, `*.jinja2`, `*.svg`,
+      `*.txt`, `*.yaml`, `*.yml` added to `.gitattributes` ([#71][]).
 
 
 ### Project & Toolchain: CircleCI
@@ -331,6 +336,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#63][]
 - [#66][]
 - [#67][]
+- [#71][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -355,6 +361,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#68][] for [#66][]
 - [#69][] for [#62][], [#67][]
 - [#70][] for [#58][]
+- [#72][] for [#71][]
 
 
 ---
@@ -385,6 +392,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#67]: https://github.com/JonathanCasey/grand_trade_auto/issues/67 'Issue #67'
 [#62]: https://github.com/JonathanCasey/grand_trade_auto/issues/62 'Issue #62'
 [#58]: https://github.com/JonathanCasey/grand_trade_auto/issues/58 'Issue #58'
+[#71]: https://github.com/JonathanCasey/grand_trade_auto/issues/71 'Issue #71'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -408,3 +416,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#68]: https://github.com/JonathanCasey/grand_trade_auto/pull/68 'PR #68'
 [#69]: https://github.com/JonathanCasey/grand_trade_auto/pull/69 'PR #69'
 [#70]: https://github.com/JonathanCasey/grand_trade_auto/pull/70 'PR #70'
+[#72]: https://github.com/JonathanCasey/grand_trade_auto/pull/72 'PR #72'

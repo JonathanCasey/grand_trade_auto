@@ -3,9 +3,17 @@
 
 # Explicitly declare text files you want to always be normalized and converted
 # to native line endings on checkout.
-*.conf      text    eol=lf
-*.env       text    eol=lf
-*.md        text    eol=lf
-*.py        text    eol=lf
-*.sh        text    eol=lf
-*.service   text    eol=lf
+*.conf          text    eol=lf
+*.conf.ci       text    eol=lf
+*.conf.default  text    eol=lf
+*.env           text    eol=lf
+*.env.default   text    eol=lf
+*.jinja2        text    eol=lf
+*.md            text    eol=lf
+*.py            text    eol=lf
+*.service       text    eol=lf
+*.sh            text    eol=lf
+*.svg           text    eol=lf
+*.txt           text    eol=lf
+*.yaml          text    eol=lf
+*.yml           text    eol=lf

@@ -7,8 +7,20 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.conf]
+[.coveragerc]
 indent_size = 4
+
+[.gitattributes]
+indent_size = 4
+
+[.pylintrc]
+indent_size = 8
+
+[{*.conf, *.conf.ci, *.conf.default}]
+indent_size = 4
+
+[{*.env, *.env.default}]
+indent_size = 2
 
 [*.html]
 indent_size = 2
@@ -28,5 +40,10 @@ indent_size = 4
 [*.sh]
 indent_size = 4
 
-[*.{yml,yaml}]
+# *.svg omitted -- will leave up to program that creates/edits it
+
+[*.txt]
+indent_size = 4
+
+[*.{yaml,yml}]
 indent_size = 2
