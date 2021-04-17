@@ -13,6 +13,9 @@ workflows:
       - pylint-ci_support:
           context:
             - docker-hub-creds
+      - init-py-checker:
+          context:
+            - docker-hub-creds
       - unit-tests:
           context:
             - docker-hub-creds
@@ -125,6 +128,20 @@ jobs:
           command: |
             . venv/bin/activate
             python -m pylint ci_support
+  init-py-checker:
+    <<: *default_python_image
+    steps:
+      - checkout
+      - *default_restore_cache
+      - *default_install_deps
+      - *default_save_cache
+      - run:
+          name: Run init py dir checker on all dirs
+          command: |
+            . venv/bin/activate
+            python ci_support/dir_init_checker.py ci_support
+            python ci_support/dir_init_checker.py grand_trade_auto
+            python ci_support/dir_init_checker.py tests
   unit-tests:
     <<: *default_python_postgres_image
     steps:
