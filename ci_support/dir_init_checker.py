@@ -121,12 +121,6 @@ def check_full_dir(dir_path, dirs_missing_init=None, dirs_missing_modules=None):
     if init_py_name is None and py_filenames:
         dirs_missing_init.append(dir_path)
     elif init_py_name:
-        # TEMP: Prints below should be removed
-        print(f'Init py name: {init_py_name}')
-        print(f'CWD: {os.getcwd()}')
-        print(f'Contents: {os.listdir(os.getcwd())}')
-        print(f'Sys path: {sys.path}')
-        print(f'Python path: {os.environ["PYTHONPATH"]}')
         init_module = importlib.import_module(init_py_name)
         if not set(init_module.__all__) == set(py_filenames):
             dirs_missing_modules.append(dir_path)
