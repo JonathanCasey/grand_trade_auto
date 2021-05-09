@@ -175,6 +175,50 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       section going forward ([#75][]).
 
 
+### Config: .secrets.conf
+- [Added] `.secrets.conf` file created (with stub), with postgres database
+      stub added ([#2][]).
+- [Added] Broker example stub added, at least as would be needed for Alpaca
+      ([#6][]).
+
+
+### Config: .secrets.env
+- [Added] `.secrets.env` file created (with stub), with email server parameters
+      stub added ([#9][]).
+
+
+### Config: apics.conf
+- [Added] `apics.conf` file created (wtih stub) to replace `brokers.conf`,
+      mostly migrated and adapted from `brokers.conf` with Alpaca at least
+      supported ([#75][]).
+- [Changed] `type` key changed to `provider` to avoid confusion from generic
+      sounding `type` ([#75][]).
+
+
+### Config: brokers.conf (see Config: apics.conf)
+- [Added] `brokers.conf` file created (with stub), with Alpaca stub added
+      ([#6][]).
+- [Fixed] Stub text in section header now mentioned "broker" instead of
+      "database" to eliminate confusion ([#59][]).
+- [Removed] Moved to `apics.conf` -- see relevant changelog section going
+      forward ([#75][]).
+
+
+### Config: databases.conf
+- [Added] `databases.conf` file created (wtih stub), with postgres stub added
+      ([#2][]).
+
+
+### Config: gta.conf
+- [Added] `gta.conf` file created (wtih stub), with email section and parameters
+      stub added ([#9][]).
+
+
+### Config: logger.conf
+- [Added] `logger.conf` file created (with stub), with a default ready-to-use
+      logger configuration added ([#8][]).
+
+
 ### Databases / Meta
 - [Added] `DatabaseMeta` file and class started, defining initial interface
       requirements ([#2][]).
