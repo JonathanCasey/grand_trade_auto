@@ -263,6 +263,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] Support for parsing a list from a config file added ([#9][]).
 - [Fixed] `brokers.conf.default` now correctly references "brokers" instead of
       "databases" ([#59][]).
+- [Fixed] Put file open/ops into `with` block to address new
+      `consider-using-with` `pylint` finding, which also fixes it not being
+      closed ([#77][]).
 
 ##### Unit Tests
 - [Added] All missing unit tets for initial `config.py` work added ([#2][]).
@@ -422,6 +425,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#71][]
 - [#73][]
 - [#75][]
+- [#77][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -449,6 +453,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#72][] for [#71][]
 - [#74][] for [#73][]
 - [#76][] for [#74][]
+- [#78][] for [#77][]
 
 
 ---
@@ -482,6 +487,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#71]: https://github.com/JonathanCasey/grand_trade_auto/issues/71 'Issue #71'
 [#73]: https://github.com/JonathanCasey/grand_trade_auto/issues/73 'Issue #73'
 [#75]: https://github.com/JonathanCasey/grand_trade_auto/issues/75 'Issue #75'
+[#77]: https://github.com/JonathanCasey/grand_trade_auto/issues/77 'Issue #77'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -508,3 +514,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#72]: https://github.com/JonathanCasey/grand_trade_auto/pull/72 'PR #72'
 [#74]: https://github.com/JonathanCasey/grand_trade_auto/pull/74 'PR #74'
 [#76]: https://github.com/JonathanCasey/grand_trade_auto/pull/76 'PR #76'
+[#78]: https://github.com/JonathanCasey/grand_trade_auto/pull/78 'PR #78'
