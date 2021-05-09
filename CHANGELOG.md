@@ -448,6 +448,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#70][] for [#58][]
 - [#72][] for [#71][]
 - [#74][] for [#73][]
+- [#76][] for [#74][]
 
 
 ---
@@ -506,3 +507,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#70]: https://github.com/JonathanCasey/grand_trade_auto/pull/70 'PR #70'
 [#72]: https://github.com/JonathanCasey/grand_trade_auto/pull/72 'PR #72'
 [#74]: https://github.com/JonathanCasey/grand_trade_auto/pull/74 'PR #74'
+[#76]: https://github.com/JonathanCasey/grand_trade_auto/pull/76 'PR #76'
