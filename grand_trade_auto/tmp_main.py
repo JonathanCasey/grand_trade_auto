@@ -10,7 +10,7 @@ Module Attributes:
 """
 import logging
 
-from grand_trade_auto.broker import brokers
+from grand_trade_auto.apic import apics
 from grand_trade_auto.database import databases
 from grand_trade_auto.general import config
 from grand_trade_auto.general import email_report
@@ -32,7 +32,7 @@ def main():
     """
     config.init_logger('DEBUG')
     databases.load_and_set_main_database_from_config('test')
-    brokers.load_and_set_main_broker_from_config('test')
+    apics.load_and_set_main_apic_from_config('test')
     try:
         email_report.send_email('Test GTA email', 'From grand_trade_auto.')
     except EmailConfigError:

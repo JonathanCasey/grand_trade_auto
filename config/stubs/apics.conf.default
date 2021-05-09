@@ -1,6 +1,6 @@
 
-[friendly-name-for-broker]
+[friendly-name-for-api-client]
 env : <production/development/test>
-type : <alpaca>
+provider : <alpaca>
 trade domain : <live/paper>
 api key id :
