@@ -51,8 +51,8 @@ def read_conf_file_fake_header(conf_rel_file,
     conf_file = os.path.join(conf_base_dir, conf_rel_file)
 
     parser = configparser.ConfigParser()
-    file = open(conf_file, encoding="utf_8")
-    parser.read_file(itertools.chain(['[' + fake_section + ']'], file))
+    with open(conf_file, encoding="utf_8") as file:
+        parser.read_file(itertools.chain(['[' + fake_section + ']'], file))
 
     return parser
 
