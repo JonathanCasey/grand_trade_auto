@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tests the grand_trade_auto.general.broker_alpaca functionality.
+Tests the grand_trade_auto.apic.alpaca functionality.
 
 Per [pytest](https://docs.pytest.org/en/reorganize-docs/new-docs/user/naming_conventions.html),
 all tiles, classes, and methods will be prefaced with `test_/Test` to comply
@@ -10,7 +10,7 @@ directly).
 Module Attributes:
   N/A
 
-(C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
+(C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
@@ -22,8 +22,8 @@ from types import SimpleNamespace
 import alpaca_trade_api
 import pytest
 
-from grand_trade_auto.broker import broker_alpaca
-from grand_trade_auto.broker import brokers
+from grand_trade_auto.apic import alpaca
+from grand_trade_auto.apic import apics
 from grand_trade_auto.general import config
 
 
@@ -31,18 +31,18 @@ from grand_trade_auto.general import config
 @pytest.fixture(name='alpaca_test_handle')
 def fixture_alpaca_test_handle():
     """
-    Gets the test broker handle for alpaca.
+    Gets the test API Client handle for alpaca.
 
     Returns:
-      (BrokerAlpaca): The test alpaca broker handle.
+      (Alpaca): The test alpaca API Client handle.
     """
-    return brokers._get_broker_from_config('test', 'alpaca')
+    return apics._get_apic_from_config('test', 'alpaca')
 
 
 
 def test_load_from_config(alpaca_test_handle):
     """
-    Tests the `load_from_config()` method in `BrokerAlpaca`.
+    Tests the `load_from_config()` method in `Alpaca`.
 
     TODO: This should load its own conf files and test directly; but good enough
     for now.
@@ -51,26 +51,26 @@ def test_load_from_config(alpaca_test_handle):
 
 
 
-def test_get_type_names():
+def test_get_provider_names():
     """
-    Tests the `get_type_names()` method in `BrokerAlpaca`.  Not an
-    exhaustive test.
+    Tests the `get_provider_names()` method in `Alpaca`.  Not an exhaustive
+    test.
     """
-    assert 'alpaca' in broker_alpaca.BrokerAlpaca.get_type_names()
-    assert 'not-alpaca' not in broker_alpaca.BrokerAlpaca.get_type_names()
+    assert 'alpaca' in alpaca.Alpaca.get_provider_names()
+    assert 'not-alpaca' not in alpaca.Alpaca.get_provider_names()
 
 
 
 def test_connect(caplog, monkeypatch, alpaca_test_handle):
     """
-    Tests the `connect()` method in `BrokerAlpaca`.
+    Tests the `connect()` method in `Alpaca`.
     """
     caplog.set_level(logging.INFO)
     caplog.clear()
     alpaca_test_handle.connect()
     assert alpaca_test_handle._rest_api is not None
     assert caplog.record_tuples == [
-            ('grand_trade_auto.broker.broker_alpaca', logging.INFO,
+            ('grand_trade_auto.apic.alpaca', logging.INFO,
                 'Established connection to Alpaca via REST.')
     ]
 
@@ -97,7 +97,7 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
         Replaces the conf file reader with a dummy ConfigParser.
         """
         mock_cp = configparser.ConfigParser()
-        mock_cp[alpaca_test_handle._cp_broker_id] = {
+        mock_cp[alpaca_test_handle._cp_apic_id] = {
                 'api key id': 'dummy key id',
         }
         mock_cp[alpaca_test_handle._cp_secrets_id] = {
@@ -148,19 +148,19 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
 
 def test_connect_env(caplog, monkeypatch, alpaca_test_handle):
     """
-    Tests the `connect()` method in `BrokerAlpaca`; specifically, the fallback
-    of usinv environment variables for credentials.
+    Tests the `connect()` method in `Alpaca`; specifically, the fallback of
+    using environment variables for credentials.
 
     Want to read with env variables first if possible, then without any env
     variables at all.
     """
     caplog.set_level(logging.INFO)
 
-    broker_cp = config.read_conf_file('brokers.conf')
+    apic_cp = config.read_conf_file('apics.conf')
     secrets_cp = config.read_conf_file('.secrets.conf')
 
     creds = {}
-    creds['APCA_API_KEY_ID'] = broker_cp.get(alpaca_test_handle._cp_broker_id,
+    creds['APCA_API_KEY_ID'] = apic_cp.get(alpaca_test_handle._cp_apic_id,
             'api key id', fallback=None)
     creds['APCA_API_KEY_ID'] = secrets_cp.get(alpaca_test_handle._cp_secrets_id,
             'api key id', fallback=creds['APCA_API_KEY_ID'])
@@ -185,7 +185,7 @@ def test_connect_env(caplog, monkeypatch, alpaca_test_handle):
     alpaca_test_handle._connect('rest')
     assert alpaca_test_handle._rest_api is not None
     assert caplog.record_tuples == [
-            ('grand_trade_auto.broker.broker_alpaca', logging.INFO,
+            ('grand_trade_auto.apic.alpaca', logging.INFO,
                 'Established connection to Alpaca via REST.')
     ]
 

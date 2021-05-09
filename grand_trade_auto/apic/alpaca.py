@@ -21,25 +21,28 @@ logger = logging.getLogger(__name__)
 
 
 
-class BrokerAlpaca(broker_meta.BrokerMeta):
+class Alpaca(broker_meta.Broker):
     """
-    The Alpaca broker functionality.
+    The Alpaca broker API Client functionality.
 
     Class Attributes:
       _base_urls ({str:str}): The base URLs, keyed by trade domain.
 
     Instance Attributes:
       _trade_domain (str): The domain for trading (live or paper).
-      _cp_broker_id (str): The id used as the section name in the broker
-        conf.  Will be used for loading credentials on-demand.
-      _cp_secrets_id (str): The id used as the section name in the secrets
-        conf.  Will be used for loading credentials on-demand.
 
       _base_url (str): The base url to use based on trade domain.
       _rest_api (REST): The cached rest API connection; or None if not connected
         and cached.
       _stream_conn (StreamConn): The cached stream socket connection; or None if
         not connected and cached.
+
+      [inherited from ApicMeta]:
+        _env (str): The run environment type valid for using this API Client.
+        _cp_apic_id (str): The id used as the section name in the API Client
+          conf.  Will be used for loading credentials on-demand.
+        _cp_secrets_id (str): The id used as the section name in the secrets
+          conf.  Will be used for loading credentials on-demand.
     """
     _base_urls = {
         'live': 'https://api.alpaca.markets',
@@ -48,67 +51,62 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
 
 
 
-    def __init__(self, trade_domain, cp_broker_id, cp_secrets_id):
+    def __init__(self, trade_domain, **kwargs):
         """
-        Creates the broker handle.
+        Creates the Alpaca API client.
 
         Args:
           trade_domain (str): The domain for trading (live or paper).
-          cp_broker_id (str): The id used as the section name in the broker
-            conf.  Will be used for loading credentials on-demand.
-          cp_secrets_id (str): The id used as the section name in the secrets
-            conf.  Will be used for loading credentials on-demand.
+
+          See parent(s) for required kwargs.
         """
+        super().__init__(**kwargs)
         self._trade_domain = trade_domain
-        self._cp_broker_id = cp_broker_id
-        self._cp_secrets_id = cp_secrets_id
 
         self._base_url = self._base_urls[trade_domain]
 
         self._rest_api = None
         self._stream_conn = None
 
-        super().__init__()
-
 
 
     @classmethod
-    def load_from_config(cls, broker_cp, broker_id, secrets_id):
+    def load_from_config(cls, apic_cp, apic_id, secrets_id):
         """
-        Loads the broker config for this broker from the configparsers
-        from files provided.
+        Loads the Alpaca config from the configparsers from files provided.
 
         Args:
-          broker_cp (configparser): The full configparser from the broker conf.
-          broker_id (str): The ID name for this broker as it appears as the
-            section header in the broker_cp.
-          secrets_id (str): The ID name for this broker's secrets as it
+          apic_cp (configparser): The full configparser from the API Client
+            conf.
+          apic_id (str): The ID name for this API Client as it appears as the
+            section header in the apic_cp.
+          secrets_id (str): The ID name for this API Client's secrets as it
             appears as the section header in the secrets_cp.
 
         Returns:
-          broker_handle (BrokerMeta<>): The BrokerMeta<> object created and
-            loaded from config, where BrokerMeta<> is a subclass of
-            BrokerMeta (e.g. BrokerAlpaca).
+          alpaca (Alpaca): The Alpaca object created and loaded from config.
         """
         kwargs = {}
 
-        kwargs['trade_domain'] = broker_cp[broker_id]['trade domain']
-        kwargs['cp_broker_id'] = broker_id
+        kwargs['env'] = apic_cp[apic_id]['env'].strip()
+        kwargs['cp_apic_id'] = apic_id
         kwargs['cp_secrets_id'] = secrets_id
+        kwargs['trade_domain'] = apic_cp[apic_id]['trade domain'].strip()
 
-        broker_handle = BrokerAlpaca(**kwargs)
-        return broker_handle
+        alpaca = Alpaca(**kwargs)
+        return alpaca
 
 
 
     @classmethod
-    def get_type_names(cls):
+    def get_provider_names(cls):
         """
-        Get the list of names that can be used as the 'type' in the broker
-        conf to identify this broker.
+        Get the list of names that can be used as the 'provider' in the API
+        Client conf to identify this API Client.
 
         Returns:
-          ([str]): A list of names that are valid to use for this broker type.
+          ([str]): A list of names that are valid to use for this API Client
+            provider.
         """
         return ['alpaca', 'apca']
 
@@ -116,9 +114,10 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
 
     def connect(self):
         """
-        Connects to the broker's servers.
+        Connects to the API provider's servers.
         """
         self._connect()
+
 
 
     def _connect(self, interface='rest'):
@@ -140,13 +139,13 @@ class BrokerAlpaca(broker_meta.BrokerMeta):
         if interface == 'stream' and self._stream_conn is not None:
             return
 
-        broker_cp = config.read_conf_file('brokers.conf')
+        apic_cp = config.read_conf_file('apics.conf')
         secrets_cp = config.read_conf_file('.secrets.conf')
 
         kwargs = {
             'base_url': self._base_url,
         }
-        kwargs['key_id'] = broker_cp.get(self._cp_broker_id, 'api key id',
+        kwargs['key_id'] = apic_cp.get(self._cp_apic_id, 'api key id',
                 fallback=None)
         kwargs['key_id'] = secrets_cp.get(self._cp_secrets_id, 'api key id',
                 fallback=kwargs['key_id'])

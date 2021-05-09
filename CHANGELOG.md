@@ -75,6 +75,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       up to date ([#58][]).
 - [Added] `PYTHONPATH` environment variable added to all python docker images
       ([#58][]).
+- [Changed] Updated config file name manipulations to use `apics` instead of
+      `brokers` ([#75][]).
 
 
 ### Project & Toolchain: CI Support
@@ -82,6 +84,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       checking `__init__.py` files are up to date ([#58][]).
 - [Changed] `.circleci/*.conf.circleci` files moved and renamed to
       `ci_support/*.conf.ci` ([#58][]).
+- [Changed] `brokers.conf.ci` migrated to `apics.conf.ci` ([#75][]).
 
 
 ### Project & Toolchain: CodeCov
@@ -125,6 +128,30 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 ### Project & Toolchain: Tmp Main
 - [Added] `tmp_main.py` added to execute code for testing until real modules
       that will be main entry points added ([#8][]).
+- [Changed] Changed `broker*` items to `apic*` items as appropriate, maintaining
+      equivalent functionality ([#75][]).
+
+
+### APICs / Meta
+- [Added] `Apic` meta file and class started, defining initial interface
+      requirements, mostly migrated from `BrokerMeta`, dropping `Meta`
+      ([#75][]).
+- [Changed] `get_type_names()` changed to `get_provider_names()` since `type` is
+      too generic of a term, especially with future planned code ([#75][]).
+- [Added] `apics` file started, loads a default main API Client handle from
+      config, mostly migrated from `brokers` ([#75][]).
+- [Changed] Constructor takes `kwargs`, but since this is effectively the base
+      class, does nothing with it ([#75][]).
+- [Changed] `_APIC_HANDLE` and other similar names shortened to `_APIC`
+      ([#75][]).
+
+
+### APIC: Alpaca
+- [Added] `Alpaca` file and class started, with ability to load from config and
+      connect, mostly migrated from `BrokerAlpaca` ([#75][]).
+- [Changed] `Alpaca` constructor only explicitly takes its own args; also takes
+      `kwargs` where all parent args expected, passed to `super()` constructor
+      ([#75][]).
 
 
 ### Brokers / Meta
@@ -132,11 +159,64 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       requirements ([#6][]).
 - [Added] `brokers` file started, loads a default main broker handle from
       config ([#6][]).
+- [Changed] `BrokerMeta` is now simply `Broker` (still abstract) ([#75][]).
+- [Changed] Inherits from `Apic` in `apic_meta` module ([#75][]).
+- [Changed] Constructor takes `kwargs` to pass to `super()` constructor
+      ([#75][]).
+- [Changed] `load_from_config()`, `get_type_names()`, `connect()` abstract
+      methods moved to `Apic` ([#75][]).
+- [Removed] Removed `brokers` module for now -- replaced by `apics` ([#75][]).
 
 
-### Broker: Alpaca
+### Broker: Alpaca (see APICs: Alpaca)
 - [Added] `BrokerAlpaca` file and class started, with ability to load from
       config and connect ([#6][]).
+- [Removed] Moved to `Alpaca` in `apic` subpackage -- see relevant changelog
+      section going forward ([#75][]).
+
+
+### Config: .secrets.conf
+- [Added] `.secrets.conf` file created (with stub), with postgres database
+      stub added ([#2][]).
+- [Added] Broker example stub added, at least as would be needed for Alpaca
+      ([#6][]).
+
+
+### Config: .secrets.env
+- [Added] `.secrets.env` file created (with stub), with email server parameters
+      stub added ([#9][]).
+
+
+### Config: apics.conf
+- [Added] `apics.conf` file created (wtih stub) to replace `brokers.conf`,
+      mostly migrated and adapted from `brokers.conf` with Alpaca at least
+      supported ([#75][]).
+- [Changed] `type` key changed to `provider` to avoid confusion from generic
+      sounding `type` ([#75][]).
+
+
+### Config: brokers.conf (see Config: apics.conf)
+- [Added] `brokers.conf` file created (with stub), with Alpaca stub added
+      ([#6][]).
+- [Fixed] Stub text in section header now mentioned "broker" instead of
+      "database" to eliminate confusion ([#59][]).
+- [Removed] Moved to `apics.conf` -- see relevant changelog section going
+      forward ([#75][]).
+
+
+### Config: databases.conf
+- [Added] `databases.conf` file created (wtih stub), with postgres stub added
+      ([#2][]).
+
+
+### Config: gta.conf
+- [Added] `gta.conf` file created (wtih stub), with email section and parameters
+      stub added ([#9][]).
+
+
+### Config: logger.conf
+- [Added] `logger.conf` file created (with stub), with a default ready-to-use
+      logger configuration added ([#8][]).
 
 
 ### Databases / Meta
@@ -341,6 +421,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#67][]
 - [#71][]
 - [#73][]
+- [#75][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -367,6 +448,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#70][] for [#58][]
 - [#72][] for [#71][]
 - [#74][] for [#73][]
+- [#76][] for [#74][]
 
 
 ---
@@ -399,6 +481,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#58]: https://github.com/JonathanCasey/grand_trade_auto/issues/58 'Issue #58'
 [#71]: https://github.com/JonathanCasey/grand_trade_auto/issues/71 'Issue #71'
 [#73]: https://github.com/JonathanCasey/grand_trade_auto/issues/73 'Issue #73'
+[#75]: https://github.com/JonathanCasey/grand_trade_auto/issues/75 'Issue #75'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -424,3 +507,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#70]: https://github.com/JonathanCasey/grand_trade_auto/pull/70 'PR #70'
 [#72]: https://github.com/JonathanCasey/grand_trade_auto/pull/72 'PR #72'
 [#74]: https://github.com/JonathanCasey/grand_trade_auto/pull/74 'PR #74'
+[#76]: https://github.com/JonathanCasey/grand_trade_auto/pull/76 'PR #76'

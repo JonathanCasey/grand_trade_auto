@@ -1,4 +1,5 @@
 # pylint: disable=missing-module-docstring
 __all__ = [
-        'broker_meta',
+        'test_alpaca',
+        'test_apics',
 ]

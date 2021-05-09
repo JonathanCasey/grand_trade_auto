@@ -11,9 +11,11 @@ Module Attributes:
 """
 from abc import ABC, abstractmethod
 
+from grand_trade_auto.apic import apic_meta
 
 
-class BrokerMeta(ABC):
+
+class Broker(apic_meta.Apic, ABC):
     """
     The abstract class for all broker functionality.  Each broker type will
     subclass this, but externally will likely only call the generic methods
@@ -23,53 +25,19 @@ class BrokerMeta(ABC):
       N/A
 
     Instance Attributes:
-      N/A
+      [inherited from ApicMeta]:
+        _env (str): The run environment type valid for using this broker.
+        _cp_broker_id (str): The id used as the section name in the API Client
+          conf.  Will be used for loading credentials on-demand.
+        _cp_secrets_id (str): The id used as the section name in the secrets
+          conf.  Will be used for loading credentials on-demand.
     """
     @abstractmethod
-    def __init__(self):
+    def __init__(self, **kwargs):
         """
-        Creates the broker handle.
-        """
-
-
-
-    @classmethod
-    @abstractmethod
-    def load_from_config(cls, broker_cp, broker_id, secrets_id):
-        """
-        Loads the broker config for this broker from the configparsers
-        from files provided.
+        Creates the broker.
 
         Args:
-          broker_cp (configparser): The full configparser from the broker conf.
-          broker_id (str): The ID name for this broker as it appears as the
-            section header in the broker_cp.
-          secrets_id (str): The ID name for this broker's secrets as it
-            appears as the section header in the secrets_cp.
-
-        Returns:
-          broker_handle (BrokerMeta<>): The BrokerMeta<> object created and
-            loaded from config, where BrokerMeta<> is a subclass of
-            BrokerMeta (e.g. BrokerAlpaca).
+          See parent(s) for required kwargs.
         """
-
-
-
-    @classmethod
-    @abstractmethod
-    def get_type_names(cls):
-        """
-        Get the list of names that can be used as the 'type' in the broker
-        conf to identify this broker.
-
-        Returns:
-          ([str]): A list of names that are valid to use for this broker type.
-        """
-
-
-
-    @abstractmethod
-    def connect(self):
-        """
-        Connects to the broker's servers.
-        """
+        super().__init__(**kwargs)
