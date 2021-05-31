@@ -4,12 +4,12 @@ The database API module.  This is intended to be the item accessed outside of
 the database submodule/folder.
 
 Module Attributes:
-  _DB_HANDLE (DatabaseMeta<>): The handle to the database that will be used,
-    where DatabaseMeta<> is a subclass of DatabaseMeta (e.g. DatabasePostgres).
+  _DB_HANDLE (Database<>): The handle to the database that will be used, where
+    Database<> is a subclass of Database (e.g. Postgres).
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
-from grand_trade_auto.database import database_postgres
+from grand_trade_auto.database import postgres
 from grand_trade_auto.general import config
 
 
@@ -63,13 +63,12 @@ def _get_database_from_config(env, db_type=None):
         secrets_id = config.get_matching_secrets_id(secrets_cp, 'database',
                 db_id)
 
-        postgres_type_names = \
-                database_postgres.DatabasePostgres.get_type_names()
+        postgres_type_names = postgres.Postgres.get_type_names()
         if db_cp[db_id]['type'].strip() in postgres_type_names:
             if db_type is not None and db_type not in postgres_type_names:
                 continue
 
-            db_handle = database_postgres.DatabasePostgres.load_from_config(
+            db_handle = postgres.Postgres.load_from_config(
                     db_cp, db_id, secrets_id)
 
             if db_handle is not None:

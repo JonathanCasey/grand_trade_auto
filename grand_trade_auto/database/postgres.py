@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 
-class DatabasePostgres(database_meta.DatabaseMeta):
+class Postgres(database_meta.Database):
     """
     The PostgreSQL database functionality.
 
@@ -79,8 +79,8 @@ class DatabasePostgres(database_meta.DatabaseMeta):
             appears as the section header in the secrets_cp.
 
         Returns:
-          db_handle (DatabasePostgres): The DatabasePostgres object created and
-            loaded from config based on the provided config data.
+          db_handle (Postgres): The Postgres object created and loaded from
+            config based on the provided config data.
         """
         kwargs = {}
 
@@ -90,7 +90,7 @@ class DatabasePostgres(database_meta.DatabaseMeta):
         kwargs['cp_db_id'] = db_id
         kwargs['cp_secrets_id'] = secrets_id
 
-        db_handle = DatabasePostgres(**kwargs)
+        db_handle = Postgres(**kwargs)
         return db_handle
 
 

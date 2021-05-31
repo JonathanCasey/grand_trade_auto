@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tests the grand_trade_auto.general.database_postgres functionality.
+Tests the grand_trade_auto.general.postgres functionality.
 
 Per [pytest](https://docs.pytest.org/en/reorganize-docs/new-docs/user/naming_conventions.html),
 all tiles, classes, and methods will be prefaced with `test_/Test` to comply
@@ -17,7 +17,7 @@ Module Attributes:
 import psycopg2
 import pytest
 
-from grand_trade_auto.database import database_postgres
+from grand_trade_auto.database import postgres
 from grand_trade_auto.database import databases
 
 
@@ -28,7 +28,7 @@ def fixture_pg_test_db():
     Gets the test database handle for postgres.
 
     Returns:
-      (DatabasePostgres): The test postgres database handle.
+      (Postgres): The test postgres database handle.
     """
     return databases._get_database_from_config('test', 'postgres')
 
@@ -36,7 +36,7 @@ def fixture_pg_test_db():
 
 def test_load_from_config(pg_test_db):
     """
-    Tests the `load_from_config()` method in `DatabasePostgres`.
+    Tests the `load_from_config()` method in `Postgres`.
 
     TODO: This should load its own conf files and test directly; but good enough
     for now.
@@ -47,20 +47,18 @@ def test_load_from_config(pg_test_db):
 
 def test_get_type_names():
     """
-    Tests the `get_type_names()` method in `DatabasePostgres`.  Not an
-    exhaustive test.
+    Tests the `get_type_names()` method in `Postgres`.  Not an exhaustive test.
     """
-    assert 'postgres' in database_postgres.DatabasePostgres.get_type_names()
-    assert 'not-postgres' not in \
-            database_postgres.DatabasePostgres.get_type_names()
+    assert 'postgres' in postgres.Postgres.get_type_names()
+    assert 'not-postgres' not in postgres.Postgres.get_type_names()
 
 
 
 def test_connect(pg_test_db):
     """
-    Tests the `connect()` method in `DatabasePostgres`.  Only tests connecting
-    to the default database; connecting to the real test db will be covered by
-    another test.
+    Tests the `connect()` method in `Postgres`.  Only tests connecting to the
+    default database; connecting to the real test db will be covered by another
+    test.
     """
     conn = pg_test_db.connect(cache=False, database='postgres')
     assert conn is not None
@@ -78,8 +76,8 @@ def test_connect(pg_test_db):
 def test_create_drop_check_if_db_exists(pg_test_db):
     """
     Tests the `create_db()`, `_drop_db()`, and `_check_if_db_exists()` methods
-    in `DatabasePostgres`.  Done together since they are already intertwined and
-    test steps end up being very similar unless duplicating a bunch of code.
+    in `Postgres`.  Done together since they are already intertwined and test
+    steps end up being very similar unless duplicating a bunch of code.
     """
     # Want to ensure db does not exist before starting
     pg_test_db._drop_db()

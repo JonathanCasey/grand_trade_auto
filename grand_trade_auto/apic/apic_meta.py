@@ -5,7 +5,7 @@ shared API Client access code that needs to be accessed regardless of which API
 can be implemented here so they have access when this is imported.
 
 Module Attributes:
-  N/A
+  logger (Logger): Logger for this module.
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """

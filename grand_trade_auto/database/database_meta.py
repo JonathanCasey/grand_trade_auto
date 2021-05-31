@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 
 
 
-class DatabaseMeta(ABC):
+class Database(ABC):
     """
     The abstract class for all database functionality.  Each database type
     will subclass this, but externally will likely only call the generic methods
@@ -63,9 +63,8 @@ class DatabaseMeta(ABC):
             appears as the section header in the secrets_cp.
 
         Returns:
-          db_handle (DatabaseMeta<>): The DatabaseMeta<> object created and
-            loaded from config, where DatabaseMeta<> is a subclass of
-            DatabaseMeta (e.g. DatabasePostgres).
+          db_handle (Database<>): The Database<> object created and loaded from
+            config, where Database<> is a subclass of Database (e.g. Postgres).
         """
 
 
