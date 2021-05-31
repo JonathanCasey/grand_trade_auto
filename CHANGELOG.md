@@ -444,6 +444,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#73][]
 - [#75][]
 - [#77][]
+- [#80][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -473,6 +474,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#76][] for [#74][]
 - [#78][] for [#77][]
 - [#79][] for [#7][], [#54][]
+- [#83][] for [#80][]
 
 
 ---
@@ -509,6 +511,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#77]: https://github.com/JonathanCasey/grand_trade_auto/issues/77 'Issue #77'
 [#7]: https://github.com/JonathanCasey/grand_trade_auto/issues/7 'Issue #7'
 [#54]: https://github.com/JonathanCasey/grand_trade_auto/issues/54 'Issue #54'
+[#80]: https://github.com/JonathanCasey/grand_trade_auto/issues/80 'Issue #80'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -537,3 +540,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#76]: https://github.com/JonathanCasey/grand_trade_auto/pull/76 'PR #76'
 [#78]: https://github.com/JonathanCasey/grand_trade_auto/pull/78 'PR #78'
 [#79]: https://github.com/JonathanCasey/grand_trade_auto/pull/79 'PR #79'
+[#83]: https://github.com/JonathanCasey/grand_trade_auto/pull/83 'PR #83'
