@@ -13,6 +13,7 @@ import logging
 import alpaca_trade_api as tradeapi
 
 from grand_trade_auto.broker import broker_meta
+from grand_trade_auto.datafeed import datafeed_meta
 from grand_trade_auto.general import config
 
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 
-class Alpaca(broker_meta.Broker):
+class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
     """
     The Alpaca broker API Client functionality.
 
