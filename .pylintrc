@@ -16,3 +16,4 @@ max-args=10
 [MESSAGE CONTROL]
 disable=
         logging-fstring-interpolation,
+        logging-not-lazy,

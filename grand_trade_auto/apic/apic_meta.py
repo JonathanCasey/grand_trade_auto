@@ -10,6 +10,11 @@ Module Attributes:
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 from abc import ABC, abstractmethod
+import logging
+
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -32,7 +37,6 @@ class Apic(ABC):
       _cp_secrets_id (str): The id used as the section name in the secrets
         conf.  Will be used for loading credentials on-demand.
     """
-    @abstractmethod
     def __init__(self, env, cp_apic_id, cp_secrets_id, **kwargs):
         """
         Creates the API Client.
@@ -47,6 +51,10 @@ class Apic(ABC):
         self._env = env
         self._cp_apic_id = cp_apic_id
         self._cp_secrets_id = cp_secrets_id
+
+        if kwargs:
+            logger.warning('Discarded excess kwargs provided to'
+                    + f' {self.__class__.__name__}: {", ".join(kwargs.keys())}')
 
 
 
