@@ -61,14 +61,14 @@ are used (unless you really want to test with live trading / real money...).
 # Usage
 
 ## Logger
-Balancing readability against performance, the pylint warning
-`logging-fstring-interpolation` is disabled.  The intention is largerly for this
-to apply to warnings and more severe log levels as well as anything that would
-be low overhead.  It is recommended that anything info or debug level,
-especially if there are many calls or each call is an time-expensive
-interpolation to use the `logger.debug('log %(name)s', {'name'=name_var})` sort
-of methods instead so that the interpolation is only executed when that logger
-level is enabled.
+Balancing readability against performance, the pylint warnings
+`logging-fstring-interpolation` and `logging-not-lazy` are disabled.  The
+intention is largerly for this to apply to warnings and more severe log levels
+as well as anything that would be low overhead.  It is recommended that anything
+info or debug level, especially if there are many calls or each call is an
+time-expensive interpolation to use the
+`logger.debug('log %(name)s', {'name'=name_var})` sort of methods instead so
+that the interpolation is only executed when that logger level is enabled.
 
 
 ## Workflows
