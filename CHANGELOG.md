@@ -123,6 +123,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] Good names added to `.pylintrc`, with `v` being the critical addition
       to allow usage without pylint complaints ([#9][]).
 - [Added] `f` added to `good-names` list in `.pylintrc` ([#11][]).
+- [Added] `logging-not-lazy` added to global disable list in `.pylintrc` to
+     leave f-strings in logging to coder's choice ([#7][]).
 
 
 ### Project & Toolchain: Tmp Main
@@ -144,6 +146,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       class, does nothing with it ([#75][]).
 - [Changed] `_APIC_HANDLE` and other similar names shortened to `_APIC`
       ([#75][]).
+- [Changed] `Apic`'s `__init__()` no longer abstract ([#7][]).
+- [Added] `Apic`'s `__init__()` warns if unused kwargs not consumed prior
+      ([#7][]).
 
 
 ### APIC: Alpaca
@@ -152,6 +157,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `Alpaca` constructor only explicitly takes its own args; also takes
       `kwargs` where all parent args expected, passed to `super()` constructor
       ([#75][]).
+- [Added] `Alpaca` now also inherits secondarily from `Datafeed` class ([#7][],
+      [#54][]).
 
 
 ### Brokers / Meta
@@ -230,6 +237,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `DatabasePostgres` file and class started, with ability to load from
       config, connect, create/drop/check-exists DB ([#2][]).
 - [Added] Logging setup and logger usage added to existing code ([#8][]).
+
+
+### Datafeeds / Meta
+- [Added] `datafeed_meta` module added, includes `Datafeed` abstract class with
+      no real functionality yet ([#7][]).
 
 
 ### General: Config
