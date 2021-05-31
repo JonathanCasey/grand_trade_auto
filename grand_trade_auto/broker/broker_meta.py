@@ -25,7 +25,7 @@ class Broker(apic_meta.Apic, ABC):
       N/A
 
     Instance Attributes:
-      [inherited from ApicMeta]:
+      [inherited from Apic]:
         _env (str): The run environment type valid for using this broker.
         _cp_broker_id (str): The id used as the section name in the API Client
           conf.  Will be used for loading credentials on-demand.

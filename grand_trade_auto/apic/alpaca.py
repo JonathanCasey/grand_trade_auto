@@ -38,7 +38,7 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
       _stream_conn (StreamConn): The cached stream socket connection; or None if
         not connected and cached.
 
-      [inherited from ApicMeta]:
+      [inherited from Apic]:
         _env (str): The run environment type valid for using this API Client.
         _cp_apic_id (str): The id used as the section name in the API Client
           conf.  Will be used for loading credentials on-demand.
