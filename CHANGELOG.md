@@ -231,12 +231,16 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       requirements ([#2][]).
 - [Added] `databases` file started, loads a default main database handle from
       config ([#2][]).
+- [Changed] `DatabaseMeta` is now simply `Database` ([#80][]).
 
 
 ### Database: Postgres
 - [Added] `DatabasePostgres` file and class started, with ability to load from
       config, connect, create/drop/check-exists DB ([#2][]).
 - [Added] Logging setup and logger usage added to existing code ([#8][]).
+- [Changed] `database_postgres` and `test_database_postgres` modules are now
+      simply `postgres` and `test_postgres`, respectively ([#80][]).
+- [Changed] `DatabasePostgres` is now simply `Postgres` ([#80][]).
 
 
 ### Datafeeds / Meta
