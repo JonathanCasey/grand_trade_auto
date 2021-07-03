@@ -72,6 +72,43 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
 
 
     @classmethod
+    def get_apic(cls, env=None, provider=None, apic_id=None):
+        """
+        Gets the requested API Client.  Will return cached version if already
+        loaded, otherwise will load.
+
+        Minimum required is (`env`, `provider`) or (`apic_id`), but can provide
+        more beyond one of those minimum required sets to explicitly overdefine.
+        No matter how minimally or overly defined inputs are, all must match.
+        In the event that (`env`, `provider`) does not identify a unique API
+        Client (e.g. multiple of same API Client for different accounts), it
+        will return the first one found, which will be the first one loaded or
+        the first one found in the conf file.
+
+        TODO: Check for ambiguity in conf file and raise exception.
+
+        Args:
+          env (str or None): The environment for which to get the matching API
+            Client.  Can be None if relying on `apic_id`.
+          provider (str or None): The provider to get.  Can be None if relying
+            on `apic_id`.
+          apic_id (str or None): The section ID of the API Client from the
+            apics.conf file.  Can be None if relying on other parameters.
+
+        Returns:
+          apic (Apic<> or None): Returns the API Client that matches the
+            given criteria, loading from conf if required.  None if no matching
+            API Client.
+
+        Raises:
+          (AssertionError): Raised when an invalid combination of input arg
+            criteria provided cannot guarantee a minimum level of definition.
+        """
+        super().get_apic(env, provider, apic_id)
+
+
+
+    @classmethod
     def load_from_config(cls, apic_cp, apic_id, secrets_id):
         """
         Loads the Alpaca config from the configparsers from files provided.

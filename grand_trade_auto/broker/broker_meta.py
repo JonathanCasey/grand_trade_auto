@@ -41,3 +41,16 @@ class Broker(apic_meta.Apic, ABC):
           See parent(s) for required kwargs.
         """
         super().__init__(**kwargs)
+
+
+
+    @classmethod
+    def get_broker_use_type_names(cls):
+        """
+        Get the list of names that can be used as the 'apic use type' in the API
+        Client conf to identify this class.
+
+        Returns:
+          ([str]): A list of names that are valid to use for this use type.
+        """
+        return ['broker']
