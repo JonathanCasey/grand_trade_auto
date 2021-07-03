@@ -37,9 +37,6 @@ class Apic(ABC):
       _cp_secrets_id (str): The id used as the section name in the secrets
         conf.  Will be used for loading credentials on-demand.
     """
-    apics_loaded = None
-
-
     def __init__(self, env, cp_apic_id, cp_secrets_id, **kwargs):
         """
         Creates the API Client.
@@ -61,82 +58,20 @@ class Apic(ABC):
 
 
 
-    @classmethod
-    @abstractmethod
-    def get_apic(cls, env=None, provider=None, apic_id=None):
-        """
-        Gets the requested API Client.  Will return cached version if already
-        loaded, otherwise will load.
-
-        Minimum required is (`env`, `provider`) or (`apic_id`), but can provide
-        more beyond one of those minimum required sets to explicitly overdefine.
-        No matter how minimally or overly defined inputs are, all must match.
-        In the event that (`env`, `provider`) does not identify a unique API
-        Client (e.g. multiple of same API Client for different accounts), it
-        will return the first one found, which will be the first one loaded or
-        the first one found in the conf file.
-
-        Abstract so cannot be called via this meta class.
-
-        TODO: Check for ambiguity in conf file and raise exception.
-
-        Args:
-          env (str or None): The environment for which to get the matching API
-            Client.  Can be None if relying on `apic_id`.
-          provider (str or None): The provider to get.  Can be None if relying
-            on `apic_id`.
-          apic_id (str or None): The section ID of the API Client from the
-            apics.conf file.  Can be None if relying on other parameters.
-
-        Returns:
-          apic (Apic<> or None): Returns the API Client that matches the
-            given criteria, loading from conf if required.  None if no matching
-            API Client.
-
-        Raises:
-          (AssertionError): Raised when an invalid combination of input arg
-            criteria provided cannot guarantee a minimum level of definition.
-        """
-        assert (env is not None and provider is not None) or apic_id is not None
-
-        if cls.apics_loaded is None:
-            cls.apics_loaded = {}
-            # TEMP: debug
-            print(cls.__name__)
-
-        apics_to_check = []
-        if apic_id is not None:
-            if apic_id in cls.apics_loaded:
-                apics_to_check = [cls.apics_loaded[apic_id]]
-        else:
-            apics_to_check = cls.apics_loaded.values()
-
-        for apic in apics_to_check:
-            if apic.matches_id_criteria(env, provider, apic_id):
-                return apic
-
-        # TODO: Load from config
-
-        return None
-
-
-
-    def matches_id_criteria(self, env=None, provider=None, apic_id=None):
+    def matches_id_criteria(self, apic_id, env=None, provider=None):
         """
         Checks if this API Client is a match based on the provided criteria.
 
-        Minimum required is (`env`, `provider`) or (`apic_id`), but can provide
-        more beyond one of those minimum required sets to explicitly overdefine.
-        No matter how minimally or overly defined inputs are, all must match.
+        Can provide more beyond minimum required parameters to explicitly
+        overdefine.  No matter how minimally or overly defined inputs are, all
+        non-None must match.
 
         Args:
+          apic_id (str): The section ID of the API Client from the apics.conf
+            file to check if this matches.
           env (str or None): The environment for which to check if this matches.
-            Can be None if relying on `apic_id`.
-          provider (str or None): The provider to check if this matches.  Can be
-            None if relying on `apic_id`.
-          apic_id (str or None): The section ID of the API Client from the
-            apics.conf file to check if this matches.  Can be None if relying
-            on other parameters.
+          provider (str or None): The provider to check if this matches.
+
 
         Returns:
           (bool): True if all provided criteria match; False otherwise.
@@ -145,9 +80,8 @@ class Apic(ABC):
           (AssertionError): Raised when an invalid combination of input arg
             criteria provided cannot guarantee a minimum level of definition.
         """
-        assert (env is not None and provider is not None) \
-            or apic_id is not None
-        if apic_id is not None and provider != self._cp_apic_id:
+        assert apic_id is not None
+        if apic_id != self._cp_apic_id:
             return False
         if env is not None and env != self._env:
             return False
