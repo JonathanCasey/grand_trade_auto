@@ -45,12 +45,12 @@ def test_load_from_config(pg_test_db):
 
 
 
-def test_get_type_names():
+def test_get_dbms_names():
     """
-    Tests the `get_type_names()` method in `Postgres`.  Not an exhaustive test.
+    Tests the `get_dbms_names()` method in `Postgres`.  Not an exhaustive test.
     """
-    assert 'postgres' in postgres.Postgres.get_type_names()
-    assert 'not-postgres' not in postgres.Postgres.get_type_names()
+    assert 'postgres' in postgres.Postgres.get_dbms_names()
+    assert 'not-postgres' not in postgres.Postgres.get_dbms_names()
 
 
 

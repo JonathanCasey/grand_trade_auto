@@ -65,13 +65,13 @@ def test_get_database_from_config(monkeypatch):
     assert databases._get_database_from_config('postgres-test', 'test') \
             is not None
 
-    def mock_get_type_names():
+    def mock_get_dbms_names():
         """
-        Replaces the `get_type_names()` in an database so it will find no match.
+        Replaces the `get_dbms_names()` in an database so it will find no match.
         """
         return []
 
-    monkeypatch.setattr(postgres.Postgres, 'get_type_names',
-            mock_get_type_names)
+    monkeypatch.setattr(postgres.Postgres, 'get_dbms_names',
+            mock_get_dbms_names)
 
     assert databases._get_database_from_config('postgres-test') is None

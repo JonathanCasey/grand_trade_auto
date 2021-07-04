@@ -1,7 +1,7 @@
 
 [friendly-name-for-database]
 env : <production/development/test>
-type : <postgres>
+dbms : <postgres>
 host url :
 port :
 database : grand_trade_auto

@@ -89,6 +89,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `brokers.conf.ci` migrated to `apics.conf.ci` ([#75][]).
 - [Changed] Config file section IDs changed since an exact name must now match
       ([#81][]).
+- [Changed] Database `type` parameter is now `dbms` ([#84][]).
 
 
 ### Project & Toolchain: CodeCov
@@ -130,6 +131,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `logging-not-lazy` added to global disable list in `.pylintrc` to
      leave f-strings in logging to coder's choice ([#7][]).
 - [Added] `db` added to `good-names` list in `.pylintrc` ([#81][]).
+- [Added] `min-similarity-lines` config added, set to `5` ([#84][]).
 
 
 ### Project & Toolchain: Tmp Main
@@ -231,6 +233,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 ### Config: databases.conf
 - [Added] `databases.conf` file created (wtih stub), with postgres stub added
       ([#2][]).
+- [Changed] `type` parameter is now `dbms` ([#84][]).
 
 
 ### Config: gta.conf
@@ -262,6 +265,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       `Database`, loading from and storing to cache in the process ([#81][]).
 - [Changed] `_get_database_from_config()` changed to require `db_id`, thereby
       also changing the order of parameters ([#81][]).
+- [Changed] `__init__()` in `Database` now takes `**kwargs`, logs warning if
+      excess args leftover ([#84][]).
+- [Changed] `db_type` is now `dbms` ([#84][]).
 
 
 ### Database: Postgres
@@ -273,6 +279,10 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `DatabasePostgres` is now simply `Postgres` ([#80][]).
 - [Changed] Instance attributes and init parameters updated to match meta class,
       with some parameter init moved to meta class ([#81][]).
+- [Changed] `__init__()` updated now that parent supports `**kwargs` pass thru
+      ([#84][]).
+- [Changed] Last remnants of `db_handle` naming eradicated in code ([#84][]).
+- [Changed] `db_type` is now `dbms` ([#84][]).
 
 
 ### Datafeeds / Meta
@@ -480,6 +490,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#77][]
 - [#80][]
 - [#81][]
+- [#84][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -511,6 +522,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#79][] for [#7][], [#54][]
 - [#83][] for [#80][]
 - [#85][] for [#81][]
+- [#86][] for [#84][]
 
 
 ---
@@ -549,6 +561,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#54]: https://github.com/JonathanCasey/grand_trade_auto/issues/54 'Issue #54'
 [#80]: https://github.com/JonathanCasey/grand_trade_auto/issues/80 'Issue #80'
 [#81]: https://github.com/JonathanCasey/grand_trade_auto/issues/81 'Issue #81'
+[#84]: https://github.com/JonathanCasey/grand_trade_auto/issues/84 'Issue #84'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -579,3 +592,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#79]: https://github.com/JonathanCasey/grand_trade_auto/pull/79 'PR #79'
 [#83]: https://github.com/JonathanCasey/grand_trade_auto/pull/83 'PR #83'
 [#85]: https://github.com/JonathanCasey/grand_trade_auto/pull/85 'PR #85'
+[#86]: https://github.com/JonathanCasey/grand_trade_auto/pull/86 'PR #86'
