@@ -80,3 +80,51 @@ def test_apic_init(caplog):
             ('grand_trade_auto.apic.apic_meta', logging.WARNING,
                 'Discarded excess kwargs provided to Alpaca: key1, key2')
     ]
+
+
+
+def test_matches_id_criteria():
+    """
+    Tests the `matches_id_criteria()` method of `Apic`.
+    """
+
+    class MockApicChild(apic_meta.Apic):
+        """"
+        Simple mock object to subclass Apic.
+        """
+
+        @classmethod
+        def load_from_config(cls, apic_cp, apic_id, secrets_id):
+            """
+            Not needed / will not be used.
+            """
+            return
+
+        @classmethod
+        def get_provider_names(cls):
+            """
+            Need at least 1 name to match.
+            """
+            return ['mock_provider']
+
+        def connect(self):
+            """
+            Not needed / will not be used.
+            """
+            return
+
+    apic = MockApicChild('mock_env', 'mock_cp_apic_id', 'mock_cp_secrets_id')
+    assert not apic.matches_id_criteria('invalid-apic-id')
+    assert apic.matches_id_criteria('mock_cp_apic_id')
+    assert not apic.matches_id_criteria('mock_cp_apic_id', 'invalid-env')
+    assert apic.matches_id_criteria('mock_cp_apic_id', 'mock_env')
+    assert not apic.matches_id_criteria('mock_cp_apic_id',
+            provider='invalid-provider')
+    assert apic.matches_id_criteria('mock_cp_apic_id',
+            provider='mock_provider')
+    assert not apic.matches_id_criteria('mock_cp_apic_id', 'invalid-env',
+            'mock_provider')
+    assert not apic.matches_id_criteria('mock_cp_apic_id', 'mock_env',
+            'invalid-provider')
+    assert apic.matches_id_criteria('mock_cp_apic_id', 'mock_env',
+            'mock_provider')
