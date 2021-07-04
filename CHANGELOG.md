@@ -131,6 +131,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `logging-not-lazy` added to global disable list in `.pylintrc` to
      leave f-strings in logging to coder's choice ([#7][]).
 - [Added] `db` added to `good-names` list in `.pylintrc` ([#81][]).
+- [Added] `min-similarity-lines` config added, set to `5` ([#84][]).
 
 
 ### Project & Toolchain: Tmp Main

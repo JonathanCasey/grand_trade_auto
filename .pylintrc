@@ -17,3 +17,7 @@ max-args=10
 disable=
         logging-fstring-interpolation,
         logging-not-lazy,
+
+
+[SIMILARITIES]
+min-similarity-lines=5
