@@ -178,9 +178,9 @@ def test_connect_env(caplog, monkeypatch, alpaca_test_handle):
 
     caplog.clear()
     alpaca_test_handle._rest_api = None
-    for env_var in creds:
+    for env_var, env_creds in creds.items():
         if os.getenv(env_var) is None:
-            monkeypatch.setenv(env_var, creds[env_var])
+            monkeypatch.setenv(env_var, env_creds)
 
     alpaca_test_handle._connect('rest')
     assert alpaca_test_handle._rest_api is not None

@@ -77,6 +77,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       ([#58][]).
 - [Changed] Updated config file name manipulations to use `apics` instead of
       `brokers` ([#75][]).
+- [Changed] Config file section IDs changed since an exact name must now match
+      ([#81][]).
 
 
 ### Project & Toolchain: CI Support
@@ -85,6 +87,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `.circleci/*.conf.circleci` files moved and renamed to
       `ci_support/*.conf.ci` ([#58][]).
 - [Changed] `brokers.conf.ci` migrated to `apics.conf.ci` ([#75][]).
+- [Changed] Config file section IDs changed since an exact name must now match
+      ([#81][]).
 
 
 ### Project & Toolchain: CodeCov
@@ -125,6 +129,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `f` added to `good-names` list in `.pylintrc` ([#11][]).
 - [Added] `logging-not-lazy` added to global disable list in `.pylintrc` to
      leave f-strings in logging to coder's choice ([#7][]).
+- [Added] `db` added to `good-names` list in `.pylintrc` ([#81][]).
 
 
 ### Project & Toolchain: Tmp Main
@@ -132,6 +137,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       that will be main entry points added ([#8][]).
 - [Changed] Changed `broker*` items to `apic*` items as appropriate, maintaining
       equivalent functionality ([#75][]).
+- [Changed] Changed to get database/apic and call create/connect itself since
+      there are no longer `load_and_set_main_*` methods ([#81][]).
 
 
 ### APICs / Meta
@@ -149,6 +156,16 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `Apic`'s `__init__()` no longer abstract ([#7][]).
 - [Added] `Apic`'s `__init__()` warns if unused kwargs not consumed prior
       ([#7][]).
+- [Added] `matches_id_criteria()` added to `Apic` to check if the given
+      parameters match itself ([#81][]).
+- [Removed] `load_and_set_main_apic_from_config()` along with `_APIC` removed in
+      favor of always specifying which API Client ([#81][]).
+- [Added] Caching of API Clients in `_apics_loaded` added along with a list of
+      the supported providers in `_APIC_PROVIDERS` ([#81][]).
+- [Added] `get_apic()` added in place of loading and setting a main `Apic`,
+      loading from and storing to cache in the process ([#81][]).
+- [Changed] `_get_apic_from_config()` changed to require `apic_id`, thereby
+      also changing the order of parameters ([#81][]).
 
 
 ### APIC: Alpaca
@@ -232,6 +249,19 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `databases` file started, loads a default main database handle from
       config ([#2][]).
 - [Changed] `DatabaseMeta` is now simply `Database` ([#80][]).
+- [Changed] `__init__()` no longer `@abstractmethod`, `env` parameter added,
+      order of parameters changed, and some parameters init here to facilitate
+      new functionality ([#81][]).
+- [Added] `matches_id_criteria()` added to `Database` to check if the given
+      parameters match itself ([#81][]).
+- [Removed] `load_and_set_main_database_from_config()` along with `_DB_HANDLE`
+      removed in favor of always specifying which database ([#81][]).
+- [Added] Caching of databases in `_dbs_loaded` added along with a list of
+      the supported systems in `_DBMSS` ([#81][]).
+- [Added] `get_database()` added in place of loading and setting a main
+      `Database`, loading from and storing to cache in the process ([#81][]).
+- [Changed] `_get_database_from_config()` changed to require `db_id`, thereby
+      also changing the order of parameters ([#81][]).
 
 
 ### Database: Postgres
@@ -241,6 +271,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `database_postgres` and `test_database_postgres` modules are now
       simply `postgres` and `test_postgres`, respectively ([#80][]).
 - [Changed] `DatabasePostgres` is now simply `Postgres` ([#80][]).
+- [Changed] Instance attributes and init parameters updated to match meta class,
+      with some parameter init moved to meta class ([#81][]).
 
 
 ### Datafeeds / Meta
@@ -377,6 +409,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 ### Docs: CONTRIBUTING
 - [Added] `CONTRIBUTING.md` added to project root; relevant parts from
       `setup.md` and `usage.md` migrated ([#62][]).
+- [Added] Added section for "config files and unit testing", listing required
+      section IDs ([#81][]).
 
 
 ### Docs: README
@@ -445,6 +479,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#75][]
 - [#77][]
 - [#80][]
+- [#81][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -475,6 +510,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#78][] for [#77][]
 - [#79][] for [#7][], [#54][]
 - [#83][] for [#80][]
+- [#85][] for [#81][]
 
 
 ---
@@ -512,6 +548,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#7]: https://github.com/JonathanCasey/grand_trade_auto/issues/7 'Issue #7'
 [#54]: https://github.com/JonathanCasey/grand_trade_auto/issues/54 'Issue #54'
 [#80]: https://github.com/JonathanCasey/grand_trade_auto/issues/80 'Issue #80'
+[#81]: https://github.com/JonathanCasey/grand_trade_auto/issues/81 'Issue #81'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -541,3 +578,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#78]: https://github.com/JonathanCasey/grand_trade_auto/pull/78 'PR #78'
 [#79]: https://github.com/JonathanCasey/grand_trade_auto/pull/79 'PR #79'
 [#83]: https://github.com/JonathanCasey/grand_trade_auto/pull/83 'PR #83'
+[#85]: https://github.com/JonathanCasey/grand_trade_auto/pull/85 'PR #85'
