@@ -75,7 +75,6 @@ def _get_apic_from_config(apic_id, env=None):
     assert apic_id is not None
 
     apic_cp = config.read_conf_file('apics.conf')
-    secrets_cp = config.read_conf_file('.secrets.conf')
 
     if apic_id not in apic_cp.sections():
         return None
@@ -93,6 +92,5 @@ def _get_apic_from_config(apic_id, env=None):
     if apic_provider_sel is None:
         return None
 
-    secrets_id = config.get_matching_secrets_id(secrets_cp, 'apic', apic_id)
-    apic = apic_provider_sel.load_from_config(apic_cp, apic_id, secrets_id)
+    apic = apic_provider_sel.load_from_config(apic_cp, apic_id)
     return apic

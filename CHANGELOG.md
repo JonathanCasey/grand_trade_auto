@@ -168,6 +168,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       loading from and storing to cache in the process ([#81][]).
 - [Changed] `_get_apic_from_config()` changed to require `apic_id`, thereby
       also changing the order of parameters ([#81][]).
+- [Removed] `_cp_secrets_id` no longer stored in `Apic`, and secrets no longer
+      loaded and passed in `_get_apic_from_config()` ([#82][]).
+- [Changed] `_cp_apic_id` is now `_apic_id` in `Apic` ([#82][]).
 
 
 ### APIC: Alpaca
@@ -178,6 +181,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       ([#75][]).
 - [Added] `Alpaca` now also inherits secondarily from `Datafeed` class ([#7][],
       [#54][]).
+- [Changed] Secrets passed in at `__init__()` and stored as `_key_id`,
+      `_secret_key`; loaded from conf at creation rather than on demand
+      ([#82][]).
 
 
 ### Brokers / Meta
@@ -268,6 +274,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `__init__()` in `Database` now takes `**kwargs`, logs warning if
       excess args leftover ([#84][]).
 - [Changed] `db_type` is now `dbms` ([#84][]).
+- [Removed] `_cp_secrets_id` no longer stored in `Database`, and secrets no
+      longer loaded and passed in `_get_database_from_config()` ([#82][]).
+- [Changed] `_cp_db_id` is now `_db_id` in `Database` ([#82][]).
 
 
 ### Database: Postgres
@@ -283,6 +292,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       ([#84][]).
 - [Changed] Last remnants of `db_handle` naming eradicated in code ([#84][]).
 - [Changed] `db_type` is now `dbms` ([#84][]).
+- [Changed] Secrets passed in at `__init__()` and stored as `_user`,
+      `_password`; loaded from conf at creation rather than on demand ([#82][]).
 
 
 ### Datafeeds / Meta
@@ -490,6 +501,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#77][]
 - [#80][]
 - [#81][]
+- [#82][]
 - [#84][]
 
 #### PRs
@@ -523,6 +535,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#83][] for [#80][]
 - [#85][] for [#81][]
 - [#86][] for [#84][]
+- [#87][] for [#82][]
 
 
 ---
@@ -562,6 +575,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#80]: https://github.com/JonathanCasey/grand_trade_auto/issues/80 'Issue #80'
 [#81]: https://github.com/JonathanCasey/grand_trade_auto/issues/81 'Issue #81'
 [#84]: https://github.com/JonathanCasey/grand_trade_auto/issues/84 'Issue #84'
+[#82]: https://github.com/JonathanCasey/grand_trade_auto/issues/82 'Issue #82'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -593,3 +607,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#83]: https://github.com/JonathanCasey/grand_trade_auto/pull/83 'PR #83'
 [#85]: https://github.com/JonathanCasey/grand_trade_auto/pull/85 'PR #85'
 [#86]: https://github.com/JonathanCasey/grand_trade_auto/pull/86 'PR #86'
+[#87]: https://github.com/JonathanCasey/grand_trade_auto/pull/87 'PR #87'
