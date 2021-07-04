@@ -30,7 +30,7 @@ def fixture_pg_test_db():
     Returns:
       (Postgres): The test postgres database handle.
     """
-    return databases._get_database_from_config('test', 'postgres')
+    return databases._get_database_from_config('postgres-test', 'test')
 
 
 

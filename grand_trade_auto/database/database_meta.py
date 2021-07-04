@@ -23,28 +23,66 @@ class Database(ABC):
       N/A
 
     Instance Attributes:
-      host (str): The host URL.
-      post (int): The port number on that host for accessing the database.
-      database (str): The database to open.
+      env (str): The run environment type valid for using this database.
       cp_db_id (str): The id used as the section name in the database conf.
         Will be used for loading credentials on-demand.
       cp_secrets_id (str): The id used as the section name in the secrets
         conf.  Will be used for loading credentials on-demand.
+      host (str): The host URL.
+      post (int): The port number on that host for accessing the database.
+      database (str): The database to open.
     """
-    @abstractmethod
-    def __init__(self, host, port, database, cp_db_id, cp_secrets_id):
+    def __init__(self, env, cp_db_id, cp_secrets_id,
+            host, port, database):             # pylint: disable=unused-argument
         """
         Creates the database handle.
 
         Args:
-          host (str): The host URL.
-          post (int): The port number on that host for accessing the database.
-          database (str): The database to open.
+          env (str): The run environment type valid for using this database.
           cp_db_id (str): The id used as the section name in the database conf.
             Will be used for loading credentials on-demand.
           cp_secrets_id (str): The id used as the section name in the secrets
             conf.  Will be used for loading credentials on-demand.
+          host (str): The host URL.
+          post (int): The port number on that host for accessing the database.
+          database (str): The database to open.
         """
+        self._env = env
+        self._cp_db_id = cp_db_id
+        self._cp_secrets_id = cp_secrets_id
+
+
+
+    def matches_id_criteria(self, db_id, env=None, db_type=None):
+        """
+        Checks if this database is a match based on the provided criteria.
+
+        Can provide more beyond minimum required parameters to explicitly
+        overdefine.  No matter how minimally or overly defined inputs are, all
+        non-None must match.
+
+        Args:
+          db_id (str): The section ID of the database from the databases.conf
+            file to check if this matches.
+          env (str or None): The environment for which to check if this matches.
+          db_type (str or None): The type to check if this matches.
+
+
+        Returns:
+          (bool): True if all provided criteria match; False otherwise.
+
+        Raises:
+          (AssertionError): Raised when an invalid combination of input arg
+            criteria provided cannot guarantee a minimum level of definition.
+        """
+        assert db_id is not None
+        if db_id != self._cp_db_id:
+            return False
+        if env is not None and env != self._env:
+            return False
+        if db_type is not None and db_type not in self.get_type_names():
+            return False
+        return True
 
 
 

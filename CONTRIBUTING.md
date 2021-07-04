@@ -57,6 +57,19 @@ For `alpaca-paper-creds` it is STRONGLY REQUIRED the **paper** API credentials
 are used (unless you really want to test with live trading / real money...).
 
 
+### Config files and Unit Testing
+While unit testing in CI uses mock configs, running unit testing locally expects
+certain test environment configs to exist.  The following config sections/IDs
+are required in their respective config files in order to run the relevant
+unit tests:
+- `apics.conf`:
+  - `alpaca-test`
+- `databases.conf`
+  - `postgres-test` (do NOT use production db.  WILL be DELETED!)
+
+The `env` for each of those must be `test`.
+
+
 
 # Usage
 

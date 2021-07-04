@@ -58,6 +58,39 @@ class Apic(ABC):
 
 
 
+    def matches_id_criteria(self, apic_id, env=None, provider=None):
+        """
+        Checks if this API Client is a match based on the provided criteria.
+
+        Can provide more beyond minimum required parameters to explicitly
+        overdefine.  No matter how minimally or overly defined inputs are, all
+        non-None must match.
+
+        Args:
+          apic_id (str): The section ID of the API Client from the apics.conf
+            file to check if this matches.
+          env (str or None): The environment for which to check if this matches.
+          provider (str or None): The provider to check if this matches.
+
+
+        Returns:
+          (bool): True if all provided criteria match; False otherwise.
+
+        Raises:
+          (AssertionError): Raised when an invalid combination of input arg
+            criteria provided cannot guarantee a minimum level of definition.
+        """
+        assert apic_id is not None
+        if apic_id != self._cp_apic_id:
+            return False
+        if env is not None and env != self._env:
+            return False
+        if provider is not None and provider not in self.get_provider_names():
+            return False
+        return True
+
+
+
     @classmethod
     @abstractmethod
     def load_from_config(cls, apic_cp, apic_id, secrets_id):

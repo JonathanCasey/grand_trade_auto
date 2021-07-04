@@ -31,8 +31,10 @@ def main():
     Launches the main app.
     """
     config.init_logger('DEBUG')
-    databases.load_and_set_main_database_from_config('test')
-    apics.load_and_set_main_apic_from_config('test')
+    db = databases.get_database('postgres-test', 'test')
+    db.create_db()
+    apic = apics.get_apic('alpaca-test', 'test')
+    apic.connect()
     try:
         email_report.send_email('Test GTA email', 'From grand_trade_auto.')
     except EmailConfigError:

@@ -14,35 +14,63 @@ Module Attributes:
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
-import pytest
-
+from grand_trade_auto.apic import alpaca
 from grand_trade_auto.apic import apics
 
 
 
-def test_load_and_set_main_apic_from_config():
+def test_get_apic(monkeypatch):
     """
-    Tests that the `load_and_set_main_apic_from_config()` method.
+    Tests that the `get_apic()` method.
     """
-    with pytest.raises(AssertionError):
-        apics.load_and_set_main_apic_from_config('invalid-env')
-    assert apics._APIC is None
+    assert apics.get_apic('invalid-apic-id') is None
+    assert apics._apics_loaded == {}
 
-    apics.load_and_set_main_apic_from_config('test', 'alpaca')
-    assert apics._APIC is not None
-    assert apics._APIC._rest_api is not None
+    assert apics.get_apic('alpaca-test', 'invalid-env') is None
+    assert apics._apics_loaded == {}
 
-    with pytest.raises(AssertionError):
-        apics.load_and_set_main_apic_from_config('test')
-    assert apics._APIC is not None
+    assert apics.get_apic('alpaca-test') is not None
+    assert apics._apics_loaded != {}
+
+    apics._apics_loaded.pop('alpaca-test')
+    assert apics._apics_loaded == {}
+
+    assert apics.get_apic('alpaca-test', 'test') is not None
+    assert apics._apics_loaded != {}
+
+    def mock_get_apic_from_config(
+            apic_id, env=None):                # pylint: disable=unused-argument
+        """
+        Replaces the `_get_apic_from_config()` so it will find no match.
+        """
+        return None
+
+    monkeypatch.setattr(apics, '_get_apic_from_config',
+            mock_get_apic_from_config)
+
+    assert apics.get_apic('alpaca-test') is not None
+
+    assert apics.get_apic('alpaca-test', 'test') is not None
 
 
 
-def test_get_apic_from_config():
+def test_get_apic_from_config(monkeypatch):
     """
     Tests that the `_get_apic_from_config()` method.
     """
-    assert apics._get_apic_from_config('invalid-env') is None
-    assert apics._get_apic_from_config('test', 'invalid-type') is None
-    assert apics._get_apic_from_config('test') is not None
-    assert apics._get_apic_from_config('test', 'alpaca') is not None
+    assert apics._get_apic_from_config('invalid-apic-id') is None
+    assert apics._get_apic_from_config('alpaca-test', 'invalid-env') is None
+    assert apics._get_apic_from_config('alpaca-test') is not None
+    assert apics._get_apic_from_config('alpaca-test', 'test') is not None
+
+    def mock_get_provider_names():
+        """
+        Replaces the `get_provider_names()` in an API Client so it will find no
+        match.
+        """
+        return []
+
+    monkeypatch.setattr(alpaca.Alpaca, 'get_provider_names',
+            mock_get_provider_names)
+
+    assert apics._get_apic_from_config('alpaca-test') is None
