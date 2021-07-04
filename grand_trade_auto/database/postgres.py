@@ -30,36 +30,35 @@ class Postgres(database_meta.Database):
       N/A
 
     Instance Attributes:
-      _env (str): The run environment type valid for using this database.
-      _cp_db_id (str): The id used as the section name in the database conf.
-        Will be used for loading credentials on-demand.
-      _cp_secrets_id (str): The id used as the section name in the secrets
-        conf.  Will be used for loading credentials on-demand.
       _host (str): The host URL.
       _post (int): The port number on that host for accessing the database.
       _database (str): The database to open.
 
       _conn (connection): The cached database connection; or None if not
         connected and cached.
+
+      [inherited from Database]:
+        _env (str): The run environment type valid for using this database.
+        _cp_db_id (str): The id used as the section name in the database conf.
+          Will be used for loading credentials on-demand.
+        _cp_secrets_id (str): The id used as the section name in the secrets
+          conf.  Will be used for loading credentials on-demand.
     """
-    def __init__(self, env, host, port, database, cp_db_id, cp_secrets_id):
+    def __init__(self, host, port, database, **kwargs):
         """
         Creates the database handle.
 
         Args:
-          env (str): The run environment type valid for using this database.
-          cp_db_id (str): The id used as the section name in the database conf.
-            Will be used for loading credentials on-demand.
-          cp_secrets_id (str): The id used as the section name in the secrets
-            conf.  Will be used for loading credentials on-demand.
           host (str): The host URL.
           post (int): The port number on that host for accessing the database.
           database (str): The database to open.
+
+          See parent(s) for required kwargs.
         """
+        super().__init__(**kwargs)
         self._host = host
         self._port = port
         self._database = database
-        super().__init__(env, cp_db_id, cp_secrets_id, host, port, database)
 
         self._conn = None
 
@@ -79,8 +78,8 @@ class Postgres(database_meta.Database):
             appears as the section header in the secrets_cp.
 
         Returns:
-          db_handle (Postgres): The Postgres object created and loaded from
-            config based on the provided config data.
+          db (Postgres): The Postgres object created and loaded from config
+            based on the provided config data.
         """
         kwargs = {}
 
@@ -91,8 +90,8 @@ class Postgres(database_meta.Database):
         kwargs['database'] = db_cp[db_id]['database']
         kwargs['port'] = db_cp.getint(db_id, 'port', fallback=5432)
 
-        db_handle = Postgres(**kwargs)
-        return db_handle
+        db = Postgres(**kwargs)
+        return db
 
 
 

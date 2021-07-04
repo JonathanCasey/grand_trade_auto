@@ -12,7 +12,75 @@ Module Attributes:
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+import logging
+
 from grand_trade_auto.database import database_meta
+from grand_trade_auto.database import postgres
+
+
+
+def test_database_init(caplog):
+    """
+    Tests the `__init__()` method of `Database`, at least for its unique
+    functionality that is not expected to be tested anywhere else.
+    """
+
+    class MockDatabaseChild(database_meta.Database):
+        """"
+        Simple mock object to subclass Database.
+        """
+
+        @classmethod
+        def load_from_config(cls, db_cp, db_id, secrets_id):
+            """
+            Not needed / will not be used.
+            """
+            return
+
+        @classmethod
+        def get_type_names(cls):
+            """
+            Not needed / will not be used.
+            """
+            return
+
+        def create_db(self):
+            """
+            Not needed / will not be used.
+            """
+            return
+
+    caplog.set_level(logging.WARNING)
+    caplog.clear()
+    MockDatabaseChild('mock_env', 'mock_cp_db_id', 'mock_cp_secrets_id')
+    assert caplog.record_tuples == []
+
+    extra_kwargs = {
+            'key1': 'val1',
+            'key2': 'val2',
+    }
+    caplog.clear()
+    MockDatabaseChild('mock_env', 'mock_cp_db_id', 'mock_cp_secrets_id',
+            **extra_kwargs)
+    assert caplog.record_tuples == [
+            ('grand_trade_auto.database.database_meta', logging.WARNING,
+                'Discarded excess kwargs provided to MockDatabaseChild:'
+                + ' key1, key2')
+    ]
+
+    # Using Postgres to test inheritance consumption
+    kwargs = {
+        'env': 'mock_env',
+        'cp_db_id': 'mock_cp_db_id',
+        'cp_secrets_id': 'mock_cp_secrets_id',
+        **extra_kwargs,
+    }
+    caplog.clear()
+    postgres.Postgres('mock_host', -1, 'mock_database', **kwargs)
+    assert caplog.record_tuples == [
+            ('grand_trade_auto.database.database_meta', logging.WARNING,
+                'Discarded excess kwargs provided to Postgres: key1, key2')
+    ]
 
 
 
@@ -46,8 +114,7 @@ def test_matches_id_criteria():
             """
             return
 
-    db = MockDatabaseChild('mock_env', 'mock_cp_db_id', 'mock_cp_secrets_id',
-            'mock_host', -1, 'mock_database')
+    db = MockDatabaseChild('mock_env', 'mock_cp_db_id', 'mock_cp_secrets_id')
     assert not db.matches_id_criteria('invalid-db-id')
     assert db.matches_id_criteria('mock_cp_db_id')
     assert not db.matches_id_criteria('mock_cp_db_id', 'invalid-env')

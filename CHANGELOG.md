@@ -262,6 +262,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       `Database`, loading from and storing to cache in the process ([#81][]).
 - [Changed] `_get_database_from_config()` changed to require `db_id`, thereby
       also changing the order of parameters ([#81][]).
+- [Changed] `__init__()` in `Database` now takes `**kwargs`, logs warning if
+      excess args leftover ([#85][]).
 
 
 ### Database: Postgres
@@ -273,6 +275,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `DatabasePostgres` is now simply `Postgres` ([#80][]).
 - [Changed] Instance attributes and init parameters updated to match meta class,
       with some parameter init moved to meta class ([#81][]).
+- [Changed] `__init__()` updated now that parent supports `**kwargs` pass thru
+      ([#85][]).
+- [Changed] Last remnants of `db_handle` naming eradicated in code ([#85][]).
 
 
 ### Datafeeds / Meta
@@ -480,6 +485,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#77][]
 - [#80][]
 - [#81][]
+- [#85][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -549,6 +555,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#54]: https://github.com/JonathanCasey/grand_trade_auto/issues/54 'Issue #54'
 [#80]: https://github.com/JonathanCasey/grand_trade_auto/issues/80 'Issue #80'
 [#81]: https://github.com/JonathanCasey/grand_trade_auto/issues/81 'Issue #81'
+[#85]: https://github.com/JonathanCasey/grand_trade_auto/issues/85 'Issue #85'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
