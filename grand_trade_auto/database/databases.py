@@ -4,8 +4,9 @@ The database API module.  This is intended to be the item accessed outside of
 the database submodule/folder.
 
 Module Attributes:
-  _DB_HANDLE (Database<>): The handle to the database that will be used, where
-    Database<> is a subclass of Database (e.g. Postgres).
+  _DBMSS ((Class<Database<>>)): All database classes supported.
+  _dbs_loaded ({str: Database<>}): The databases loaded and cached, keyed by
+    their DB IDs (i.e. conf section IDs).
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
@@ -14,63 +15,82 @@ from grand_trade_auto.general import config
 
 
 
-_DB_HANDLE = None   # Init'd later; but once init'd, should never change
+_DBMSS = (
+    postgres.Postgres,
+)
+
+_dbs_loaded = {}
 
 
 
-def load_and_set_main_database_from_config(env, db_type=None):
+def get_database(db_id, env=None):
     """
-    Loads the main database from config and sets it as the main handle open.
+    Gets the requested database.  Will return cached version if already
+    loaded, otherwise will load and cache.
 
-    Arg:
-      env (str): The environment for which to load database config.
-      db_type (str or None): The database type to be forced as the one to load;
-        or None to simply take the first one found.
+    Args:
+      db_id (str): The section ID of the database from the databases.conf file.
+      env (str or None): The environment for which this database is valid.
+        Optional - can be used to be protect against incorrect access.
+
+    Returns:
+      db (Database<> or None): Returns the database that matches the given
+        criteria, loading from conf if required.  None if no matching database.
 
     Raises:
-      (AssertionError): Raised if database already loaded or cannot be loaded.
+      (AssertionError): Raised when an invalid combination of input arg
+        criteria provided cannot guarantee a minimum level of definition.
     """
-    global _DB_HANDLE    # pylint: disable=global-statement
-    assert _DB_HANDLE is None, 'Cannot load databases: Database already loaded.'
-    db_handle = _get_database_from_config(env, db_type)
-    if db_handle is not None:
-        _DB_HANDLE = db_handle
-        db_handle.create_db()
-    assert _DB_HANDLE is not None, 'No valid database configuration found.'
+    assert db_id is not None
+
+    if db_id in _dbs_loaded:
+        if _dbs_loaded[db_id].matches_id_criteria(db_id, env):
+            return _dbs_loaded[db_id]
+
+    db = _get_database_from_config(db_id, env)
+    if db is not None:
+        _dbs_loaded[db_id] = db
+    return db
 
 
 
-def _get_database_from_config(env, db_type=None):
+def _get_database_from_config(db_id, env=None):
     """
-    Loads the databases from the config file and sets the first one it finds to
-    be the valid one to use.  Stores for later access.
+    Loads the specified database from the config file.
 
     Arg:
-      env (str): The environment for which to load database config.
-      db_type (str or None): The database type to be forced as the one to load;
-        or None to simply take the first one found.
+      db_id (str): The section ID of the database from the databases.conf file
+        to load.
+      env (str or None): The environment for which this database is valid.
+        Optional - can be used to be protect against incorrect access.
+
+    Returns:
+      db (Datbase<> or None): The database loaded and created from the config
+        file based on the provided criteria.  None if no match found.
 
     Raises:
-      (AssertionError): Raised if database already loaded or cannot be loaded.
+      (AssertionError): Raised if database cannot be loaded.
     """
+    assert db_id is not None
+
     db_cp = config.read_conf_file('databases.conf')
     secrets_cp = config.read_conf_file('.secrets.conf')
 
-    for db_id in db_cp.sections():
-        if env != db_cp[db_id]['env'].strip():
-            continue
+    if db_id not in db_cp.sections():
+        return None
 
-        secrets_id = config.get_matching_secrets_id(secrets_cp, 'database',
-                db_id)
+    if env is not None and env != db_cp[db_id]['env'].strip():
+        return None
 
-        postgres_type_names = postgres.Postgres.get_type_names()
-        if db_cp[db_id]['type'].strip() in postgres_type_names:
-            if db_type is not None and db_type not in postgres_type_names:
-                continue
+    dbms_sel = None
+    for dbms in _DBMSS:
+        if db_cp[db_id]['type'].strip() in dbms.get_type_names():
+            dbms_sel = dbms
+            break
 
-            db_handle = postgres.Postgres.load_from_config(
-                    db_cp, db_id, secrets_id)
+    if dbms_sel is None:
+        return None
 
-            if db_handle is not None:
-                return db_handle
-    return None
+    secrets_id = config.get_matching_secrets_id(secrets_cp, 'database', db_id)
+    db = dbms_sel.load_from_config(db_cp, db_id, secrets_id)
+    return db
