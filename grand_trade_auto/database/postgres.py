@@ -96,13 +96,14 @@ class Postgres(database_meta.Database):
 
 
     @classmethod
-    def get_type_names(cls):
+    def get_dbms_names(cls):
         """
-        Get the list of names that can be used as the 'type' in the database
-        conf to identify this database.
+        Get the list of names that can be used as the 'dbms' in the database
+        conf to identify this database management system type.
 
         Returns:
-          ([str]): A list of names that are valid to use for this database type.
+          ([str]): A list of names that are valid to use for this DataBase
+            Management System.
         """
         return ['postgres', 'postgresql']
 

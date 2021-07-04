@@ -58,7 +58,7 @@ class Database(ABC):
 
 
 
-    def matches_id_criteria(self, db_id, env=None, db_type=None):
+    def matches_id_criteria(self, db_id, env=None, dbms=None):
         """
         Checks if this database is a match based on the provided criteria.
 
@@ -70,7 +70,7 @@ class Database(ABC):
           db_id (str): The section ID of the database from the databases.conf
             file to check if this matches.
           env (str or None): The environment for which to check if this matches.
-          db_type (str or None): The type to check if this matches.
+          dbms (str or None): The DBMS type to check if this matches.
 
 
         Returns:
@@ -85,7 +85,7 @@ class Database(ABC):
             return False
         if env is not None and env != self._env:
             return False
-        if db_type is not None and db_type not in self.get_type_names():
+        if dbms is not None and dbms not in self.get_dbms_names():
             return False
         return True
 
@@ -114,13 +114,14 @@ class Database(ABC):
 
     @classmethod
     @abstractmethod
-    def get_type_names(cls):
+    def get_dbms_names(cls):
         """
-        Get the list of names that can be used as the 'type' in the database
-        conf to identify this database.
+        Get the list of names that can be used as the 'dbms' in the database
+        conf to identify this database management system type.
 
         Returns:
-          ([str]): A list of names that are valid to use for this database type.
+          ([str]): A list of names that are valid to use for this DataBase
+            Management System.
         """
 
 

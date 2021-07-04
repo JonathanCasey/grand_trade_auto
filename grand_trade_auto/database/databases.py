@@ -84,7 +84,7 @@ def _get_database_from_config(db_id, env=None):
 
     dbms_sel = None
     for dbms in _DBMSS:
-        if db_cp[db_id]['type'].strip() in dbms.get_type_names():
+        if db_cp[db_id]['dbms'].strip() in dbms.get_dbms_names():
             dbms_sel = dbms
             break
 

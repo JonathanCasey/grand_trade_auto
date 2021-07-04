@@ -38,7 +38,7 @@ def test_database_init(caplog):
             return
 
         @classmethod
-        def get_type_names(cls):
+        def get_dbms_names(cls):
             """
             Not needed / will not be used.
             """
@@ -102,11 +102,11 @@ def test_matches_id_criteria():
             return
 
         @classmethod
-        def get_type_names(cls):
+        def get_dbms_names(cls):
             """
             Need at least 1 name to match.
             """
-            return ['mock_type']
+            return ['mock_dbms']
 
         def create_db(self):
             """
@@ -119,10 +119,10 @@ def test_matches_id_criteria():
     assert db.matches_id_criteria('mock_cp_db_id')
     assert not db.matches_id_criteria('mock_cp_db_id', 'invalid-env')
     assert db.matches_id_criteria('mock_cp_db_id', 'mock_env')
-    assert not db.matches_id_criteria('mock_cp_db_id', db_type='invalid-type')
-    assert db.matches_id_criteria('mock_cp_db_id', db_type='mock_type')
+    assert not db.matches_id_criteria('mock_cp_db_id', dbms='invalid-dbms')
+    assert db.matches_id_criteria('mock_cp_db_id', dbms='mock_dbms')
     assert not db.matches_id_criteria('mock_cp_db_id', 'invalid-env',
-            'mock_type')
+            'mock_dbms')
     assert not db.matches_id_criteria('mock_cp_db_id', 'mock_env',
-            'invalid-type')
-    assert db.matches_id_criteria('mock_cp_db_id', 'mock_env', 'mock_type')
+            'invalid-dbms')
+    assert db.matches_id_criteria('mock_cp_db_id', 'mock_env', 'mock_dbms')
