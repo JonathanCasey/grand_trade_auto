@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tests the grand_trade_auto.apic.apics functionality.
+Tests the grand_trade_auto.apic.apic_meta functionality.
 
 Per [pytest](https://docs.pytest.org/en/reorganize-docs/new-docs/user/naming_conventions.html),
 all tiles, classes, and methods will be prefaced with `test_/Test` to comply
