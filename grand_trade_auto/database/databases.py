@@ -74,7 +74,6 @@ def _get_database_from_config(db_id, env=None):
     assert db_id is not None
 
     db_cp = config.read_conf_file('databases.conf')
-    secrets_cp = config.read_conf_file('.secrets.conf')
 
     if db_id not in db_cp.sections():
         return None
@@ -91,6 +90,5 @@ def _get_database_from_config(db_id, env=None):
     if dbms_sel is None:
         return None
 
-    secrets_id = config.get_matching_secrets_id(secrets_cp, 'database', db_id)
-    db = dbms_sel.load_from_config(db_cp, db_id, secrets_id)
+    db = dbms_sel.load_from_config(db_cp, db_id)
     return db

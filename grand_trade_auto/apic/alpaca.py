@@ -31,6 +31,8 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
 
     Instance Attributes:
       _trade_domain (str): The domain for trading (live or paper).
+      _key_id (str): The ID of the key used for authentication.
+      _secret_key (str): The secret key used for authentication.
 
       _base_url (str): The base url to use based on trade domain.
       _rest_api (REST): The cached rest API connection; or None if not connected
@@ -40,10 +42,7 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
 
       [inherited from Apic]:
         _env (str): The run environment type valid for using this API Client.
-        _cp_apic_id (str): The id used as the section name in the API Client
-          conf.  Will be used for loading credentials on-demand.
-        _cp_secrets_id (str): The id used as the section name in the secrets
-          conf.  Will be used for loading credentials on-demand.
+        _apic_id (str): The id used as the section name in the API Client conf.
     """
     _base_urls = {
         'live': 'https://api.alpaca.markets',
@@ -52,17 +51,21 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
 
 
 
-    def __init__(self, trade_domain, **kwargs):
+    def __init__(self, trade_domain, key_id, secret_key, **kwargs):
         """
         Creates the Alpaca API client.
 
         Args:
           trade_domain (str): The domain for trading (live or paper).
+          key_id (str): The ID of the key used for authentication.
+          secret_key (str): The secret key used for authentication.
 
           See parent(s) for required kwargs.
         """
         super().__init__(**kwargs)
         self._trade_domain = trade_domain
+        self._key_id = key_id
+        self._secret_key = secret_key
 
         self._base_url = self._base_urls[trade_domain]
 
@@ -72,7 +75,7 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
 
 
     @classmethod
-    def load_from_config(cls, apic_cp, apic_id, secrets_id):
+    def load_from_config(cls, apic_cp, apic_id):
         """
         Loads the Alpaca config from the configparsers from files provided.
 
@@ -81,18 +84,24 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
             conf.
           apic_id (str): The ID name for this API Client as it appears as the
             section header in the apic_cp.
-          secrets_id (str): The ID name for this API Client's secrets as it
-            appears as the section header in the secrets_cp.
 
         Returns:
           alpaca (Alpaca): The Alpaca object created and loaded from config.
         """
-        kwargs = {}
+        apic_cp = config.read_conf_file('apics.conf')
+        secrets_cp = config.read_conf_file('.secrets.conf')
+        secrets_id = config.get_matching_secrets_id(secrets_cp, 'apic', apic_id)
 
+        kwargs = {}
         kwargs['env'] = apic_cp[apic_id]['env'].strip()
-        kwargs['cp_apic_id'] = apic_id
-        kwargs['cp_secrets_id'] = secrets_id
+        kwargs['apic_id'] = apic_id
         kwargs['trade_domain'] = apic_cp[apic_id]['trade domain'].strip()
+
+        kwargs['key_id'] = apic_cp.get(apic_id, 'api key id', fallback=None)
+        kwargs['key_id'] = secrets_cp.get(secrets_id, 'api key id',
+                fallback=kwargs['key_id'])
+        kwargs['secret_key'] = secrets_cp.get(secrets_id, 'secret key',
+                fallback=None)
 
         alpaca = Alpaca(**kwargs)
         return alpaca
@@ -140,18 +149,11 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
         if interface == 'stream' and self._stream_conn is not None:
             return
 
-        apic_cp = config.read_conf_file('apics.conf')
-        secrets_cp = config.read_conf_file('.secrets.conf')
-
         kwargs = {
             'base_url': self._base_url,
+            'key_id': self._key_id,
+            'secret_key': self._secret_key,
         }
-        kwargs['key_id'] = apic_cp.get(self._cp_apic_id, 'api key id',
-                fallback=None)
-        kwargs['key_id'] = secrets_cp.get(self._cp_secrets_id, 'api key id',
-                fallback=kwargs['key_id'])
-        kwargs['secret_key'] = secrets_cp.get(self._cp_secrets_id, 'secret key',
-                fallback=None)
 
         if interface == 'rest':
             try:

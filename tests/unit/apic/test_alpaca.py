@@ -14,7 +14,6 @@ Module Attributes:
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
-import configparser
 import logging
 import os
 from types import SimpleNamespace
@@ -24,7 +23,6 @@ import pytest
 
 from grand_trade_auto.apic import alpaca
 from grand_trade_auto.apic import apics
-from grand_trade_auto.general import config
 
 
 
@@ -63,7 +61,7 @@ def test_get_provider_names():
 
 def test_connect(caplog, monkeypatch, alpaca_test_handle):
     """
-    Tests the `connect()` method in `Alpaca`.
+    Tests the `connect()`/`_connect()` method in `Alpaca`.
     """
     caplog.set_level(logging.INFO)
     caplog.clear()
@@ -91,24 +89,10 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
         alpaca_test_handle._connect('invalid interface')
     assert 'Invalid interface for Alpaca' in str(ex.value)
 
-
-    def mock_read_conf_file(file):             # pylint: disable=unused-argument
-        """
-        Replaces the conf file reader with a dummy ConfigParser.
-        """
-        mock_cp = configparser.ConfigParser()
-        mock_cp[alpaca_test_handle._cp_apic_id] = {
-                'api key id': 'dummy key id',
-        }
-        mock_cp[alpaca_test_handle._cp_secrets_id] = {
-                'secret key': 'dummy secret key',
-        }
-        return mock_cp
-
-    monkeypatch.setattr(config, 'read_conf_file', mock_read_conf_file)
-
     caplog.clear()
     alpaca_test_handle._rest_api = None
+    alpaca_test_handle._key_id = 'dummy key id'
+    alpaca_test_handle._secret_key = 'dummy secret key'
     with pytest.raises(ConnectionRefusedError) as ex:
         alpaca_test_handle._connect('rest')
     assert 'Unable to connect to Alpaca.  API Error:' in str(ex.value)
@@ -134,7 +118,7 @@ def test_connect(caplog, monkeypatch, alpaca_test_handle):
         """
         return MockRestApiAccount()
 
-    # Ok to leave old monkeypatch for read_conf_file
+    # Ok to leave invalid dummy creds from earlier test
     monkeypatch.setattr(alpaca_trade_api, 'REST', mock_get_rest_api)
 
     caplog.clear()
@@ -156,25 +140,12 @@ def test_connect_env(caplog, monkeypatch, alpaca_test_handle):
     """
     caplog.set_level(logging.INFO)
 
-    apic_cp = config.read_conf_file('apics.conf')
-    secrets_cp = config.read_conf_file('.secrets.conf')
-
     creds = {}
-    creds['APCA_API_KEY_ID'] = apic_cp.get(alpaca_test_handle._cp_apic_id,
-            'api key id', fallback=None)
-    creds['APCA_API_KEY_ID'] = secrets_cp.get(alpaca_test_handle._cp_secrets_id,
-            'api key id', fallback=creds['APCA_API_KEY_ID'])
-    creds['APCA_API_SECRET_KEY'] = secrets_cp.get(
-            alpaca_test_handle._cp_secrets_id, 'secret key', fallback=None)
+    creds['APCA_API_KEY_ID'] = alpaca_test_handle._key_id
+    creds['APCA_API_SECRET_KEY'] = alpaca_test_handle._secret_key
+    alpaca_test_handle._key_id = None
+    alpaca_test_handle._secret_key = None
 
-
-    def mock_read_conf_file_empty(file):       # pylint: disable=unused-argument
-        """
-        Replaces the conf file reader with an empty ConfigParser.
-        """
-        return configparser.ConfigParser()
-
-    monkeypatch.setattr(config, 'read_conf_file', mock_read_conf_file_empty)
 
     caplog.clear()
     alpaca_test_handle._rest_api = None

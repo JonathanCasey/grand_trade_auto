@@ -31,7 +31,7 @@ def test_apic_init(caplog):
         """
 
         @classmethod
-        def load_from_config(cls, apic_cp, apic_id, secrets_id):
+        def load_from_config(cls, apic_cp, apic_id):
             """
             Not needed / will not be used.
             """
@@ -52,7 +52,7 @@ def test_apic_init(caplog):
 
     caplog.set_level(logging.WARNING)
     caplog.clear()
-    MockApicChild('mock_env', 'mock_cp_apic_id', 'mock_cp_secrets_id')
+    MockApicChild('mock_env', 'mock_apic_id')
     assert caplog.record_tuples == []
 
     extra_kwargs = {
@@ -60,8 +60,7 @@ def test_apic_init(caplog):
             'key2': 'val2',
     }
     caplog.clear()
-    MockApicChild('mock_env', 'mock_cp_apic_id', 'mock_cp_secrets_id',
-            **extra_kwargs)
+    MockApicChild('mock_env', 'mock_apic_id', **extra_kwargs)
     assert caplog.record_tuples == [
             ('grand_trade_auto.apic.apic_meta', logging.WARNING,
                 'Discarded excess kwargs provided to MockApicChild: key1, key2')
@@ -70,12 +69,11 @@ def test_apic_init(caplog):
     # Using Alpaca to test grandchild with multiple/diamond inheritance pattern
     kwargs = {
         'env': 'mock_env',
-        'cp_apic_id': 'mock_cp_apic_id',
-        'cp_secrets_id': 'mock_cp_secrets_id',
+        'apic_id': 'mock_apic_id',
         **extra_kwargs,
     }
     caplog.clear()
-    alpaca.Alpaca('paper', **kwargs)
+    alpaca.Alpaca('paper', 'mock_key_id', 'mock_secret_key', **kwargs)
     assert caplog.record_tuples == [
             ('grand_trade_auto.apic.apic_meta', logging.WARNING,
                 'Discarded excess kwargs provided to Alpaca: key1, key2')
@@ -94,7 +92,7 @@ def test_matches_id_criteria():
         """
 
         @classmethod
-        def load_from_config(cls, apic_cp, apic_id, secrets_id):
+        def load_from_config(cls, apic_cp, apic_id):
             """
             Not needed / will not be used.
             """
@@ -113,18 +111,17 @@ def test_matches_id_criteria():
             """
             return
 
-    apic = MockApicChild('mock_env', 'mock_cp_apic_id', 'mock_cp_secrets_id')
+    apic = MockApicChild('mock_env', 'mock_apic_id')
     assert not apic.matches_id_criteria('invalid-apic-id')
-    assert apic.matches_id_criteria('mock_cp_apic_id')
-    assert not apic.matches_id_criteria('mock_cp_apic_id', 'invalid-env')
-    assert apic.matches_id_criteria('mock_cp_apic_id', 'mock_env')
-    assert not apic.matches_id_criteria('mock_cp_apic_id',
+    assert apic.matches_id_criteria('mock_apic_id')
+    assert not apic.matches_id_criteria('mock_apic_id', 'invalid-env')
+    assert apic.matches_id_criteria('mock_apic_id', 'mock_env')
+    assert not apic.matches_id_criteria('mock_apic_id',
             provider='invalid-provider')
-    assert apic.matches_id_criteria('mock_cp_apic_id',
-            provider='mock_provider')
-    assert not apic.matches_id_criteria('mock_cp_apic_id', 'invalid-env',
+    assert apic.matches_id_criteria('mock_apic_id', provider='mock_provider')
+    assert not apic.matches_id_criteria('mock_apic_id', 'invalid-env',
             'mock_provider')
-    assert not apic.matches_id_criteria('mock_cp_apic_id', 'mock_env',
+    assert not apic.matches_id_criteria('mock_apic_id', 'mock_env',
             'invalid-provider')
-    assert apic.matches_id_criteria('mock_cp_apic_id', 'mock_env',
+    assert apic.matches_id_criteria('mock_apic_id', 'mock_env',
             'mock_provider')

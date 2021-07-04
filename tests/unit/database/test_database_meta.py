@@ -31,7 +31,7 @@ def test_database_init(caplog):
         """
 
         @classmethod
-        def load_from_config(cls, db_cp, db_id, secrets_id):
+        def load_from_config(cls, db_cp, db_id):
             """
             Not needed / will not be used.
             """
@@ -52,7 +52,7 @@ def test_database_init(caplog):
 
     caplog.set_level(logging.WARNING)
     caplog.clear()
-    MockDatabaseChild('mock_env', 'mock_cp_db_id', 'mock_cp_secrets_id')
+    MockDatabaseChild('mock_env', 'mock_db_id')
     assert caplog.record_tuples == []
 
     extra_kwargs = {
@@ -60,8 +60,7 @@ def test_database_init(caplog):
             'key2': 'val2',
     }
     caplog.clear()
-    MockDatabaseChild('mock_env', 'mock_cp_db_id', 'mock_cp_secrets_id',
-            **extra_kwargs)
+    MockDatabaseChild('mock_env', 'mock_db_id', **extra_kwargs)
     assert caplog.record_tuples == [
             ('grand_trade_auto.database.database_meta', logging.WARNING,
                 'Discarded excess kwargs provided to MockDatabaseChild:'
@@ -71,12 +70,12 @@ def test_database_init(caplog):
     # Using Postgres to test inheritance consumption
     kwargs = {
         'env': 'mock_env',
-        'cp_db_id': 'mock_cp_db_id',
-        'cp_secrets_id': 'mock_cp_secrets_id',
+        'db_id': 'mock_db_id',
         **extra_kwargs,
     }
     caplog.clear()
-    postgres.Postgres('mock_host', -1, 'mock_database', **kwargs)
+    postgres.Postgres('mock_host', -1, 'mock_database', 'mock_user',
+            'mock_password', **kwargs)
     assert caplog.record_tuples == [
             ('grand_trade_auto.database.database_meta', logging.WARNING,
                 'Discarded excess kwargs provided to Postgres: key1, key2')
@@ -95,7 +94,7 @@ def test_matches_id_criteria():
         """
 
         @classmethod
-        def load_from_config(cls, db_cp, db_id, secrets_id):
+        def load_from_config(cls, db_cp, db_id):
             """
             Not needed / will not be used.
             """
@@ -114,15 +113,13 @@ def test_matches_id_criteria():
             """
             return
 
-    db = MockDatabaseChild('mock_env', 'mock_cp_db_id', 'mock_cp_secrets_id')
+    db = MockDatabaseChild('mock_env', 'mock_db_id')
     assert not db.matches_id_criteria('invalid-db-id')
-    assert db.matches_id_criteria('mock_cp_db_id')
-    assert not db.matches_id_criteria('mock_cp_db_id', 'invalid-env')
-    assert db.matches_id_criteria('mock_cp_db_id', 'mock_env')
-    assert not db.matches_id_criteria('mock_cp_db_id', dbms='invalid-dbms')
-    assert db.matches_id_criteria('mock_cp_db_id', dbms='mock_dbms')
-    assert not db.matches_id_criteria('mock_cp_db_id', 'invalid-env',
-            'mock_dbms')
-    assert not db.matches_id_criteria('mock_cp_db_id', 'mock_env',
-            'invalid-dbms')
-    assert db.matches_id_criteria('mock_cp_db_id', 'mock_env', 'mock_dbms')
+    assert db.matches_id_criteria('mock_db_id')
+    assert not db.matches_id_criteria('mock_db_id', 'invalid-env')
+    assert db.matches_id_criteria('mock_db_id', 'mock_env')
+    assert not db.matches_id_criteria('mock_db_id', dbms='invalid-dbms')
+    assert db.matches_id_criteria('mock_db_id', dbms='mock_dbms')
+    assert not db.matches_id_criteria('mock_db_id', 'invalid-env', 'mock_dbms')
+    assert not db.matches_id_criteria('mock_db_id', 'mock_env', 'invalid-dbms')
+    assert db.matches_id_criteria('mock_db_id', 'mock_env', 'mock_dbms')

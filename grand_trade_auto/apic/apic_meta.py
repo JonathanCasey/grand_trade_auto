@@ -32,25 +32,18 @@ class Apic(ABC):
 
     Instance Attributes:
       _env (str): The run environment type valid for using this API Client.
-      _cp_apic_id (str): The id used as the section name in the API Client
-        conf.  Will be used for loading credentials on-demand.
-      _cp_secrets_id (str): The id used as the section name in the secrets
-        conf.  Will be used for loading credentials on-demand.
+      _apic_id (str): The id used as the section name in the API Client conf.
     """
-    def __init__(self, env, cp_apic_id, cp_secrets_id, **kwargs):
+    def __init__(self, env, apic_id, **kwargs):
         """
         Creates the API Client.
 
         Args:
           env (str): The run environment type valid for using this API Client.
-          cp_apic_id (str): The id used as the section name in the API Client
-            conf.  Will be used for loading credentials on-demand.
-          cp_secrets_id (str): The id used as the section name in the secrets
-            conf.  Will be used for loading credentials on-demand.
+          apic_id (str): The id used as the section name in the API Client conf.
         """
         self._env = env
-        self._cp_apic_id = cp_apic_id
-        self._cp_secrets_id = cp_secrets_id
+        self._apic_id = apic_id
 
         if kwargs:
             logger.warning('Discarded excess kwargs provided to'
@@ -81,7 +74,7 @@ class Apic(ABC):
             criteria provided cannot guarantee a minimum level of definition.
         """
         assert apic_id is not None
-        if apic_id != self._cp_apic_id:
+        if apic_id != self._apic_id:
             return False
         if env is not None and env != self._env:
             return False
@@ -93,7 +86,7 @@ class Apic(ABC):
 
     @classmethod
     @abstractmethod
-    def load_from_config(cls, apic_cp, apic_id, secrets_id):
+    def load_from_config(cls, apic_cp, apic_id):
         """
         Loads the API Client config for this API Client from the configparsers
         from files provided.
@@ -103,8 +96,6 @@ class Apic(ABC):
             conf.
           apic_id (str): The ID name for this API Client as it appears as the
             section header in the apic_cp.
-          secrets_id (str): The ID name for this API Client's secrets as it
-            appears as the section header in the secrets_cp.
 
         Returns:
           apic (Apic<>): The Apic<> object created and loaded from config, where
