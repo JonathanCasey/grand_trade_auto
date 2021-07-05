@@ -4,3 +4,8 @@ env : <production/development/test>
 provider : <alpaca>
 trade domain : <live/paper>
 api key id :
+
+
+[friendly-name-for-api-client]
+env : <production/development/test>
+provider : <alphavantage>

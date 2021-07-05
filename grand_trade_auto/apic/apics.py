@@ -11,12 +11,14 @@ Module Attributes:
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 from grand_trade_auto.apic import alpaca
+from grand_trade_auto.apic import alphavantage
 from grand_trade_auto.general import config
 
 
 
 _APIC_PROVIDERS = (
     alpaca.Alpaca,
+    alphavantage.Alphavantage,
 )
 
 _apics_loaded = {}

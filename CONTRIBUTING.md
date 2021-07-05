@@ -64,10 +64,14 @@ are required in their respective config files in order to run the relevant
 unit tests:
 - `apics.conf`:
   - `alpaca-test`
+  - `alphavantage-test`
 - `databases.conf`
   - `postgres-test` (do NOT use production db.  WILL be DELETED!)
 
 The `env` for each of those must be `test`.
+
+Note that some test WILL make API calls, so it will count against any rate
+limiting or quotas.
 
 
 
