@@ -192,6 +192,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] Secrets passed in at `__init__()` and stored as `_key_id`,
       `_secret_key`; loaded from conf at creation rather than on demand
       ([#82][]).
+- [Changed] All remaining naming using `*_handle` has been removed, particularly
+      `alpaca_test_handle` in unit tests ([#91][]).
 
 
 ### APIC: Alphavantage
@@ -522,6 +524,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#82][]
 - [#84][]
 - [#88][]
+- [#91][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -556,6 +559,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#86][] for [#84][]
 - [#87][] for [#82][]
 - [#90][] for [#88][]
+- [#92][] for [#91][]
 
 
 ---
@@ -597,6 +601,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#84]: https://github.com/JonathanCasey/grand_trade_auto/issues/84 'Issue #84'
 [#82]: https://github.com/JonathanCasey/grand_trade_auto/issues/82 'Issue #82'
 [#88]: https://github.com/JonathanCasey/grand_trade_auto/issues/88 'Issue #88'
+[#91]: https://github.com/JonathanCasey/grand_trade_auto/issues/91 'Issue #91'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -630,3 +635,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#86]: https://github.com/JonathanCasey/grand_trade_auto/pull/86 'PR #86'
 [#87]: https://github.com/JonathanCasey/grand_trade_auto/pull/87 'PR #87'
 [#90]: https://github.com/JonathanCasey/grand_trade_auto/pull/90 'PR #90'
+[#92]: https://github.com/JonathanCasey/grand_trade_auto/pull/92 'PR #92'
