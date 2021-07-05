@@ -34,6 +34,7 @@ def fixture_alpaca_test_handle():
     Returns:
       (Alpaca): The test alpaca API Client handle.
     """
+    # This also ensures its support was added to apics.py
     return apics._get_apic_from_config('alpaca-test', 'test')
 
 
