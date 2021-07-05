@@ -20,6 +20,7 @@ workflows:
           context:
             - docker-hub-creds
             - alpaca-paper-creds
+            - alphavantage-creds
   changelog-updated:
     jobs:
       - diff-changelog-last-commit:

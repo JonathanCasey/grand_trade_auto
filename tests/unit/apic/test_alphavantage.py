@@ -12,9 +12,10 @@ Module Attributes:
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+#pylint: disable=invalid-sequence-index              # Due to alpha_vantage code
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
+#pylint: disable=unbalanced-tuple-unpacking          # Due to alpha_vantage code
 
-import logging
 import os
 
 from alpha_vantage.timeseries import TimeSeries
@@ -57,3 +58,53 @@ def test_get_provider_names():
     assert 'alphavantage' in alphavantage.Alphavantage.get_provider_names()
     assert 'not-alphavantage' \
             not in alphavantage.Alphavantage.get_provider_names()
+
+
+
+def test_connect(monkeypatch, alphavantage_test):
+    """
+    Tests the `connect()` method in `Alphavantage`.
+
+    Since there is nothing in that function, will test if connectivity works at
+    all here.
+
+    ** Consumes 2 API calls. **
+    (failed calls do not seem to count)
+    """
+    # Make sure this does not cause an issue
+    alphavantage_test.connect()
+
+    time_series = TimeSeries(key=alphavantage_test._api_key)
+    data, meta_data = time_series.get_intraday('MSFT', interval='1min')
+    assert len(data) == 100
+    assert meta_data['2. Symbol'] == 'MSFT'
+
+    time_series = TimeSeries(key=alphavantage_test._api_key)
+    with pytest.raises(ValueError) as ex:
+        data, meta_data = time_series.get_intraday('INVALID', interval='1min')
+    assert 'Invalid API call.' in str(ex.value)
+
+
+    creds = {}
+    creds['ALPHAVANTAGE_API_KEY'] = alphavantage_test._api_key
+    alphavantage_test._api_key = None
+
+    for env_var, env_creds in creds.items():
+        if os.getenv(env_var) is None:
+            monkeypatch.setenv(env_var, env_creds)
+
+    time_series = TimeSeries()
+    data, meta_data = time_series.get_intraday('MSFT', interval='1min')
+    assert len(data) == 100
+    assert meta_data['2. Symbol'] == 'MSFT'
+
+
+    for env_var in creds:
+        monkeypatch.delenv(env_var)
+
+    with pytest.raises(ValueError) as ex:
+        time_series = TimeSeries()
+        data, meta_data = time_series.get_intraday('MSFT', interval='1min')
+    assert 'The AlphaVantage API key must be provided either through the key' \
+            + ' parameter or through the environment variable' \
+            + ' ALPHAVANTAGE_API_KEY.' in str(ex.value)
