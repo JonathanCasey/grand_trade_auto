@@ -16,6 +16,10 @@ provided as environment variables instead as `APCA_API_KEY_ID` and
 `APCA_API_SECRET_KEY`, respectively, as documented in the
 [alpaca-trade-api-python](https://github.com/alpacahq/alpaca-trade-api-python/).
 
+For alphavantage, the API key can similarly be provided as an environment
+variable `ALPHAVANTAGE_API_KEY` as documented in
+[RomelTorres' alpha_vantage](https://github.com/RomelTorres/alpha_vantage).
+
 **DATA LOSS WARNING**: If planning to run unit tests, a test env database config
 will need to be provided.  This MUST be different from the database used for
 production and development, as it will create, add/modify data, and then drop

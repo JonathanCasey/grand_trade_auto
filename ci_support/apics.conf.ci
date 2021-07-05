@@ -3,3 +3,9 @@
 env : test
 provider : alpaca
 trade domain : paper
+
+
+
+[alphavantage-test]
+env : test
+provider : alphavantage

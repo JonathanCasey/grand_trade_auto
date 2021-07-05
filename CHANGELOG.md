@@ -79,6 +79,10 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       `brokers` ([#75][]).
 - [Changed] Config file section IDs changed since an exact name must now match
       ([#81][]).
+- [Added] Alpha Vantage context added for those creds, as well as export to
+      secrets ([#88][]).
+- [Fixed] Secrets export from environment variables weren't really working due
+      to how `\n` was being interpreted ([#88][]).
 
 
 ### Project & Toolchain: CI Support
@@ -90,6 +94,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] Config file section IDs changed since an exact name must now match
       ([#81][]).
 - [Changed] Database `type` parameter is now `dbms` ([#84][]).
+- [Added] Alpha Vantage support added to conf files for CI ([#88][]).
 
 
 ### Project & Toolchain: CodeCov
@@ -118,6 +123,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       ([#6][]).
 - [Added] `aiofiles`, `beautifulsoup4`, `fastapi`, `jinja2`, and `uvicorn` added
       to `requirements.txt` ([#11][]).
+- [Added] `alpha_vantage` added to `requirements.txt` ([#88][]).
 
 
 ### Project & Toolchain: Pylint
@@ -132,6 +138,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
      leave f-strings in logging to coder's choice ([#7][]).
 - [Added] `db` added to `good-names` list in `.pylintrc` ([#81][]).
 - [Added] `min-similarity-lines` config added, set to `5` ([#84][]).
+- [Changed] `min-similarity-lines` increased to `8` ([#88][]).
 
 
 ### Project & Toolchain: Tmp Main
@@ -171,6 +178,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Removed] `_cp_secrets_id` no longer stored in `Apic`, and secrets no longer
       loaded and passed in `_get_apic_from_config()` ([#82][]).
 - [Changed] `_cp_apic_id` is now `_apic_id` in `Apic` ([#82][]).
+- [Added] `Alphavantage` added to list of `_APIC_PROVIDERS` ([#88][]).
 
 
 ### APIC: Alpaca
@@ -184,6 +192,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] Secrets passed in at `__init__()` and stored as `_key_id`,
       `_secret_key`; loaded from conf at creation rather than on demand
       ([#82][]).
+
+
+### APIC: Alphavantage
+- [Added] `Alphavantage` file and class started, with ability to load from
+      config and ready to make API calls ([#88][]).
 
 
 ### Brokers / Meta
@@ -212,6 +225,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       stub added ([#2][]).
 - [Added] Broker example stub added, at least as would be needed for Alpaca
       ([#6][]).
+- [Added] Alpha Vantage support added, clarified which example is for which API
+      Client ([#88][]).
 
 
 ### Config: .secrets.env
@@ -225,6 +240,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       supported ([#75][]).
 - [Changed] `type` key changed to `provider` to avoid confusion from generic
       sounding `type` ([#75][]).
+- [Added] Alpha Vantage support added ([#88][]).
 
 
 ### Config: brokers.conf (see Config: apics.conf)
@@ -432,6 +448,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       `setup.md` and `usage.md` migrated ([#62][]).
 - [Added] Added section for "config files and unit testing", listing required
       section IDs ([#81][]).
+- [Added] Alpha Vantage added, including conf section requirement, along with
+      warning that API calls may be consumed in unit tests ([#88][]).
 
 
 ### Docs: README
@@ -503,6 +521,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#81][]
 - [#82][]
 - [#84][]
+- [#88][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -536,6 +555,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#85][] for [#81][]
 - [#86][] for [#84][]
 - [#87][] for [#82][]
+- [#90][] for [#88][]
 
 
 ---
@@ -576,6 +596,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#81]: https://github.com/JonathanCasey/grand_trade_auto/issues/81 'Issue #81'
 [#84]: https://github.com/JonathanCasey/grand_trade_auto/issues/84 'Issue #84'
 [#82]: https://github.com/JonathanCasey/grand_trade_auto/issues/82 'Issue #82'
+[#88]: https://github.com/JonathanCasey/grand_trade_auto/issues/88 'Issue #88'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -608,3 +629,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#85]: https://github.com/JonathanCasey/grand_trade_auto/pull/85 'PR #85'
 [#86]: https://github.com/JonathanCasey/grand_trade_auto/pull/86 'PR #86'
 [#87]: https://github.com/JonathanCasey/grand_trade_auto/pull/87 'PR #87'
+[#90]: https://github.com/JonathanCasey/grand_trade_auto/pull/90 'PR #90'
