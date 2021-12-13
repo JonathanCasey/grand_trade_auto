@@ -130,6 +130,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `aiofiles`, `beautifulsoup4`, `fastapi`, `jinja2`, and `uvicorn` added
       to `requirements.txt` ([#11][]).
 - [Added] `alpha_vantage` added to `requirements.txt` ([#88][]).
+- [Changed] `alpaca-trade-api` fixed version upgraded from `0.51.0` to `1.4.3`
+      ([#95][]).
 
 
 ### Project & Toolchain: Pylint
@@ -532,6 +534,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#88][]
 - [#91][]
 - [#93][]
+- [#95][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -611,6 +614,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#88]: https://github.com/JonathanCasey/grand_trade_auto/issues/88 'Issue #88'
 [#91]: https://github.com/JonathanCasey/grand_trade_auto/issues/91 'Issue #91'
 [#93]: https://github.com/JonathanCasey/grand_trade_auto/issues/93 'Issue #93'
+[#95]: https://github.com/JonathanCasey/grand_trade_auto/issues/95 'Issue #95'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'

@@ -1,5 +1,5 @@
 aiofiles
-alpaca-trade-api==0.51.0
+alpaca-trade-api==1.4.3
 alpha_vantage==2.3.1
 beautifulsoup4
 fastapi
