@@ -87,6 +87,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       uploader ([#93][]).
 - [Fixed] Secrets export from environment variables still not working as
       intended, so syntax adjusted again ([#93][]).
+- [Changed] `lint-and-test` workflow split into separate `lint` and `test`
+      workflows to more easily see results separately on GitHub ([#93][]).
 
 
 ### Project & Toolchain: CI Support

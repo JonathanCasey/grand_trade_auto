@@ -2,7 +2,7 @@ version: 2.1
 
 
 workflows:
-  lint-and-test:
+  lint:
     jobs:
       - pylint-app:
           context:
@@ -16,6 +16,8 @@ workflows:
       - init-py-checker:
           context:
             - docker-hub-creds
+  test:
+    jobs:
       - unit-tests:
           context:
             - docker-hub-creds
