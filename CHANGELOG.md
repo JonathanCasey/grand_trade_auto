@@ -461,6 +461,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       section IDs ([#81][]).
 - [Added] Alpha Vantage added, including conf section requirement, along with
       warning that API calls may be consumed in unit tests ([#88][]).
+- [Added] Notes on config for Windows to use an older system version and
+      installing packages with right permissions added ([#96][]).
 
 
 ### Docs: README

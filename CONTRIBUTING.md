@@ -45,6 +45,16 @@ the most elegant, running
 do the trick (the last part for the plus `+` sign and onwards can be omitted if
 it is not set at all yet).
 
+In Windows, one way of using a specific version of python is to open a cmd
+prompt (not powershell) -- probably as admin -- and navigate to the desired
+older python version's folder.  Then, run
+`mklink python3.7.exe C:\path\to\python37\python.exe` to make a sym link for
+python 3.7, for example.  Now this can be evoked with `python3.7`.
+
+While the admin prompt is open, this might be the best time to install
+required pacakges with pip (can use `pip3.7` in this example) as installing as a
+user can cause some headaches...
+
 
 ### CircleCI
 If forking this project, CircleCI will need contexts setup.  See
