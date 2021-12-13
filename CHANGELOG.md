@@ -83,6 +83,12 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       secrets ([#88][]).
 - [Fixed] Secrets export from environment variables weren't really working due
       to how `\n` was being interpreted ([#88][]).
+- [Changed] Codecov uploader migrated from deprecated bash uploader to new
+      uploader ([#93][]).
+- [Fixed] Secrets export from environment variables still not working as
+      intended, so syntax adjusted again ([#93][]).
+- [Changed] `lint-and-test` workflow split into separate `lint` and `test`
+      workflows to more easily see results separately on GitHub ([#93][]).
 
 
 ### Project & Toolchain: CI Support
@@ -525,6 +531,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#84][]
 - [#88][]
 - [#91][]
+- [#93][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -560,6 +567,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#87][] for [#82][]
 - [#90][] for [#88][]
 - [#92][] for [#91][]
+- [#94][] for [#93][]
 
 
 ---
@@ -602,6 +610,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#82]: https://github.com/JonathanCasey/grand_trade_auto/issues/82 'Issue #82'
 [#88]: https://github.com/JonathanCasey/grand_trade_auto/issues/88 'Issue #88'
 [#91]: https://github.com/JonathanCasey/grand_trade_auto/issues/91 'Issue #91'
+[#93]: https://github.com/JonathanCasey/grand_trade_auto/issues/93 'Issue #93'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -636,3 +645,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#87]: https://github.com/JonathanCasey/grand_trade_auto/pull/87 'PR #87'
 [#90]: https://github.com/JonathanCasey/grand_trade_auto/pull/90 'PR #90'
 [#92]: https://github.com/JonathanCasey/grand_trade_auto/pull/92 'PR #92'
+[#94]: https://github.com/JonathanCasey/grand_trade_auto/pull/94 'PR #94'
