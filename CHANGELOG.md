@@ -85,6 +85,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       to how `\n` was being interpreted ([#88][]).
 - [Changed] Codecov uploader migrated from deprecated bash uploader to new
       uploader ([#93][]).
+- [Fixed] Secrets export from environment variables still not working as
+      intended, so syntax adjusted again ([#93][]).
 
 
 ### Project & Toolchain: CI Support
@@ -563,6 +565,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#87][] for [#82][]
 - [#90][] for [#88][]
 - [#92][] for [#91][]
+- [#94][] for [#93][]
 
 
 ---
@@ -640,3 +643,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#87]: https://github.com/JonathanCasey/grand_trade_auto/pull/87 'PR #87'
 [#90]: https://github.com/JonathanCasey/grand_trade_auto/pull/90 'PR #90'
 [#92]: https://github.com/JonathanCasey/grand_trade_auto/pull/92 'PR #92'
+[#94]: https://github.com/JonathanCasey/grand_trade_auto/pull/94 'PR #94'

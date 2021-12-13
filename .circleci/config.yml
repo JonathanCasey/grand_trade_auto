@@ -162,10 +162,10 @@ jobs:
             mv ci_support/.secrets.conf.ci config/.secrets.conf
             mv ci_support/apics.conf.ci config/apics.conf
             echo -e '\n[apics :: alpaca-test]\n' >> config/.secrets.conf
-            echo -e 'api key id : $APCA_API_KEY_ID\n'  >> config/.secrets.conf
-            echo -e 'secret key : $APCA_API_SECRET_KEY\n' >> config/.secrets.conf
+            echo -e 'api key id : '$APCA_API_KEY_ID'\n'  >> config/.secrets.conf
+            echo -e 'secret key : '$APCA_API_SECRET_KEY'\n' >> config/.secrets.conf
             echo -e '\n[apics :: alphavantage-test]\n' >> config/.secrets.conf
-            echo -e 'api key : $ALPHAVANTAGE_API_KEY\n'  >> config/.secrets.conf
+            echo -e 'api key : '$ALPHAVANTAGE_API_KEY'\n'  >> config/.secrets.conf
       - run:
           name: Run pytest unit tests
           command: |
