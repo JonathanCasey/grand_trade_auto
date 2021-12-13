@@ -175,7 +175,9 @@ jobs:
           name: Upload coverage results
           command: |
             . venv/bin/activate
-            bash <(curl -s https://codecov.io/bash)
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            chmod +x codecov
+            ./codecov
   diff-changelog-last-commit:
     <<: *default_git_image
     steps:
