@@ -13,6 +13,8 @@ Module Attributes:
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
+#pylint: disable=use-implicit-booleaness-not-comparison
+#   +-> want to specifically check type in most tests -- `None` is a fail
 
 from grand_trade_auto.database import databases
 from grand_trade_auto.database import postgres

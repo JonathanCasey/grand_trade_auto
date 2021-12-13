@@ -166,7 +166,7 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
                 raise ConnectionRefusedError(msg) from ex
             except tradeapi.rest.APIError as ex:
                 msg = 'Unable to connect to Alpaca.' \
-                        + f'  API Error: {str(ex)}'
+                        + f'  API Error: {str(ex)} (Code = {str(ex.code)})'
                 logger.critical(msg)
                 raise ConnectionRefusedError(msg) from ex
 

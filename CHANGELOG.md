@@ -130,6 +130,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `aiofiles`, `beautifulsoup4`, `fastapi`, `jinja2`, and `uvicorn` added
       to `requirements.txt` ([#11][]).
 - [Added] `alpha_vantage` added to `requirements.txt` ([#88][]).
+- [Changed] `alpaca-trade-api` fixed version upgraded from `0.51.0` to `1.4.3`
+      ([#95][]).
 
 
 ### Project & Toolchain: Pylint
@@ -145,6 +147,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `db` added to `good-names` list in `.pylintrc` ([#81][]).
 - [Added] `min-similarity-lines` config added, set to `5` ([#84][]).
 - [Changed] `min-similarity-lines` increased to `8` ([#88][]).
+- [Fixed] Code made compliant with latest version of pylint (v2.12) ([#96][]).
 
 
 ### Project & Toolchain: Tmp Main
@@ -458,6 +461,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       section IDs ([#81][]).
 - [Added] Alpha Vantage added, including conf section requirement, along with
       warning that API calls may be consumed in unit tests ([#88][]).
+- [Added] Notes on config for Windows to use an older system version and
+      installing packages with right permissions added ([#96][]).
 
 
 ### Docs: README
@@ -532,6 +537,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#88][]
 - [#91][]
 - [#93][]
+- [#95][]
+- [#96][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -568,6 +575,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#90][] for [#88][]
 - [#92][] for [#91][]
 - [#94][] for [#93][]
+- [#97][] for [#95][], [#96][]
 
 
 ---
@@ -611,6 +619,8 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#88]: https://github.com/JonathanCasey/grand_trade_auto/issues/88 'Issue #88'
 [#91]: https://github.com/JonathanCasey/grand_trade_auto/issues/91 'Issue #91'
 [#93]: https://github.com/JonathanCasey/grand_trade_auto/issues/93 'Issue #93'
+[#95]: https://github.com/JonathanCasey/grand_trade_auto/issues/95 'Issue #95'
+[#96]: https://github.com/JonathanCasey/grand_trade_auto/issues/96 'Issue #96'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -646,3 +656,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#90]: https://github.com/JonathanCasey/grand_trade_auto/pull/90 'PR #90'
 [#92]: https://github.com/JonathanCasey/grand_trade_auto/pull/92 'PR #92'
 [#94]: https://github.com/JonathanCasey/grand_trade_auto/pull/94 'PR #94'
+[#97]: https://github.com/JonathanCasey/grand_trade_auto/pull/97 'PR #97'
