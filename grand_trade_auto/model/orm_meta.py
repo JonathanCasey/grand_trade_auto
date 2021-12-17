@@ -83,6 +83,47 @@ class Orm(ABC):
 
 
     @abstractmethod
+    def update(self, model_cls, data, where):
+        """
+        Update record(s) in the database.  The table is acquired from the model
+        class.
+
+        Subclass must define and execute SQL/etc.
+
+        Args:
+          model_cls (Class<Model<>>): The class itself of the model being added.
+          data ({str:str/int/bool/datetime/enum/etc}): The data to be updated,
+            where the keys are the column names and the values are the
+            python-type values to be used as the new values.
+          where ({}/[]/() or None): The structured where clause.  See the
+            Model.query_direct() docs for spec.  If None, will not filter.
+        """
+
+
+
+    @abstractmethod
+    def delete(self, model_cls, where, really_delete_all=False):
+        """
+        Delete record(s) in the database.  The table is acquired from the model
+        class.
+
+        Subclass must define and execute SQL/etc.
+
+        Args:
+          model_cls (Class<Model<>>): The class itself of the model being added.
+          where ({}/[]/() or None): The structured where clause.  See the
+            Model.query_direct() docs for spec.  If None, will not filter.
+            WARNING: NOT providing a where clause will delete ALL data from the
+            table.  This will not be done unless the `really_delete_all` is
+            True.
+          really_delete_all (bool): Confirms that all data should be deleted
+            from the table.  Must be set to True AND the where clause must be
+            None for this to happen.
+        """
+
+
+
+    @abstractmethod
     def query(self, model_cls, return_as, columns_to_return=None,
             where=None, limit=None, order=None):
         """
@@ -113,44 +154,4 @@ class Orm(ABC):
               Empty list if no matching results.
           If return_as == ReturnAs.PANDAS:
             (pandas.dataframe): The pandas dataframe representing all results.
-        """
-
-
-
-    @abstractmethod
-    def update(self, model_cls, data, where):
-        """
-        Update record(s) in the database.  The table is acquired from the model
-        class.
-
-        Subclass must define and execute SQL/etc.
-
-        Args:
-          model_cls (Class<Model<>>): The class itself of the model being added.
-          data ({str:str/int/bool/datetime/enum/etc}): The data to be updated,
-            where the keys are the column names and the values are the
-            python-type values to be used as the new values.
-          where ({}/[]/() or None): The structured where clause.  See the
-            Model.query_direct() docs for spec.  If None, will not filter.
-        """
-
-
-    @abstractmethod
-    def delete(self, model_cls, where, really_delete_all=False):
-        """
-        Delete record(s) in the database.  The table is acquired from the model
-        class.
-
-        Subclass must define and execute SQL/etc.
-
-        Args:
-          model_cls (Class<Model<>>): The class itself of the model being added.
-          where ({}/[]/() or None): The structured where clause.  See the
-            Model.query_direct() docs for spec.  If None, will not filter.
-            WARNING: NOT providing a where clause will delete ALL data from the
-            table.  This will not be done unless the `really_delete_all` is
-            True.
-          really_delete_all (bool): Confirms that all data should be deleted
-            from the table.  Must be set to True AND the where clause must be
-            None for this to happen.
         """

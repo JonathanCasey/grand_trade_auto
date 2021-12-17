@@ -378,4 +378,5 @@ class Model(ABC):
             where clause to identify this model's own record in the database
             table.
         """
+        # TODO: If id is None, raise error
         return ('id', LogicOp.EQUALS, self.id)
