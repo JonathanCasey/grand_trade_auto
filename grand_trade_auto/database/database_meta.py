@@ -33,10 +33,17 @@ class Database(ABC):
     Instance Attributes:
       _env (str): The run environment type valid for using this database.
       _db_id (str): The id used as the section name in the database conf.
+      _orm (Orm<>): The ORM for this database subclass.
     """
+    _orm = None     # Subclass instance MUST override this value
+
+
+
     def __init__(self, env, db_id, **kwargs):
         """
         Creates the database handle.
+
+        Subclasses are expected to initialize their own Orm.
 
         Args:
           env (str): The run environment type valid for using this database.
@@ -48,6 +55,16 @@ class Database(ABC):
         if kwargs:
             logger.warning('Discarded excess kwargs provided to'
                     + f' {self.__class__.__name__}: {", ".join(kwargs.keys())}')
+
+
+
+    @property
+    def orm(self):
+        """
+        Gets the Orm for this database in a read-only fashion.  Subclasses must
+        override with to return their actual Orm.
+        """
+        return self._orm
 
 
 

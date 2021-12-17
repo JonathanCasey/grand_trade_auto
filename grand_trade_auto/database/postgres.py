@@ -15,6 +15,7 @@ import psycopg2
 
 from grand_trade_auto.database import database_meta
 from grand_trade_auto.general import config
+from grand_trade_auto.model import orm_postgres
 
 
 
@@ -42,10 +43,13 @@ class Postgres(database_meta.Database):
       [inherited from Database]:
         _env (str): The run environment type valid for using this database.
         _db_id (str): The id used as the section name in the database conf.
+        _orm (PostgresOrm): The ORM for this database subclass.
     """
     def __init__(self, host, port, database, user, password, **kwargs):
         """
         Creates the database handle.
+
+        Subclasses are expected to initialize their own Orm.
 
         Args:
           host (str): The host URL.
@@ -64,6 +68,8 @@ class Postgres(database_meta.Database):
         self._password = password
 
         self._conn = None
+
+        self._orm = orm_postgres.PostgresOrm(self)
 
 
 

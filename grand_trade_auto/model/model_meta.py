@@ -105,11 +105,12 @@ class Model(ABC):
         should each have a class attribute with a matching name for ease of
         access.  Subclasses should override this with the name of columns and
         then never change...
-      id (int or None): The value of the id column in the table for this record.
-        All tables MUST have an id field, at least until some TSDB shows up.  As
-        a class attribute, this is intended to hold some default value.  It will
-        be superseded its corresponding instance variable upon being written to.
-        This is the practice for all column-related attributes.
+      id (int or None): [Column var] The value of the id column in the table for
+        this record.  All tables MUST have an id field, at least until some
+        TSDB shows up.  As a class attribute, this is intended to hold some
+        default value.  It will be superseded its corresponding instance
+        variable upon being written to.  This is the practice for all
+        column-related attributes.
 
     Instance Attributes:
       _orm (Orm): The ORM that is being used to interact with the
