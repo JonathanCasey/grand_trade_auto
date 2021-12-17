@@ -99,7 +99,7 @@ class Model(ABC):
     of strings and as attributes.
 
     Class Attributes:
-      _tablename (str or None): The name of the table in the database.
+      _table_name (str or None): The name of the table in the database.
         Subclasses should override and then never change...
       _columns ([str] or None): The list of column names in the table.  These
         should each have a class attribute with a matching name for ease of
@@ -120,7 +120,7 @@ class Model(ABC):
         only the columns populated here will be updated.  Subclasses should not
         need to touch this.
     """
-    _tablename = None
+    _table_name = None
     _columns = None
 
     # Column Attributes -- MUST match _columns!
@@ -147,6 +147,7 @@ class Model(ABC):
 
         if data is not None:
             for k, v in data.items():
+                assert k in self._columns, 'Invalid data column'
                 self.__setattr__(k, v)
 
 
@@ -165,6 +166,30 @@ class Model(ABC):
         if name in self._columns:
             self._active_cols.add(name)
         return super().__setattr__(name, value)
+
+
+
+    @classmethod
+    def get_table_name(cls):
+        """
+        Get the table name for this model.
+
+        Returns:
+          _table_name (str): The table name.
+        """
+        return cls._table_name
+
+
+
+    @classmethod
+    def get_columns(cls):
+        """
+        Gets the list of column names for this model.
+
+        Returns:
+          _columns ([str]): The list of column names.
+        """
+        return cls._columns
 
 
 
