@@ -157,7 +157,7 @@ class Database(ABC):
 
 
     @abstractmethod
-    def execute(self, command, vars=None, cursor=None, commit=True,
+    def execute(self, command, val_vars=None, cursor=None, commit=True,
             close_cursor=True):
         """
         """

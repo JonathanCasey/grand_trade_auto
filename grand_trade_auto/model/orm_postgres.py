@@ -74,12 +74,18 @@ class PostgresOrm(orm_meta.Orm):
             where the keys are the column names and the values are the
             python-type values to be inserted.
         """
-        col_vars, val_vars = _prep_col_and_val_entry('i', data)
+        # Check cols to avoid SQL injection in case `data` is from external
+        valid_cols = model_cls.get_columns()
+        assert set(data.keys()).issubset(valid_cols), \
+                f'Invalid columns for {model_cls.__name__}: ' \
+                + f' `{["`, `".join(set(data.keys()) - set(valid_cols))]}`'
+
+        val_vars = _prep_sanitized_vars('i', data)
         sql = f'''INSERT INTO {model_cls.get_table_name()}
-            ({_build_var_list_str(col_vars.keys())})
+            ({','.join(data.keys())})
             VALUES ({_build_var_list_str(val_vars.keys())})
         '''
-        self._db.execute(sql, {**col_vars, **val_vars}, **kwargs)
+        self._db.execute(sql, val_vars, **kwargs)
 
 
 
@@ -159,27 +165,13 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
-def _prep_col_entry(prefix, cols):
+def _prep_sanitized_vars(prefix, data):
     """
     """
-    col_vars = {}
-    for col in cols:
-        col_vars[f'{prefix}col{len(col_vars)}'] = col
-    return col_vars
-
-
-
-def _prep_col_and_val_entry(prefix, data):
-    """
-    """
-    col_vars = {}
     val_vars = {}
-
     for col in data:
-        col_vars[f'{prefix}col{len(col_vars)}'] = col
         val_vars[f'{prefix}val{len(val_vars)}'] = data[col]
-
-    return col_vars, val_vars
+    return val_vars
 
 
 

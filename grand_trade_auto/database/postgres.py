@@ -247,20 +247,19 @@ class Postgres(database_meta.Database):
 
 
 
-    def cursor(self, **kwargs):
+    def cursor(self, cursor_name=None, **kwargs):
         """
         """
-        return self._get_conn(**kwargs).cursor(
-                name=kwargs.pop('cursor_name', None))
+        return self._get_conn(**kwargs).cursor(name=cursor_name)
 
 
 
-    def execute(self, command, vars=None, cursor=None, commit=True,
+    def execute(self, command, val_vars=None, cursor=None, commit=True,
             close_cursor=True, **kwargs):
         """
         """
         cursor = cursor or self.cursor(**kwargs)
-        cursor.execute(command, vars)
+        cursor.execute(command, val_vars)
         if commit:
             self._get_conn(**kwargs).commit()
         if close_cursor:
