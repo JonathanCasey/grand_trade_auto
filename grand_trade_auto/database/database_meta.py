@@ -134,9 +134,30 @@ class Database(ABC):
 
 
 
+    def connect(self, cache=True):
+        """
+        """
+
+
+
     @abstractmethod
     def create_db(self):
         """
         Creates the database specified as the database to use in this object.
         If it already exists, skips.
+        """
+
+
+
+    @abstractmethod
+    def get_new_cursor(self):
+        """
+        """
+
+
+
+    @abstractmethod
+    def execute(self, command, vars=None, cursor=None, commit=True,
+            close_cursor=True):
+        """
         """

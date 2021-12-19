@@ -133,7 +133,7 @@ class Postgres(database_meta.Database):
         Args:
           cache (bool): Whether to use the existing connection and store it if
             created; False will force a new connection that will not be saved.
-          database (str or None): The name of the database to conenct.  If None
+          database (str or None): The name of the database to connect.  If None
             provided, will use the database name stored in this object.
 
         Returns:
@@ -235,3 +235,34 @@ class Postgres(database_meta.Database):
         cursor.execute(sql_drop_db)
         cursor.close()
         conn.close()
+
+
+
+    def _get_conn(self, conn=None, **kwargs):
+        """
+        A convenience method intended to be used by other functions to easily
+        parse 'conn' out of their kwargs
+        """
+        return conn or self.connect()
+
+
+
+    def cursor(self, **kwargs):
+        """
+        """
+        return self._get_conn(**kwargs).cursor(
+                name=kwargs.pop('cursor_name', None))
+
+
+
+    def execute(self, command, vars=None, cursor=None, commit=True,
+            close_cursor=True, **kwargs):
+        """
+        """
+        cursor = cursor or self.cursor(**kwargs)
+        cursor.execute(command, vars)
+        if commit:
+            self._get_conn(**kwargs).commit()
+        if close_cursor:
+            cursor.close()
+        return cursor

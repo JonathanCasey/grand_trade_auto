@@ -48,11 +48,19 @@ class PostgresOrm(orm_meta.Orm):
 
         Subclass must define and execute SQL/etc.
         """
-        # TODO: Implement
+        sql = '''CREATE TABLE datafeed_src (
+            id serial PRIMARY KEY,
+            config_parser text NOT NULL,
+            is_init_complete boolean,
+            progress_marker text,
+            UNIQUE (config_parser)
+        )
+        '''
+        self._db.execute(sql)
 
 
 
-    def add(self, model_cls, data):
+    def add(self, model_cls, data, **kwargs):
         """
         Adds/Inserts a new record into the database.  The table is acquired from
         the model class.  All necessary data must be provided (i.e. can omit
@@ -66,7 +74,12 @@ class PostgresOrm(orm_meta.Orm):
             where the keys are the column names and the values are the
             python-type values to be inserted.
         """
-        # TODO: Implement
+        col_vars, val_vars = _prep_col_and_val_entry('i', data)
+        sql = f'''INSERT INTO {model_cls.get_table_name()}
+            ({_build_var_list_str(col_vars.keys())})
+            VALUES ({_build_var_list_str(val_vars.keys())})
+        '''
+        self._db.execute(sql, {**col_vars, **val_vars}, **kwargs)
 
 
 
@@ -143,3 +156,34 @@ class PostgresOrm(orm_meta.Orm):
             (pandas.dataframe): The pandas dataframe representing all results.
         """
         # TODO: Implement
+
+
+
+def _prep_col_entry(prefix, cols):
+    """
+    """
+    col_vars = {}
+    for col in cols:
+        col_vars[f'{prefix}col{len(col_vars)}'] = col
+    return col_vars
+
+
+
+def _prep_col_and_val_entry(prefix, data):
+    """
+    """
+    col_vars = {}
+    val_vars = {}
+
+    for col in data:
+        col_vars[f'{prefix}col{len(col_vars)}'] = col
+        val_vars[f'{prefix}val{len(val_vars)}'] = data[col]
+
+    return col_vars, val_vars
+
+
+
+def _build_var_list_str(var_names):
+    """
+    """
+    return ', '.join([f'%({v})s' for v in var_names])

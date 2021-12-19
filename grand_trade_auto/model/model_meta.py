@@ -195,7 +195,7 @@ class Model(ABC):
 
 
     @classmethod
-    def add_direct(cls, orm, data):
+    def add_direct(cls, orm, data, **kwargs):
         """
         Add/Insert a new record for this data model.  This will NOT create a
         model object first, but rather will directly route the data to the ORM
@@ -207,7 +207,7 @@ class Model(ABC):
             where the keys are the column names and the values are the
             python-type values to be inserted.
         """
-        orm.add(cls, data)
+        orm.add(cls, data, **kwargs)
 
 
 
@@ -363,11 +363,11 @@ class Model(ABC):
 
 
 
-    def add(self):
+    def add(self, **kwargs):
         """
         Add/Insert this model as a new record.
         """
-        Model.add_direct(self._orm, self._get_active_data_as_dict())
+        Model.add_direct(self._orm, self._get_active_data_as_dict(), **kwargs)
 
 
 
