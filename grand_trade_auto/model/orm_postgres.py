@@ -24,6 +24,8 @@ Module Attributes:
 """
 import logging
 
+import pandas as pd
+
 from grand_trade_auto.model import model_meta
 from grand_trade_auto.model import orm_meta
 
@@ -81,7 +83,7 @@ class PostgresOrm(orm_meta.Orm):
             where the keys are the column names and the values are the
             python-type values to be inserted.
         """
-        _validate_cols(model_cls, data.keys())
+        _validate_cols(data.keys(), model_cls)
         val_vars = _prep_sanitized_vars('i', data)
         sql = f'''INSERT INTO {model_cls.get_table_name()}
             ({','.join(data.keys())})
@@ -106,7 +108,7 @@ class PostgresOrm(orm_meta.Orm):
           where ({}/[]/() or None): The structured where clause.  See the
             Model.query_direct() docs for spec.  If None, will not filter.
         """
-        _validate_cols(model_cls, data.keys())
+        _validate_cols(data.keys(), model_cls)
         val_vars = _prep_sanitized_vars('u', data)
         sql = f'''UPDATE {model_cls.get_table_name()}
             SET {_build_col_var_list_str(data.keys(), val_vars.keys())}
@@ -157,7 +159,7 @@ class PostgresOrm(orm_meta.Orm):
 
 
     def query(self, model_cls, return_as, columns_to_return=None,
-            where=None, limit=None, order=None):
+            where=None, limit=None, order=None, **kwargs):
         """
         Query/Select record(s) from the database.  The table is acquired from
         the model class.  This gives a few options as far as how the data can be
@@ -187,11 +189,80 @@ class PostgresOrm(orm_meta.Orm):
           If return_as == ReturnAs.PANDAS:
             (pandas.dataframe): The pandas dataframe representing all results.
         """
-        # TODO: Implement
+        if columns_to_return:
+            _validate_cols(columns_to_return, model_cls)
+            col_list_str = ','.join(columns_to_return)
+        else:
+            col_list_str = '*'
+
+        sql = f'SELECT {col_list_str} FROM {model_cls.get_table_name()}'
+
+        if where:
+            where_clause, where_vars = _build_where(where, model_cls)
+            sql += f' WHERE {where_clause}'
+        else:
+            where_vars = {}
+
+        sql += ' ' + _build_and_validate_order(order, model_cls)
+        sql += ' ' + _build_and_validate_limit(limit)
+
+        # Must force cursor to stay open until results parsed
+        cursor = self._db.execute(sql, where_vars,
+                {**kwargs, **{'close_cursor': False}})
+
+        if model_meta.ReturnAs(return_as) is model_meta.ReturnAs.MODEL:
+            results = self._convert_cursor_to_models(model_cls, cursor)
+        elif model_meta.ReturnAs(return_as) is model_meta.ReturnAs.PANDAS:
+            results = PostgresOrm._convert_cursor_to_pandas_dataframe(cursor)
+
+        if 'close_cursor' not in kwargs or kwargs['close_cursor'] is True:
+            cursor.close()
+
+        return results
 
 
 
-def _validate_cols(model_cls, cols):
+    def _convert_cursor_to_models(self, model_cls, cursor):
+        """
+        Converts the results in a cursor to a list of the specified Model.
+
+        Args:
+          model_cls (Class<Model<>>): The class itself of the models being
+            created.
+          cursor (cursor): The cursor from executing a query/select command,
+            ready for results to be processed (i.e. NOT already iterated over).
+
+        Returns:
+          results ([model_cls]): A list of Models of the specific subclass of
+            Model given by model_cls created from the cursor results.  An empty
+            list if no results.
+        """
+        results = []
+        cols = [d[0] for d in cursor.description]
+        for row in cursor:
+            results.append(model_cls(self, dict(zip(cols, row))))
+        return results
+
+
+
+    @staticmethod
+    def _convert_cursor_to_pandas_dataframe(cursor):
+        """
+        Converts the results in a cursor to a pandas dataframe.
+
+        Args:
+          cursor (cursor): The cursor from executing a query/select command,
+            ready for results to be processed (i.e. NOT already iterated over).
+
+        Returns:
+          (dataframe): The dataframe containing the data returned in the cursor.
+        """
+        return pd.DataFrame(cursor.fetchall(),
+                columns=[d[0] for d in cursor.description])
+
+
+
+def _validate_cols(cols, model_cls):
     """
     """
     # Check cols to avoid SQL injection in case `data` is from external
@@ -234,7 +305,9 @@ def _build_where(where, model_cls=None):
     """
     """
     vals = {}
-    if len(where) == 1:
+    if not where:
+        clause = ''
+    elif len(where) == 1:
         logic_combo, conds = next(iter(where.items()))
         clause = _build_conditional_combo(logic_combo, conds, vals, model_cls)
     else:
@@ -259,6 +332,10 @@ def _build_conditional_combo(logic_combo, conds, vals, model_cls=None):
         logic_combo_str = ' AND '
     elif logic_combo is model_meta.LogicCombo.OR:
         logic_combo_str = ' OR '
+    else:
+        err_msg = f'Invalid or Unsupported Logic Combo: {logic_combo}'
+        logger.error(err_msg)
+        raise ValueError(err_msg)
 
     return '(' + logic_combo_str.join(cond_strs) + ')'
 
@@ -267,7 +344,7 @@ def _build_conditional_combo(logic_combo, conds, vals, model_cls=None):
 def _build_conditional_single(cond, vals, model_cls=None):
     """
     """
-    if model_cls is not None and not _validate_cols(model_cls, [cond[0]]):
+    if model_cls is not None and not _validate_cols([cond[0]], model_cls):
         err_msg = f'Invalid column for {model_cls.__name__}: `{cond[0]}`'
         logger.error(err_msg)
         raise orm_meta.NonexistentColumnError(err_msg)
@@ -307,3 +384,88 @@ def _build_conditional_single(cond, vals, model_cls=None):
     err_msg = f'Invalid or Unsupported Logic Op: {cond[1]}'
     logger.error(err_msg)
     raise ValueError(err_msg)
+
+
+
+def _build_and_validate_order(order, model_cls=None):
+    """
+    Builds the full order clause from the structured order format, validating as
+    it goes.  See `Model.query_direct()` for details of the format.
+
+    Args:
+      order ([()]): The structured order clause.  See the Model.query_direct()
+        docs for spec.
+      model_cls (Class<Model<>> or None): The class itself of the model holding
+        the valid column names.  Can be None if skipping that check for
+        increased performance, but this is ONLY recommended if the source of the
+        column names in the structured `where` parameter is internally
+        controlled and was not subject to external user input to avoid SQL
+        injection attacks.
+
+    Returns:
+      (str): The single string clause containing the the statements to use as
+        the ORDER BY clause.  This DOES include the `ORDER BY` part of the
+        string.  An empty string if nothing specified for `where`.
+
+    Raises:
+      (NonexistentColumnError): Raised if any column provided in the `order`
+        does not exist in the official list of columns in the provided model
+        (only possible if model_cls provided as non-None).
+      (ValueError): Raised if the SortOrder provided as part of the `order` is
+        not a valid SortOrder option for this Orm.
+    """
+    if not order:
+        return ''
+
+    order_strs = []
+
+    try:
+        for col, odir in order:
+            if model_cls is not None:
+                _validate_cols([col], model_cls)
+
+            if odir is model_meta.SortOrder.ASC:
+                order_strs.append(f'{col} ASC')
+            elif odir is model_meta.SortOrder.DESC:
+                order_strs.append(f'{col} DESC')
+            else:
+                err_msg = f'Invalid or Unsupported Sort Order: {odir}'
+                logger.error(err_msg)
+                raise ValueError(err_msg)
+
+    except ValueError as ex:
+        err_msg = f'Failed to parse sort order: {ex}'
+        logger.error(err_msg)
+        raise ValueError(err_msg) from ex
+
+    return f'ORDER BY {", ".join(order_strs)}'
+
+
+
+def _build_and_validate_limit(limit):
+    """
+    Builds the full limit clause from the limit number format, validating as it
+    goes.
+
+    Args:
+      limit (int): The maximum number of records to return.
+
+    Returns:
+      (str): The single string clause containing the the statements to use as
+        the LIMIT clause.  This DOES include the `LIMIT` part of the string.  An
+        empty string if nothing specified for `where`.
+
+    Raises:
+      (ValueError): Raised if the limit provided is not an integer.
+    """
+    if limit is None:
+        return ''
+
+    try:
+        limit_num = int(limit)
+        return f'LIMIT {limit_num}'
+
+    except ValueError as ex:
+        err_msg = f'Failed to limit, likely not a number: {ex}'
+        logger.error(err_msg)
+        raise ValueError(err_msg) from ex

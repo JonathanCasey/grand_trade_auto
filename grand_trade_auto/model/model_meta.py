@@ -254,7 +254,7 @@ class Model(ABC):
 
     @classmethod
     def query_direct(cls, orm, return_as=ReturnAs.MODEL, columns_to_return=None,
-            where=None, limit=None, order=None):
+            where=None, limit=None, order=None, **kwargs):
         """
         Query/Select record(s) from the database.  This gives a few options as
         far as how the data can be returned.  Some of the typical query options
@@ -359,7 +359,8 @@ class Model(ABC):
           If return_as == ReturnAs.PANDAS:
             (pandas.dataframe): The pandas dataframe representing all results.
         """
-        return orm.query(cls, return_as, columns_to_return, where, limit, order)
+        return orm.query(cls, return_as, columns_to_return, where, limit, order,
+                **kwargs)
 
 
 
