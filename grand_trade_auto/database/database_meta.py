@@ -134,9 +134,24 @@ class Database(ABC):
 
 
 
-    def connect(self, cache=True):
+    def connect(self,                          # pylint: disable=no-self-use
+            cache=True, database=None):        # pylint: disable=unused-argument
         """
+        Connect to the database, if applicable.
+
+        Args:
+          cache (bool): Whether to use the existing connection and store it if
+            created; False will force a new connection that will not be saved.
+          database (str or None): Subclass-specific, but intended to be the name
+            of the database to connect; while providing None will use the
+            database name stored in this object.
+
+        Returns:
+          (connection or None): The cached connection if specified and existed;
+            otherwise new database connection established.  None if the
+            subclassed database does not support/require connections.
         """
+        return None
 
 
 
@@ -150,8 +165,24 @@ class Database(ABC):
 
 
     @abstractmethod
-    def cursor(self):
+    def cursor(self, cursor_name=None, **kwargs):
         """
+        Gets a new cursor for the database.
+
+        Args:
+          cursor_name (str or None): Subclass-specific; but when supported, if
+            desired to use a server-side cursor, the name can be provided here.
+            Defaults to None, which will be a client-side cursor instead.
+          **kwargs ({}): Extra optional arguments that can be passed along.
+            Known supported keys are:
+            - conn (connection or None): The connection to use when creating
+              this cursor.  When omitted, the default connection will be used,
+              which may be shared with other requests.  For subclasses that do
+              not use connections, this parameter will be ignored.
+
+        Returns:
+          (cursor): A new cursor tied to either the connection provided or the
+            default connection, if applicable.
         """
 
 

@@ -238,7 +238,7 @@ class Postgres(database_meta.Database):
 
 
 
-    def _get_conn(self, conn=None, **kwargs):  # pylint: disable=unused-argument
+    def _get_conn(self, conn=None, **_kwargs):
         """
         Either returns the provided connection right back or gets the default
         connection.  A convenience method intended to be used by other functions
@@ -247,7 +247,7 @@ class Postgres(database_meta.Database):
         Args:
           conn (connection or None): The connection that should be returned
             unaltered if provided.  If None, will get the default connection.
-          **kwargs ({}): Not used.
+          **_kwargs ({}): Not used.  Absorbs any extra args for convenience.
 
         Returns:
           (connection): The connection as provided in `conn` if not None;
