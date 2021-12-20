@@ -22,6 +22,16 @@ from abc import ABC, abstractmethod
 
 
 
+class NonexistentColumnError(Exception):
+    """
+    Raised when a column name is used in a database query that is not one of the
+    column names defined in the Model's _column list.  This protects against SQL
+    injection if specifying the column names is ever an externally facing user
+    input.
+    """
+
+
+
 class Orm(ABC):
     """
     The Object-Relational Mapping skeleton structure.  Generic logic included

@@ -212,7 +212,7 @@ class Model(ABC):
 
 
     @classmethod
-    def update_direct(cls, orm, data, where):
+    def update_direct(cls, orm, data, where, **kwargs):
         """
         Update an existing record for this data model.  This will NOT create a
         model object first, but rather will directly route the data to the ORM
@@ -226,7 +226,7 @@ class Model(ABC):
           where ({}/[]/() or None): The structured where clause.  See the
             Model.query_direct() docs for spec.  If None, will not filter.
         """
-        orm.update(cls, data, where)
+        orm.update(cls, data, where, **kwargs)
 
 
 
@@ -371,12 +371,12 @@ class Model(ABC):
 
 
 
-    def update(self):
+    def update(self, **kwargs):
         """
         Update this model's record in the database.
         """
         Model.update_direct(self._orm, self._get_active_data_as_dict(),
-                self._get_where_self_id())
+                self._get_where_self_id(), **kwargs)
 
 
 

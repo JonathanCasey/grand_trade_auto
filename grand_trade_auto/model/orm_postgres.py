@@ -18,11 +18,18 @@ other uses are expected to directly use database invocation as needed.  In this
 vein, joins are NOT supported at this time.
 
 Module Attributes:
-  N/A
+  logger (Logger): Logger for this module.
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+import logging
+
+from grand_trade_auto.model import model_meta
 from grand_trade_auto.model import orm_meta
+
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -74,12 +81,7 @@ class PostgresOrm(orm_meta.Orm):
             where the keys are the column names and the values are the
             python-type values to be inserted.
         """
-        # Check cols to avoid SQL injection in case `data` is from external
-        valid_cols = model_cls.get_columns()
-        assert set(data.keys()).issubset(valid_cols), \
-                f'Invalid columns for {model_cls.__name__}: ' \
-                + f' `{["`, `".join(set(data.keys()) - set(valid_cols))]}`'
-
+        _validate_cols(model_cls, data.keys())
         val_vars = _prep_sanitized_vars('i', data)
         sql = f'''INSERT INTO {model_cls.get_table_name()}
             ({','.join(data.keys())})
@@ -89,7 +91,7 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
-    def update(self, model_cls, data, where):
+    def update(self, model_cls, data, where, **kwargs):
         """
         Update record(s) in the database.  The table is acquired from the model
         class.
@@ -104,7 +106,18 @@ class PostgresOrm(orm_meta.Orm):
           where ({}/[]/() or None): The structured where clause.  See the
             Model.query_direct() docs for spec.  If None, will not filter.
         """
-        # TODO: Implement
+        _validate_cols(model_cls, data.keys())
+        val_vars = _prep_sanitized_vars('u', data)
+        sql = f'''UPDATE {model_cls.get_table_name()}
+            SET {_build_col_var_list_str(data.keys(), val_vars.keys())}
+            VALUES ({_build_var_list_str(val_vars.keys())})
+        '''
+        if where:
+            where_clause, where_vars = _build_where(where, model_cls)
+            sql += f'WHERE {where_clause}'
+        else:
+            where_vars = {}
+        self._db.execute(sql, {**val_vars, **where_vars}, **kwargs)
 
 
 
@@ -165,6 +178,19 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
+def _validate_cols(model_cls, cols):
+    """
+    """
+    # Check cols to avoid SQL injection in case `data` is from external
+    valid_cols = model_cls.get_columns()
+    if not set(cols).issubset(valid_cols):
+        err_msg = f'Invalid columns for {model_cls.__name__}: '
+        err_msg += f' `{["`, `".join(set(cols) - set(valid_cols))]}`'
+        logger.error(err_msg)
+        raise orm_meta.NonexistentColumnError(err_msg)
+
+
+
 def _prep_sanitized_vars(prefix, data):
     """
     """
@@ -179,3 +205,92 @@ def _build_var_list_str(var_names):
     """
     """
     return ', '.join([f'%({v})s' for v in var_names])
+
+
+
+def _build_col_var_list_str(col_names, var_names):
+    """
+    """
+    assert len(col_names) == len(var_names), 'Col and vars must be same length!'
+    return ', '.join([f'{col_names[i]} = %({var_names[i]})s'
+            for i in range(len(col_names))])
+
+
+
+def _build_where(where, model_cls=None):
+    """
+    """
+    vals = {}
+    if len(where) == 1:
+        logic_combo, conds = next(iter(where.items()))
+        clause = _build_conditional_combo(logic_combo, conds, vals, model_cls)
+    else:
+        clause = _build_conditional_single(where, vals, model_cls)
+    return clause, vals
+
+
+
+def _build_conditional_combo(logic_combo, conds, vals, model_cls=None):
+    """
+    """
+    cond_strs = []
+    for cond in conds:
+        if len(cond) == 1:
+            sub_logic_combo, sub_conds = next(iter(cond.items()))
+            cond_strs.append(_build_conditional_combo(sub_logic_combo,
+                    sub_conds, vals, model_cls))
+        else:
+            cond_strs.append(_build_conditional_single(cond, vals, model_cls))
+
+    if logic_combo is model_meta.LogicCombo.AND:
+        logic_combo_str = ' AND '
+    elif logic_combo is model_meta.LogicCombo.OR:
+        logic_combo_str = ' OR '
+
+    return '(' + logic_combo_str.join(cond_strs) + ')'
+
+
+
+def _build_conditional_single(cond, vals, model_cls=None):
+    """
+    """
+    if model_cls is not None and not _validate_cols(model_cls, [cond[0]]):
+        err_msg = f'Invalid column for {model_cls.__name__}: `{cond[0]}`'
+        logger.error(err_msg)
+        raise orm_meta.NonexistentColumnError(err_msg)
+
+    if cond[1] is model_meta.LogicOp.NOT_NULL:
+        return f'{cond[0]} NOT NULL'
+
+    # The rest below have a value, so all would use same key
+    val_key = f'wval{str(len(vals))}'
+
+    if cond[1] is model_meta.LogicOp.EQ \
+            or cond[1] is model_meta.LogicOp.EQUAL \
+            or cond[1] is model_meta.LogicOp.EQUALS:
+        vals[val_key] = cond[2]
+        return f'{cond[0]} = %({val_key})s'
+
+    if cond[1] is model_meta.LogicOp.LT \
+            or cond[1] is model_meta.LogicOp.LESS_THAN:
+        vals[val_key] = cond[2]
+        return f'{cond[0]} < %({val_key})s'
+
+    if cond[1] is model_meta.LogicOp.LTE \
+            or cond[1] is model_meta.LogicOp.LESS_THAN_OR_EQUAL:
+        vals[val_key] = cond[2]
+        return f'{cond[0]} <= %({val_key})s'
+
+    if cond[1] is model_meta.LogicOp.GT \
+            or cond[1] is model_meta.LogicOp.GREATER_THAN:
+        vals[val_key] = cond[2]
+        return f'{cond[0]} > %({val_key})s'
+
+    if cond[1] is model_meta.LogicOp.GTE \
+            or cond[1] is model_meta.LogicOp.GREATER_THAN_OR_EQUAL:
+        vals[val_key] = cond[2]
+        return f'{cond[0]} >= %({val_key})s'
+
+    err_msg = f'Invalid or Unsupported Logic Op: {cond[1]}'
+    logger.error(err_msg)
+    raise ValueError(err_msg)
