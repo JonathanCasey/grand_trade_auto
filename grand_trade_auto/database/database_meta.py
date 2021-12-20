@@ -5,26 +5,16 @@ shared database code that needs to be accessed by all databases can be
 implemented here so they have access when this is imported.
 
 Module Attributes:
-  N/A
+  logger (Logger): Logger for this module.
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 from abc import ABC, abstractmethod
-from enum import Enum
 import logging
 
 
 
 logger = logging.getLogger(__name__)
-
-
-
-class CursorFormat(Enum):
-    """
-    """
-    DEFAULT = 'default'
-    TUPLE = 'tuple'
-    DICT = 'dict'
 
 
 
@@ -160,7 +150,7 @@ class Database(ABC):
 
 
     @abstractmethod
-    def get_new_cursor(self):
+    def cursor(self):
         """
         """
 
