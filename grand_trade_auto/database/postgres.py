@@ -238,7 +238,7 @@ class Postgres(database_meta.Database):
 
 
 
-    def _get_conn(self, conn=None, **kwargs):
+    def _get_conn(self, conn=None, **kwargs):  # pylint: disable=unused-argument
         """
         A convenience method intended to be used by other functions to easily
         parse 'conn' out of their kwargs

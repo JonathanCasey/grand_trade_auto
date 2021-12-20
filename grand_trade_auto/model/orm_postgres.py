@@ -57,7 +57,8 @@ class PostgresOrm(orm_meta.Orm):
 
         Subclass must define and execute SQL/etc.
         """
-        sql = '''CREATE TABLE datafeed_src (
+        sql = '''
+            CREATE TABLE datafeed_src (
             id serial PRIMARY KEY,
             config_parser text NOT NULL,
             is_init_complete boolean,
@@ -85,7 +86,8 @@ class PostgresOrm(orm_meta.Orm):
         """
         _validate_cols(data.keys(), model_cls)
         val_vars = _prep_sanitized_vars('i', data)
-        sql = f'''INSERT INTO {model_cls.get_table_name()}
+        sql = f'''
+            INSERT INTO {model_cls.get_table_name()}
             ({','.join(data.keys())})
             VALUES ({_build_var_list_str(val_vars.keys())})
         '''
@@ -110,7 +112,8 @@ class PostgresOrm(orm_meta.Orm):
         """
         _validate_cols(data.keys(), model_cls)
         val_vars = _prep_sanitized_vars('u', data)
-        sql = f'''UPDATE {model_cls.get_table_name()}
+        sql = f'''
+            UPDATE {model_cls.get_table_name()}
             SET {_build_col_var_list_str(data.keys(), val_vars.keys())}
             VALUES ({_build_var_list_str(val_vars.keys())})
         '''
