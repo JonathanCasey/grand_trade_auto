@@ -12,10 +12,54 @@ Module Attributes:
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+#pylint: disable=protected-access  # Allow for purpose of testing those elements
+
 import logging
+
+import pytest
 
 from grand_trade_auto.database import database_meta
 from grand_trade_auto.database import postgres
+
+
+
+class MockDatabaseChild(database_meta.Database):
+    """"
+    Simple mock object to subclass Database.
+    """
+
+    @classmethod
+    def load_from_config(cls, db_cp, db_id):
+        """
+        Not needed / will not be used.
+        """
+        return
+
+    @classmethod
+    def get_dbms_names(cls):
+        """
+        Need at least 1 name to match in some tests.
+        """
+        return ['mock_dbms']
+
+    def create_db(self):
+        """
+        Not needed / will not be used.
+        """
+        return
+
+    def cursor(self, cursor_name=None, **kwargs):
+        """
+        Not needed / will not be used.
+        """
+        return
+
+    def execute(self, command, val_vars=None, cursor=None, commit=True,
+            close_cursor=True):
+        """
+        Not needed / will not be used.
+        """
+        return
 
 
 
@@ -24,32 +68,6 @@ def test_database_init(caplog):
     Tests the `__init__()` method of `Database`, at least for its unique
     functionality that is not expected to be tested anywhere else.
     """
-
-    class MockDatabaseChild(database_meta.Database):
-        """"
-        Simple mock object to subclass Database.
-        """
-
-        @classmethod
-        def load_from_config(cls, db_cp, db_id):
-            """
-            Not needed / will not be used.
-            """
-            return
-
-        @classmethod
-        def get_dbms_names(cls):
-            """
-            Not needed / will not be used.
-            """
-            return
-
-        def create_db(self):
-            """
-            Not needed / will not be used.
-            """
-            return
-
     caplog.set_level(logging.WARNING)
     caplog.clear()
     MockDatabaseChild('mock_env', 'mock_db_id')
@@ -83,36 +101,24 @@ def test_database_init(caplog):
 
 
 
+def test_orm():
+    """
+    Tests the `orm` @property of `Database`.
+    """
+    db = MockDatabaseChild('mock_env', 'mock_db_id')
+    assert db.orm is None
+    db._orm = 'test orm'
+    assert db.orm == 'test orm'
+    with pytest.raises(AttributeError) as ex:
+        db.orm = 'unsettable test orm'
+    assert "can't set attribute" in str(ex.value)
+
+
+
 def test_matches_id_criteria():
     """
     Tests the `matches_id_criteria()` method of `Database`.
     """
-
-    class MockDatabaseChild(database_meta.Database):
-        """"
-        Simple mock object to subclass database.
-        """
-
-        @classmethod
-        def load_from_config(cls, db_cp, db_id):
-            """
-            Not needed / will not be used.
-            """
-            return
-
-        @classmethod
-        def get_dbms_names(cls):
-            """
-            Need at least 1 name to match.
-            """
-            return ['mock_dbms']
-
-        def create_db(self):
-            """
-            Not needed / will not be used.
-            """
-            return
-
     db = MockDatabaseChild('mock_env', 'mock_db_id')
     assert not db.matches_id_criteria('invalid-db-id')
     assert db.matches_id_criteria('mock_db_id')
@@ -123,3 +129,14 @@ def test_matches_id_criteria():
     assert not db.matches_id_criteria('mock_db_id', 'invalid-env', 'mock_dbms')
     assert not db.matches_id_criteria('mock_db_id', 'mock_env', 'invalid-dbms')
     assert db.matches_id_criteria('mock_db_id', 'mock_env', 'mock_dbms')
+
+
+
+def test_connect():
+    """
+    Tests the `connect()` method of `Database`.
+    """
+    db = MockDatabaseChild('mock_env', 'mock_db_id')
+    assert db.connect() is None
+    assert db.connect(False, 'mock db name') is None
+    assert db.connect(cache=False, database='mock db name') is None

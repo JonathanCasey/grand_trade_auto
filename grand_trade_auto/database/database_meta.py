@@ -61,8 +61,7 @@ class Database(ABC):
     @property
     def orm(self):
         """
-        Gets the Orm for this database in a read-only fashion.  Subclasses must
-        override with to return their actual Orm.
+        Gets the Orm for this database in a read-only fashion.
         """
         return self._orm
 
