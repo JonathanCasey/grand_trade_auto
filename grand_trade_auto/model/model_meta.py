@@ -231,7 +231,7 @@ class Model(ABC):
 
 
     @classmethod
-    def delete_direct(cls, orm, where):
+    def delete_direct(cls, orm, where, **kwargs):
         """
         Delete an existing record for this data model.  This will NOT create a
         model object first, but rather will directly route the data to the ORM
@@ -248,7 +248,7 @@ class Model(ABC):
             ALL data from the table.  This is protected, however, by the ORM
             (assuming there are no bugs...).
         """
-        orm.delete(cls, where)
+        orm.delete(cls, where, **kwargs)
 
 
 
@@ -380,11 +380,11 @@ class Model(ABC):
 
 
 
-    def delete(self):
+    def delete(self, **kwargs):
         """
         Delete this model's record from the database.
         """
-        Model.delete_direct(self._orm, self._get_where_self_id())
+        Model.delete_direct(self._orm, self._get_where_self_id(), **kwargs)
 
 
 

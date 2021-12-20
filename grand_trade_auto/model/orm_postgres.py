@@ -114,14 +114,14 @@ class PostgresOrm(orm_meta.Orm):
         '''
         if where:
             where_clause, where_vars = _build_where(where, model_cls)
-            sql += f'WHERE {where_clause}'
+            sql += f' WHERE {where_clause}'
         else:
             where_vars = {}
         self._db.execute(sql, {**val_vars, **where_vars}, **kwargs)
 
 
 
-    def delete(self, model_cls, where, really_delete_all=False):
+    def delete(self, model_cls, where, really_delete_all=False, **kwargs):
         """
         Delete record(s) in the database.  The table is acquired from the model
         class.
@@ -139,7 +139,20 @@ class PostgresOrm(orm_meta.Orm):
             from the table.  Must be set to True AND the where clause must be
             None for this to happen.
         """
-        # TODO: Implement
+        sql = f'DELETE FROM {model_cls.get_table_name()}'
+        if where:
+            where_clause, where_vars = _build_where(where, model_cls)
+            sql += f' WHERE {where_clause}'
+        elif really_delete_all:
+            # Confirmed -- will allow deleting all by skipping where clause
+            where_vars = {}
+        else:
+            err_msg = 'Invalid delete parameters: `where` empty, but did not' \
+                    + ' set `really_delete_all` to confirm delete all.' \
+                    + '  Likely intended to specify `where`?'
+            logger.error(err_msg)
+            raise ValueError(err_msg)
+        self._db.execute(sql, where_vars, **kwargs)
 
 
 
