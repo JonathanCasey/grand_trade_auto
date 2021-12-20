@@ -10,11 +10,21 @@ Module Attributes:
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 from abc import ABC, abstractmethod
+from enum import Enum
 import logging
 
 
 
 logger = logging.getLogger(__name__)
+
+
+
+class CursorFormat(Enum):
+    """
+    """
+    DEFAULT = 'default'
+    TUPLE = 'tuple'
+    DICT = 'dict'
 
 
 

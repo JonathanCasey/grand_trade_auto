@@ -10,8 +10,9 @@ Module Attributes:
 """
 import logging
 
-from psycopg2 import sql
 import psycopg2
+from psycopg2 import sql
+import psycopg2.extras
 
 from grand_trade_auto.database import database_meta
 from grand_trade_auto.general import config
@@ -247,10 +248,19 @@ class Postgres(database_meta.Database):
 
 
 
-    def cursor(self, cursor_name=None, **kwargs):
+    def cursor(self, cursor_name=None, cursor_format=None, **kwargs):
         """
         """
-        return self._get_conn(**kwargs).cursor(name=cursor_name)
+        if cursor_format is database_meta.CursorFormat.DEFAULT \
+                or cursor_format is database_meta.CursorFormat.TUPLE:
+            cursor_factory = None
+        elif cursor_format is database_meta.CursorFormat.DICT:
+            cursor_factory = psycopg2.extras.DictCursor
+        else:
+            cursor_factory = cursor_format
+
+        return self._get_conn(**kwargs).cursor(name=cursor_name,
+                cursor_factory=cursor_factory)
 
 
 
