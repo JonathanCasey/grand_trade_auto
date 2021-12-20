@@ -14,12 +14,17 @@ encompassing, nor fully execution optimized.  See the Orm module doc string for
 more details on the limitations of its goal.
 
 Module Attributes:
-  N/A
+  logger (Logger): Logger for this module.
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 from abc import ABC
 from enum import Enum
+import logging
+
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -410,5 +415,8 @@ class Model(ABC):
             where clause to identify this model's own record in the database
             table.
         """
-        # TODO: If id is None, raise error
+        if self.id is None:
+            err_msg = 'Cannot generate where clause with ID being None'
+            logger.error(err_msg)
+            raise ValueError(err_msg)
         return ('id', LogicOp.EQUALS, self.id)
