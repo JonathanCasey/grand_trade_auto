@@ -211,6 +211,8 @@ class Model(ABC):
           data ({str:str/int/bool/datetime/enum/etc}): The data to be inserted,
             where the keys are the column names and the values are the
             python-type values to be inserted.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Orm.add()`.  See those docstrings for more details.
         """
         orm.add(cls, data, **kwargs)
 
@@ -230,6 +232,8 @@ class Model(ABC):
             python-type values to be used as the new values.
           where ({}/[]/() or None): The structured where clause.  See the
             Model.query_direct() docs for spec.  If None, will not filter.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Orm.update()`.  See those docstrings for more details.
         """
         orm.update(cls, data, where, **kwargs)
 
@@ -252,6 +256,8 @@ class Model(ABC):
             WARNING: NOT providing a where clause would translate to deleting
             ALL data from the table.  This is protected, however, by the ORM
             (assuming there are no bugs...).
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Orm.delete()`.  See those docstrings for more details.
         """
         orm.delete(cls, where, **kwargs)
 
@@ -356,6 +362,8 @@ class Model(ABC):
             None, will not impose a limit.
           order ([()]): The structured order clause.  See above for spec.  If
             None, will not impose order.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Orm.query()`.  See those docstrings for more details.
 
         Returns:
           If return_as == ReturnAs.MODEL:
@@ -372,6 +380,10 @@ class Model(ABC):
     def add(self, **kwargs):
         """
         Add/Insert this model as a new record.
+
+        Args:
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Orm.add()`.  See those docstrings for more details.
         """
         Model.add_direct(self._orm, self._get_active_data_as_dict(), **kwargs)
 
@@ -380,6 +392,10 @@ class Model(ABC):
     def update(self, **kwargs):
         """
         Update this model's record in the database.
+
+        Args:
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Orm.update()`.  See those docstrings for more details.
         """
         Model.update_direct(self._orm, self._get_active_data_as_dict(),
                 self._get_where_self_id(), **kwargs)
@@ -389,6 +405,10 @@ class Model(ABC):
     def delete(self, **kwargs):
         """
         Delete this model's record from the database.
+
+        Args:
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Orm.delete()`.  See those docstrings for more details.
         """
         Model.delete_direct(self._orm, self._get_where_self_id(), **kwargs)
 

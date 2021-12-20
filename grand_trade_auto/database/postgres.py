@@ -240,8 +240,18 @@ class Postgres(database_meta.Database):
 
     def _get_conn(self, conn=None, **kwargs):  # pylint: disable=unused-argument
         """
-        A convenience method intended to be used by other functions to easily
-        parse 'conn' out of their kwargs
+        Either returns the provided connection right back or gets the default
+        connection.  A convenience method intended to be used by other functions
+        to easily parse 'conn' out of their kwargs
+
+        Args:
+          conn (connection or None): The connection that should be returned
+            unaltered if provided.  If None, will get the default connection.
+          **kwargs ({}): Not used.
+
+        Returns:
+          (connection): The connection as provided in `conn` if not None;
+            otherwise gets the default database connection.
         """
         return conn or self.connect()
 
@@ -249,6 +259,21 @@ class Postgres(database_meta.Database):
 
     def cursor(self, cursor_name=None, **kwargs):
         """
+        Gets a new cursor for the database.
+
+        Args:
+          cursor_name (str or None): If desired to use a server-side cursor, the
+            name can be provided here.  Defaults to None, which will be a
+            client-side cursor instead.
+          **kwargs ({}): Extra optional arguments that can be passed along.
+            Known supported keys are:
+            - conn (connection or None): The connection to use when creating
+              this cursor.  When omitted, the default connection will be used,
+              which may be shared with other requests.
+
+        Returns:
+          (cursor): A new PSQL cursor tied to either the connection provided or
+            the default connection.
         """
         return self._get_conn(**kwargs).cursor(name=cursor_name)
 
@@ -257,6 +282,41 @@ class Postgres(database_meta.Database):
     def execute(self, command, val_vars=None, cursor=None, commit=True,
             close_cursor=True, **kwargs):
         """
+        Executes a database command.
+
+        Args:
+          command (str): The command to be executed (e.g. SQL statement).  It is
+            HIGHLY recommended that parameterized input is used for values in
+            combination with the `val_vars`.
+          val_vars ({}/[]/() or None): The values to substitute in as variables
+            in the parameterized portion of the `command`.  A dictionary can be
+            used for named parameters, or a list/tuple can be used for
+            positional parameters; but in all cases, it must be coordinated with
+            the `command`.  Can be None if no parameters.
+          cursor (cursor or None): The cursor to use for this execution.  Can be
+            None to let this get a new cursor and use that.
+          commit (bool): Whether or not to commit the transactions to the
+            database following the execution of the command.  Defaults to True.
+            May want to set to False if want a collection of commands to be
+            committed together.
+          close_cursor (bool): Whether or not to close the cursor when finished
+            with this command.  When using query/select commands, this should
+            always be set to False so that results can be processed.  May want
+            to set this to False also if this cursor will be used for more
+            transactions before committing, though committing a set of
+            transactions is tied to the connection, not an individual cursor.
+          **kwargs ({}): Extra optional arguments that can be passed along.
+            Known supported keys are:
+            - conn (connection or None): The connection to use when creating
+              a cursor.  Only used if `cursor` is None.  When `cursor` is None
+              and this is omitted, the default connection will be used, which
+              may be shared with other requests.
+
+        Returns:
+          cursor (cursor): The resulting cursor from the execution.  If `cursor`
+            was provided, this is the same `cursor` that was provided.  If
+            `close_cursor` was True, the cursor will still be returned but will
+            be closed.
         """
         cursor = cursor or self.cursor(**kwargs)
         cursor.execute(command, val_vars)

@@ -83,6 +83,9 @@ class PostgresOrm(orm_meta.Orm):
           data ({str:str/int/bool/datetime/enum/etc}): The data to be inserted,
             where the keys are the column names and the values are the
             python-type values to be inserted.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Database.execute()`.  See those docstrings for more
+            details.
         """
         _validate_cols(data.keys(), model_cls)
         val_vars = _prep_sanitized_vars('i', data)
@@ -103,12 +106,16 @@ class PostgresOrm(orm_meta.Orm):
         Subclass must define and execute SQL/etc.
 
         Args:
-          model_cls (Class<Model<>>): The class itself of the model being added.
+          model_cls (Class<Model<>>): The class itself of the model being
+            updated.
           data ({str:str/int/bool/datetime/enum/etc}): The data to be updated,
             where the keys are the column names and the values are the
             python-type values to be used as the new values.
           where ({}/[]/() or None): The structured where clause.  See the
             Model.query_direct() docs for spec.  If None, will not filter.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Database.execute()`.  See those docstrings for more
+            details.
         """
         _validate_cols(data.keys(), model_cls)
         val_vars = _prep_sanitized_vars('u', data)
@@ -134,7 +141,8 @@ class PostgresOrm(orm_meta.Orm):
         Subclass must define and execute SQL/etc.
 
         Args:
-          model_cls (Class<Model<>>): The class itself of the model being added.
+          model_cls (Class<Model<>>): The class itself of the model being
+            deleted.
           where ({}/[]/() or None): The structured where clause.  See the
             Model.query_direct() docs for spec.  If None, will not filter.
             WARNING: NOT providing a where clause will delete ALL data from the
@@ -143,6 +151,9 @@ class PostgresOrm(orm_meta.Orm):
           really_delete_all (bool): Confirms that all data should be deleted
             from the table.  Must be set to True AND the where clause must be
             None for this to happen.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Database.execute()`.  See those docstrings for more
+            details.
         """
         sql = f'DELETE FROM {model_cls.get_table_name()}'
         if where:
@@ -172,7 +183,8 @@ class PostgresOrm(orm_meta.Orm):
         Subclass must define and execute SQL/etc.
 
         Args:
-          model_cls (Class<Model<>>): The class itself of the model being added.
+          model_cls (Class<Model<>>): The class itself of the model being
+            queried.
           return_as (ReturnAs): Specifies which format to return the data in.
             Where possible, each format option is derived directly from the
             database cursor to optimize performance for all.
@@ -184,6 +196,9 @@ class PostgresOrm(orm_meta.Orm):
             None, will not impose a limit.
           order ([()]): The structured order clause.  See the
             Model.query_direct() docs for spec.  If None, will not impose order.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Database.execute()`.  See those docstrings for more
+            details.
 
         Returns:
           If return_as == ReturnAs.MODEL:
@@ -267,6 +282,19 @@ class PostgresOrm(orm_meta.Orm):
 
 def _validate_cols(cols, model_cls):
     """
+    Validates the provided columns against those specified in the model.  Highly
+    advised if the column names provided were potentially from an external user
+    source instead of something hard-coded within the project to avoid SQL
+    injection.
+
+    Args:
+      cols ([str]): The list of column names to check.
+      model_cls (Class<Model<>>): The class itself of the model holding the
+        valid column names.
+
+    Raises:
+      (NonexistentColumnError): Raised if any column provided does not exist in
+        the official list of columns in the provided model.
     """
     # Check cols to avoid SQL injection in case `data` is from external
     valid_cols = model_cls.get_columns()
@@ -280,6 +308,25 @@ def _validate_cols(cols, model_cls):
 
 def _prep_sanitized_vars(prefix, data):
     """
+    Prepares parameterized variables for SQL statements for sanitized entry.
+
+    Args:
+      prefix (str): The prefix to give the variable placeholder names.  The
+        format is <prefix>val<count>.  This can be an empty string, but must be
+        unique within a given SQL statement (e.g. in an update statement, since
+        there are values for updating as well as possible values in the where
+        clause, calling this for each of those portions should use a different
+        prefix to give it a different namespace and avoid dict collisions).
+      data ({str:str/int/bool/datetime/enum/etc}): The data to be prepared,
+            where the keys are the column names and the values are the
+            python-type values to be used as the variable values.
+
+    Returns:
+      val_vars ({str:str/int/bool/datetime/enum/etc}): The mapping of variable
+        names to be used in the SQL statement to their corresponding values.
+        These variable names in the key portion of this dict are intended to be
+        used in the `%(<>)s` format in the SQL statement.  These are in the same
+        order as the column names -- Python 3.7+ REQUIRED.
     """
     val_vars = {}
     for col in data:
@@ -290,6 +337,17 @@ def _prep_sanitized_vars(prefix, data):
 
 def _build_var_list_str(var_names):
     """
+    Builds the string that contains the list of variables in the parameterized
+    variable format for SQL statements.
+
+    Args:
+      var_names ([str]): The list of var names, likely the keys in the dict
+        returned by `_prep_sanitized_vars()`.
+
+    Returns:
+      (str): The single string that contains the list of all variable names
+        provided in comma-separated format, but as parameterized inputs (i.e.
+        `%(<>)s` format).  An empty string if no var names.
     """
     return ', '.join([f'%({v})s' for v in var_names])
 
@@ -297,6 +355,20 @@ def _build_var_list_str(var_names):
 
 def _build_col_var_list_str(col_names, var_names):
     """
+    Builds the string that contains the list of column to parameterized variable
+    assignments for SQL statements.
+
+    Args:
+      col_names ([str]): The list of column names.  Order and length MUST match
+        that of `var_names`!
+      var_names ([str]): The list of var names, likely the keys in the dict
+        returned by `_prep_sanitized_vars()`.  Order and length MUST match that
+        of `col_names`!
+
+    Returns:
+      (str): The single string that contains the list of all <col> = <var>`
+        items in comma-separated format, where the vars are parameterized inputs
+        (i.e. `%(<>)s`).  An emptry string if no col/var names
     """
     assert len(col_names) == len(var_names), 'Col and vars must be same length!'
     return ', '.join([f'{col_names[i]} = %({var_names[i]})s'
@@ -306,6 +378,30 @@ def _build_col_var_list_str(col_names, var_names):
 
 def _build_where(where, model_cls=None):
     """
+    Builds the full where clause from the structured where format.  See
+    `Model.query_direct()` for details of the format.
+
+    Args:
+      where ({}/[]/() or None): The structured where clause.  See the
+        Model.query_direct() docs for spec.  If None, will not filter.
+      model_cls (Class<Model<>> or None): The class itself of the model holding
+        the valid column names.  Can be None if skipping that check for
+        increased performance, but this is ONLY recommended if the source of the
+        column names in the structured `where` parameter is internally
+        controlled and was not subject to external user input to avoid SQL
+        injection attacks.
+
+    Returns:
+      clause (str): The single string clause containing logic statements to use
+        as the where clause, including parameterized inputs for variables (i.e.
+        `%(<>)s` format).  This does NOT include the `WHERE` part of the string.
+        An empty string if nothing specified for `where`.
+      vals ({str:str/int/bool/datetime/enum/etc}): The mapping of variable names
+        as they will be used within parameterized format (i.e. `%(<>)s` format)
+        in the returned `clause`.  All variable names (i.e. the keys) follow the
+        naming convention `wval{count}` to avoid collisions with variables
+        derived separately for values in an update clause, for example.  An
+        empty dict if nothing specified for `where`.
     """
     vals = {}
     if not where:
@@ -321,6 +417,37 @@ def _build_where(where, model_cls=None):
 
 def _build_conditional_combo(logic_combo, conds, vals, model_cls=None):
     """
+    Builds the combinational conditional portion of a where clause, calling
+    itself again recursively as needed.
+
+    Args:
+      logic_combo (LogicCombo): The specified way to logically combine all
+        immediate/shallow elements of the conditions in `conds`.
+      conds ([{}/[]/()]): The list of conditions, where each condition can be a
+        single condition spec or can be another combinational spec.  See the
+        Model.query_direct() docs for spec.
+      vals ({str:str/int/bool/datetime/enum/etc}): The mapping of variable names
+        as they will be used within parameterized format (i.e. `%(<>)s` format)
+        in the returned `clause`.  This is expected to contain all variables
+        already built into the where clause currently being processed and will
+        be modified by single conditional specs when they specify variables.
+      model_cls (Class<Model<>> or None): The class itself of the model holding
+        the valid column names.  Can be None if skipping that check for
+        increased performance, but this is ONLY recommended if the source of the
+        column names in the structured `where` parameter is internally
+        controlled and was not subject to external user input to avoid SQL
+        injection attacks.
+
+    Returns:
+      (str): The portion of the clause that combines all provided conditionals
+        by the specified logic combinational element, wrapped in parentheses for
+        safe continued combination.  Note that the `vals` provided will be
+        modified by adding any new variables included in this portion of the
+        clause.
+
+    Raises:
+      (ValueError): Raised if the `logic_combo` provided is not a valid
+        LogicCombo option for this Orm.
     """
     cond_strs = []
     for cond in conds:
@@ -346,6 +473,36 @@ def _build_conditional_combo(logic_combo, conds, vals, model_cls=None):
 
 def _build_conditional_single(cond, vals, model_cls=None):
     """
+    Builds the single conditional portion of a where clause.
+
+    Args:
+      cond (()/[]): The tuple/list containing the elements for a single
+        conditional statement.  See Model.query_direct() docs for full details
+        on the format.
+      vals ({str:str/int/bool/datetime/enum/etc}): The mapping of variable names
+        as they will be used within parameterized format (i.e. `%(<>)s` format)
+        in the returned `clause`.  This is expected to contain all variables
+        already built into the where clause currently being processed and will
+        be modified here if a value/variable is part of the conditional.
+      model_cls (Class<Model<>> or None): The class itself of the model holding
+        the valid column names.  Can be None if skipping that check for
+        increased performance, but this is ONLY recommended if the source of the
+        column names in the structured `where` parameter is internally
+        controlled and was not subject to external user input to avoid SQL
+        injection attacks.
+
+    Returns:
+      (str): The portion of the clause that represents this single conditional.
+        Any variables will be in parameterized format (i.e. `%(<>)s` format).
+        Note that the `vals` provided will be modified by adding any new
+        variables included in this portion of the clause.
+
+    Raises:
+      (NonexistentColumnError): Raised if the column provided in the `cond` does
+        not exist in the official list of columns in the provided model (only
+        possible if model_cls provided as non-None).
+      (ValueError): Raised if the LogicOp provided as part of the `cond` is not
+        a valid LogicOp option for this Orm.
     """
     if model_cls is not None and not _validate_cols([cond[0]], model_cls):
         err_msg = f'Invalid column for {model_cls.__name__}: `{cond[0]}`'
