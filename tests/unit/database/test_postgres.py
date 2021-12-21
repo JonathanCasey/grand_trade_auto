@@ -35,6 +35,27 @@ def fixture_pg_test_db():
 
 
 
+def test_postgres_init():
+    """
+    Tests the `__init__()` method in `Postgres`.
+    """
+    params = {
+        'env': 'test',
+        'db_id': 'test_db_id',
+        'host': 'test_host',
+        'port': 0,
+        'database': 'test_database',
+        'user': 'test_user',
+        'password': 'test_password',
+    }
+    pg_test = postgres.Postgres(**params)
+    for k, v in params.items():
+        assert pg_test.__getattribute__(f'_{k}') == v
+    assert pg_test._conn is None
+    assert pg_test._orm._db == pg_test
+
+
+
 def test_load_from_config(pg_test_db):
     """
     Tests the `load_from_config()` method in `Postgres`.
@@ -106,3 +127,25 @@ def test_create_drop_check_if_db_exists(pg_test_db):
 
     pg_test_db._drop_db()
     assert not pg_test_db._check_if_db_exists()
+
+
+
+def test__get_conn(pg_test_db):
+    """
+    Tests the `_get_conn()` method in `Postgres`.
+    """
+    cached_conn = 'cached conn'
+    other_conn = 'other conn'
+    extra_args = {
+        'extra_arg_1': 'extra_val_1',
+        'extra_arg_2': 'extra_val_2',
+    }
+
+    assert pg_test_db._conn is None
+    assert pg_test_db._get_conn(other_conn) == other_conn
+
+    pg_test_db._conn = cached_conn
+    assert pg_test_db._get_conn() == cached_conn
+    assert pg_test_db._get_conn(other_conn) == other_conn
+    assert pg_test_db._get_conn(**extra_args) == cached_conn
+    assert pg_test_db._get_conn(other_conn, **extra_args) == other_conn
