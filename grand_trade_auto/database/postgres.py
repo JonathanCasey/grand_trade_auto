@@ -284,6 +284,11 @@ class Postgres(database_meta.Database):
         """
         Executes a database command.
 
+        When using with named cursors, be forewarned that committing will
+        invalidate the cursor (unless it were created with `withhold` being
+        True) -- even calling `close()` on such a cursor will raise an
+        exception.
+
         Args:
           command (str): The command to be executed (e.g. SQL statement).  It is
             HIGHLY recommended that parameterized input is used for values in

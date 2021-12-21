@@ -211,3 +211,125 @@ def test_cursor(pg_test_db):
 
     pg_test_db._conn.close()
     conn_2.close()
+
+
+
+def test_execute(pg_test_db):               #pylint: disable=too-many-statements
+    """
+    Tests the `execute()` method in `Postgres`.
+
+    While this does alter DB schema, it does it only for its own isolated
+    purposes that won't conflict with other tests, so does not need to be
+    marked as alters_db_schema.
+    """
+    # Test with cached connection to test database
+    pg_test_db.connect()
+
+    test_table_name = 'test_postgres__test_execute'
+
+    def _drop_test_table():
+        """
+        Drops the test table for this test.
+        """
+        sql_drop_table = f'DROP TABLE IF EXISTS {test_table_name}'
+        cursor = pg_test_db.connect().cursor()
+        cursor.execute(sql_drop_table)
+        pg_test_db.connect().commit()
+        cursor.close()
+
+    # Ensure test table does not exist
+    _drop_test_table()
+
+    # Want to test parameter-less command works
+    sql_create_table = f'''
+        CREATE TABLE {test_table_name} (
+        id serial PRIMARY KEY,
+        test_col_a integer,
+        test_col_b text
+    )
+    '''
+    cursor = pg_test_db.execute(sql_create_table)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name is None
+    assert cursor.closed is True
+
+    # Want to test that normal insertion works
+    sql_insert_data = f'''
+        INSERT INTO {test_table_name}
+        (test_col_a, test_col_b)
+        VALUES (%(test_val_a)s, %(test_val_b)s)
+    '''
+    test_vals_1 = {
+        'test_val_a': 1,
+        'test_val_b': 'one',
+    }
+    cursor = pg_test_db.execute(sql_insert_data, val_vars=test_vals_1)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name is None
+    assert cursor.closed is True
+
+    # Want to test select and named cursors without commit and close works
+    sql_select_where_data = f'''
+        SELECT test_col_b
+        FROM {test_table_name}
+        WHERE test_col_a=%(test_val_a)s
+    '''
+    test_cursor_name = 'test_execute'
+    cursor = pg_test_db.execute(sql_select_where_data, val_vars=test_vals_1,
+            cursor_name=test_cursor_name, commit=False, close_cursor=False)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name == test_cursor_name
+    assert cursor.closed is False
+    # assert cursor.rowcount == 1
+    assert cursor.fetchone()[0] == test_vals_1['test_val_b']
+    cursor.close()
+
+    # Want to test that not committing an insertion truly does not commit...
+    test_vals_2 = {
+        'test_val_a': 2,
+        'test_val_b': 'two',
+    }
+    cursor = pg_test_db.execute(sql_insert_data, val_vars=test_vals_2,
+            commit=False)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name is None
+    assert cursor.closed is True
+    cursor.close()
+
+    # ...by verifying does not show up on a select, while also trying a 2nd conn
+    sql_select_data = f'''
+        SELECT test_col_b
+        FROM {test_table_name}
+        ORDER BY id
+    '''
+    conn_2 = pg_test_db.connect(False)
+    assert conn_2 != pg_test_db._conn
+    cursor = pg_test_db.execute(sql_select_data, val_vars=test_vals_1,
+            close_cursor=False, conn=conn_2)
+    assert cursor.connection == conn_2
+    assert cursor.name is None
+    assert cursor.closed is False
+    assert cursor.rowcount == 1
+    assert cursor.fetchone()[0] == test_vals_1['test_val_b']
+    cursor.close()
+
+    # ...but committing 1st conn does show 2nd row, while also providing cursor
+    # (and conn arg ignored if cursor provided)
+    pg_test_db._conn.commit()
+    cursor = pg_test_db.cursor()
+    cursor_2 = pg_test_db.execute(sql_select_data, val_vars=test_vals_1,
+            close_cursor=False, cursor=cursor, conn=conn_2)
+    assert cursor_2 == cursor
+    assert cursor.connection == pg_test_db._conn
+    assert pg_test_db._conn != conn_2
+    assert cursor.name is None
+    assert cursor.closed is False
+    assert cursor.rowcount == 2
+    assert cursor.fetchone()[0] == test_vals_1['test_val_b']
+    assert cursor.fetchone()[0] == test_vals_2['test_val_b']
+    cursor.close()
+
+    # Ensure cleaned up for this test
+    conn_2.close()
+    _drop_test_table()
+    pg_test_db._conn.close()
