@@ -172,7 +172,8 @@ jobs:
           name: Run pytest unit tests
           command: |
             . venv/bin/activate
-            pytest --cov-report=xml --cov=grand_trade_auto
+            pytest --cov-report=xml --cov=grand_trade_auto --run-only-alters-db-schema
+            pytest --cov-report=xml --cov=grand_trade_auto --cov-append --skip-alters-db-schema
       - run:
           name: Upload coverage results
           command: |

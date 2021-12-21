@@ -8,7 +8,9 @@ with auto-discovery (others may exist, but will not be part of test suite
 directly).
 
 Module Attributes:
-  N/A
+  _TEST_DB_ID (str): The name/ID of the section to pull from the database conf
+    file to use as the test database configuration.
+  _TEST_ENV (str): The name of environment to use for testing.
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
@@ -22,6 +24,11 @@ from grand_trade_auto.database import databases
 
 
 
+_TEST_DB_ID = 'postgres-test'
+_TEST_ENV = 'test'
+
+
+
 @pytest.fixture(name='pg_test_db')
 def fixture_pg_test_db():
     """
@@ -31,7 +38,23 @@ def fixture_pg_test_db():
       (Postgres): The test postgres database handle.
     """
     # This also ensures its support was added to databases.py
-    return databases._get_database_from_config('postgres-test', 'test')
+    return databases._get_database_from_config(_TEST_DB_ID, _TEST_ENV)
+
+
+
+@pytest.fixture(scope='session', autouse=True)
+def fixture_create_test_db():
+    """
+    Creates the test database to be used for all tests.
+
+    This is NOT to be relied upon for any tests marked as alters_db_schema, but
+    they should consider that this will create the database.
+    """
+    test_db = databases._get_database_from_config(_TEST_DB_ID, _TEST_ENV)
+    test_db._drop_db() # Ensure cleared to start
+    test_db.create_db()
+    yield
+    test_db._drop_db()
 
 
 
@@ -95,6 +118,8 @@ def test_connect(pg_test_db):
 
 
 
+@pytest.mark.alters_db_schema
+@pytest.mark.order(0)
 def test_create_drop_check_if_db_exists(pg_test_db):
     """
     Tests the `create_db()`, `_drop_db()`, and `_check_if_db_exists()` methods
@@ -149,3 +174,40 @@ def test__get_conn(pg_test_db):
     assert pg_test_db._get_conn(other_conn) == other_conn
     assert pg_test_db._get_conn(**extra_args) == cached_conn
     assert pg_test_db._get_conn(other_conn, **extra_args) == other_conn
+
+
+
+def test_cursor(pg_test_db):
+    """
+    Tests the `cursor()` method in `Postgres`.
+    """
+    conn_2 = pg_test_db.connect(False)
+
+    assert pg_test_db._conn is None
+    cursor = pg_test_db.cursor()
+    assert pg_test_db._conn is not None
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name is None
+    cursor.close()
+
+    cursor = pg_test_db.cursor(conn=conn_2)
+    assert pg_test_db._conn is not None
+    assert pg_test_db._conn != conn_2
+    assert cursor.connection == conn_2
+    assert cursor.name is None
+    cursor.close()
+
+    test_cursor_name = 'test_cursor'
+    cursor = pg_test_db.cursor(test_cursor_name)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name == test_cursor_name
+    cursor.close()
+
+    cursor = pg_test_db.cursor(conn=conn_2, cursor_name=test_cursor_name,
+            extra_arg='extra_val_1')
+    assert cursor.connection == conn_2
+    assert cursor.name == test_cursor_name
+    cursor.close()
+
+    pg_test_db._conn.close()
+    conn_2.close()

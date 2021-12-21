@@ -53,7 +53,15 @@ python 3.7, for example.  Now this can be evoked with `python3.7`.
 
 While the admin prompt is open, this might be the best time to install
 required pacakges with pip (can use `pip3.7` in this example) as installing as a
-user can cause some headaches...
+user can cause some headaches...  It has been observed that after installing
+`pytest-order` as admin, the first run of `pytest` needs to be run as an admin
+to finish some sort of init it seems -- after that, it should work as a user.
+
+In the `python.testing.pytestArgs` list above, it is likely desireable to put
+some pytest args.  In particular, using `--skip-alters-db-schema` will run the
+most tests.  This does mean other args needs to be tested separately.  Without
+this, there may be inconsistent test results since some tests can be mutually
+exclusive.
 
 
 ### CircleCI
@@ -104,7 +112,15 @@ run.  In short, this is largely running from the repo root:
 ```
 python -m pylint grand_trade_auto
 python -m pylint tests
-pytest
+python -m pylint ci_support
+python -m pylint conftest
+
+python ci_support/dir_init_checker.py grand_trade_auto
+python ci_support/dir_init_checker.py ci_support
+python ci_support/dir_init_checker.py tests
+
+python -m pytest --cov=grand_trade_auto --run-only-alters-db-schema
+python -m pytest --cov=grand_trade_auto --cov-append --skip-alters-db-schema
 ```
 
 
