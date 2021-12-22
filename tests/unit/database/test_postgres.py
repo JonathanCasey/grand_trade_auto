@@ -8,9 +8,7 @@ with auto-discovery (others may exist, but will not be part of test suite
 directly).
 
 Module Attributes:
-  _TEST_DB_ID (str): The name/ID of the section to pull from the database conf
-    file to use as the test database configuration.
-  _TEST_ENV (str): The name of environment to use for testing.
+  N/A
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
 """
@@ -20,41 +18,6 @@ import psycopg2
 import pytest
 
 from grand_trade_auto.database import postgres
-from grand_trade_auto.database import databases
-
-
-
-_TEST_DB_ID = 'postgres-test'
-_TEST_ENV = 'test'
-
-
-
-@pytest.fixture(name='pg_test_db')
-def fixture_pg_test_db():
-    """
-    Gets the test database handle for postgres.
-
-    Returns:
-      (Postgres): The test postgres database handle.
-    """
-    # This also ensures its support was added to databases.py
-    return databases._get_database_from_config(_TEST_DB_ID, _TEST_ENV)
-
-
-
-@pytest.fixture(scope='session', autouse=True)
-def fixture_create_test_db():
-    """
-    Creates the test database to be used for all tests.
-
-    This is NOT to be relied upon for any tests marked as alters_db_schema, but
-    they should consider that this will create the database.
-    """
-    test_db = databases._get_database_from_config(_TEST_DB_ID, _TEST_ENV)
-    test_db._drop_db() # Ensure cleared to start
-    test_db.create_db()
-    yield
-    test_db._drop_db()
 
 
 
