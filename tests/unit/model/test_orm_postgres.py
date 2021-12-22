@@ -90,6 +90,9 @@ def test__create_schema_datafeed_src(pg_test_orm):
     """
     Tests the `_create_schema_datafeed_src()` method in `PostgresOrm`.
     """
+    # Ensure db exists since not guaranteed in alters_db_schema
+    pg_test_orm._db.create_db()
+
     _test_create_schema(pg_test_orm, pg_test_orm._create_schema_datafeed_src,
             'datafeed_src')
     pg_test_orm._db._conn.close()
