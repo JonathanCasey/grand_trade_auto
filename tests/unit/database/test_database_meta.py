@@ -25,7 +25,7 @@ from grand_trade_auto.database import postgres
 
 class MockDatabaseChild(database_meta.Database):
     """"
-    Simple mock object to subclass Database.
+    Simple mock class to subclass Database.
     """
 
     @classmethod
