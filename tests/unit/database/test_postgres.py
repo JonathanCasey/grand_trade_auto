@@ -197,7 +197,7 @@ def test_execute(pg_test_db):               #pylint: disable=too-many-statements
         sql_drop_table = f'DROP TABLE IF EXISTS {test_table_name}'
         cursor = pg_test_db.connect().cursor()
         cursor.execute(sql_drop_table)
-        pg_test_db.connect().commit()
+        cursor.connection.commit()
         cursor.close()
 
     # Ensure test table does not exist

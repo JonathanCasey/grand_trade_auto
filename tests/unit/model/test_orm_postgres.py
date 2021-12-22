@@ -31,15 +31,31 @@ def fixture_pg_test_orm(pg_test_db):
 
 
 
-@pytest.mark.alters_db_schema
-@pytest.mark.order(1)
-def test__create_schema_datafeed_src(pg_test_orm):
+def _test_create_schema(orm, test_func, table_name, table_schema='public'):
     """
-    Tests the `_create_schema_datafeed_src()` method in `PostgresOrm`.
+    A generic set of steps to test table creation.
+
+    This will alter the database schema for the database in the provided orm,
+    ultimately leaving the table non-existent, so tests using this likely should
+    be marked with alters_db_schema.
+
+    This will use the cached connection of the Orm's db, so the caller must
+    handle closing that connection.
+
+    Args:
+      orm (PostgresOrm): The PostgresOrm to use for this test.
+      test_func (function): The create schema function to test, probably from
+        that Orm.
+      table_name (str): The name of the table that is being created.
+      table_schema (str): The schema name of the table that is being created.
+        Can likely use default unless it was changed elsewhere.
     """
     def _drop_own_table():
-        sql_drop_table = 'DROP TABLE IF EXISTS datafeed_src'
-        cursor = pg_test_orm._db.connect().cursor()
+        """
+        Drop the table being created in this subtest.
+        """
+        sql_drop_table = f'DROP TABLE IF EXISTS {table_name}'
+        cursor = orm._db.connect().cursor()
         cursor.execute(sql_drop_table)
         cursor.connection.commit()
         cursor.close()
@@ -47,21 +63,33 @@ def test__create_schema_datafeed_src(pg_test_orm):
     _drop_own_table()
 
     # Sanity check -- ensure table really does not exist
-    sql_table_exists = '''
+    sql_table_exists = f'''
         SELECT EXISTS (
         SELECT FROM information_schema.tables
-        WHERE  table_schema = 'public'
-        AND    table_name   = 'datafeed_src'
+        WHERE  table_schema = '{table_schema}'
+        AND    table_name   = '{table_name}'
     )
     '''
-    cursor = pg_test_orm._db.execute(sql_table_exists, close_cursor=False)
+
+    cursor = orm._db.execute(sql_table_exists, close_cursor=False)
     assert cursor.fetchone()[0] is False
     cursor.close()
 
-    pg_test_orm._create_schema_datafeed_src()
-    cursor = pg_test_orm._db.execute(sql_table_exists, close_cursor=False)
+    test_func()
+    cursor = orm._db.execute(sql_table_exists, close_cursor=False)
     assert cursor.fetchone()[0] is True
     cursor.close()
 
     _drop_own_table()
-    pg_test_orm._db.connect().close()
+
+
+
+@pytest.mark.alters_db_schema
+@pytest.mark.order(1)
+def test__create_schema_datafeed_src(pg_test_orm):
+    """
+    Tests the `_create_schema_datafeed_src()` method in `PostgresOrm`.
+    """
+    _test_create_schema(pg_test_orm, pg_test_orm._create_schema_datafeed_src,
+            'datafeed_src')
+    pg_test_orm._db._conn.close()
