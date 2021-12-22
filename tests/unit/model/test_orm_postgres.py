@@ -131,7 +131,8 @@ def fixture_create_test_table():
             id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             test_name text,
             str_data text,
-            int_data integer
+            int_data integer,
+            bool_data boolean
         )
     '''
     test_db.execute(sql, conn=conn)
@@ -152,9 +153,25 @@ class ModelTest(model_meta.Model):
         'test_name',
         'str_data',
         'int_data',
+        'bool_data',
     )
 
     # Don't need the attributes for each column -- not used
+
+
+
+def mock_execute_log(self, command, val_vars=None, cursor=None, commit=True,
+            close_cursor=True, **kwargs):
+    """
+    Simply logs the mogrified SQL statement for inspection.
+    """
+    #pylint: disable=unused-argument
+    cursor = self.connect().cursor()
+    sql = cursor.mogrify(command, val_vars)
+    self.connect().commit()
+    cursor.close()
+    sql_formatted = re.sub(rb'\n\s+', b' ', sql.strip())
+    logger.warning(sql_formatted)
 
 
 
@@ -168,32 +185,37 @@ def test_add(monkeypatch, caplog, pg_test_orm):
         'test_name': 'test_add',
         'str_data': str(uuid.uuid4()),
         'int_data': 1,
+        'bool_data': True,
     }
     bad_id = {
         'id': 2,
         'test_name': 'test_add',
         'str_data': str(uuid.uuid4()),
         'int_data': 2,
+        'bool_data': True,
     }
     bad_col = {
         'test_name': 'test_add',
         'str_data': str(uuid.uuid4()),
         'int_data': 3,
+        'bool_data': True,
         'bad_col': 'nonexistent col'
     }
     bad_type = {
         'test_name': 'test_add',
         'str_data': str(uuid.uuid4()),
         'int_data': 'four',
+        'bool_data': True,
     }
 
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
-    sql_select = 'SELECT * FROM test_orm_postgres'
+    sql_select = 'SELECT * FROM test_orm_postgres WHERE test_name=%(test_name)s'
+    select_var_vals = {'test_name': 'test_add'}
 
     pg_test_orm.add(ModelTest, good_data, cursor=cursor_2, close_cursor=False)
-    cursor = pg_test_orm._db.execute(sql_select, cursor=cursor_2,
-            close_cursor=False)
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            cursor=cursor_2, close_cursor=False)
     assert cursor == cursor_2
     assert cursor.rowcount == 1
     cols = [d[0] for d in cursor.description]
@@ -219,20 +241,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.add(ModelTest, bad_type)
     assert 'invalid input syntax for type integer: "four"' in str(ex.value)
 
-    def mock_execute(self, command, val_vars=None, cursor=None, commit=True,
-            close_cursor=True, **kwargs):
-        """
-        Simply logs the mogrified SQL statement for inspection.
-        """
-        #pylint: disable=unused-argument
-        cursor = self.connect().cursor()
-        sql = cursor.mogrify(command, val_vars)
-        self.connect().commit()
-        cursor.close()
-        sql_formatted = re.sub(rb'\n\s+', b' ', sql.strip())
-        logger.warning(sql_formatted)
-
-    monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute)
+    monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
     caplog.clear()
     pg_test_orm.add(ModelTest, good_data)
     assert caplog.record_tuples == [
@@ -243,4 +252,145 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     ]
 
     conn_2.close()
+    pg_test_orm._db._conn.close()
+
+
+
+def test_update(monkeypatch, caplog, pg_test_orm):
+    """
+    Tests the `update()` method in `PostgresOrm`.
+    """
+    #pylint: disable=too-many-locals, too-many-statements
+    caplog.set_level(logging.WARNING)
+
+    initial_data = [
+        {
+            'test_name': 'test_update',
+            'str_data': str(uuid.uuid4()),
+            'int_data': 1,
+            'bool_data': True,
+        },
+        {
+            'test_name': 'test_update',
+            'str_data': str(uuid.uuid4()),
+            'int_data': 2,
+            'bool_data': True,
+        },
+    ]
+    new_data = [
+        {
+            'str_data': str(uuid.uuid4()),
+        },
+        {
+            'str_data': str(uuid.uuid4()),
+            'bool_data': False,
+        },
+    ]
+    bad_id = {
+        'id': 3,
+        'test_name': 'test_update',
+        'str_data': str(uuid.uuid4()),
+        'int_data': 3,
+        'bool_data': True,
+    }
+    bad_col = {
+        'test_name': 'test_update',
+        'str_data': str(uuid.uuid4()),
+        'int_data': 4,
+        'bool_data': True,
+        'bad_col': 'nonexistent col'
+    }
+    bad_type = {
+        'test_name': 'test_update',
+        'str_data': str(uuid.uuid4()),
+        'int_data': 'five',
+        'bool_data': True,
+    }
+
+    for data in initial_data:
+        pg_test_orm.add(ModelTest, data)
+
+    sql_select = '''
+        SELECT * FROM test_orm_postgres
+        WHERE test_name=%(test_name)s
+        ORDER BY id
+    '''
+    select_var_vals = {'test_name': 'test_update'}
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            close_cursor=False)
+    assert cursor.rowcount == 2
+    cols = [d[0] for d in cursor.description]
+    for i in range(cursor.rowcount):
+        results = dict(zip(cols, cursor.fetchone()))
+        results.pop('id')
+        assert results == initial_data[i]
+    cursor.close()
+
+    conn_2 = pg_test_orm._db.connect(False)
+    cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
+
+    where_1 = ('int_data', model_meta.LogicOp.EQ, 1)
+    pg_test_orm.update(ModelTest, new_data[0], where_1, cursor=cursor_2,
+            close_cursor=False)
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            cursor=cursor_2, close_cursor=False)
+    assert cursor == cursor_2
+    assert cursor.rowcount == 2
+    cols = [d[0] for d in cursor.description]
+    for i in range(cursor.rowcount):
+        results = dict(zip(cols, cursor.fetchone()))
+        results.pop('id')
+        if i == 0:
+            assert results == {**initial_data[i], **new_data[0]}
+        else:
+            assert results == initial_data[i]
+    cursor_2.close() # Effectively also closes cursor_2
+    conn_2.close() # Must release lock so main conn can have access
+
+    where_1_2 = {
+        model_meta.LogicCombo.OR: {
+            ('int_data', model_meta.LogicOp.EQ, 1),
+            ('int_data', model_meta.LogicOp.EQ, 2),
+        },
+    }
+    pg_test_orm.update(ModelTest, new_data[1], where_1_2)
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            close_cursor=False)
+    assert cursor.rowcount == 2
+    cols = [d[0] for d in cursor.description]
+    for i in range(cursor.rowcount):
+        results = dict(zip(cols, cursor.fetchone()))
+        results.pop('id')
+        assert results == {**initial_data[i], **new_data[1]}
+    cursor.close()
+
+    with pytest.raises(
+            psycopg2.errors.GeneratedAlways           #pylint: disable=no-member
+            ) as ex:
+        pg_test_orm.update(ModelTest, bad_id, where_1)
+    assert 'column "id" can only be updated to DEFAULT\nDETAIL:  Column "id"' \
+            + ' is an identity column defined as GENERATED ALWAYS.' \
+            in str(ex.value)
+
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        pg_test_orm.update(ModelTest, bad_col, where_1)
+    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    pg_test_orm._db._conn.rollback()
+
+    with pytest.raises(
+            psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
+            ) as ex:
+        pg_test_orm.update(ModelTest, bad_type, where_1)
+    assert 'invalid input syntax for type integer: "five"' in str(ex.value)
+
+    monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
+    caplog.clear()
+    pg_test_orm.update(ModelTest, new_data[1], where_1_2)
+    assert caplog.record_tuples == [
+        ('tests.unit.model.test_orm_postgres', logging.WARNING,
+            'b"UPDATE test_orm_postgres SET str_data = \''
+            + f'{new_data[1]["str_data"]}\', bool_data = false WHERE'
+            + ' (int_data = 2 OR int_data = 1)"')
+    ]
+
     pg_test_orm._db._conn.close()

@@ -121,8 +121,8 @@ class PostgresOrm(orm_meta.Orm):
         val_vars = _prep_sanitized_vars('u', data)
         sql = f'''
             UPDATE {model_cls.get_table_name()}
-            SET {_build_col_var_list_str(data.keys(), val_vars.keys())}
-            VALUES ({_build_var_list_str(val_vars.keys())})
+            SET {_build_col_var_list_str(
+                [d for d in data], [v for v in val_vars])}
         '''
         if where:
             where_clause, where_vars = _build_where(where, model_cls)
@@ -504,10 +504,8 @@ def _build_conditional_single(cond, vals, model_cls=None):
       (ValueError): Raised if the LogicOp provided as part of the `cond` is not
         a valid LogicOp option for this Orm.
     """
-    if model_cls is not None and not _validate_cols([cond[0]], model_cls):
-        err_msg = f'Invalid column for {model_cls.__name__}: `{cond[0]}`'
-        logger.error(err_msg)
-        raise orm_meta.NonexistentColumnError(err_msg)
+    if model_cls is not None:
+        _validate_cols([cond[0]], model_cls)
 
     if cond[1] is model_meta.LogicOp.NOT_NULL:
         return f'{cond[0]} NOT NULL'
