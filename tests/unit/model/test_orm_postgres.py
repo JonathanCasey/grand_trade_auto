@@ -82,10 +82,10 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public'):
     # Sanity check -- ensure table really does not exist
     sql_table_exists = f'''
         SELECT EXISTS (
-        SELECT FROM information_schema.tables
-        WHERE  table_schema = '{table_schema}'
-        AND    table_name   = '{table_name}'
-    )
+            SELECT FROM information_schema.tables
+            WHERE  table_schema = '{table_schema}'
+            AND    table_name   = '{table_name}'
+        )
     '''
 
     cursor = orm._db.execute(sql_table_exists, close_cursor=False)

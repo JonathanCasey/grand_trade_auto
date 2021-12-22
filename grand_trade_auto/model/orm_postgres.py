@@ -59,12 +59,12 @@ class PostgresOrm(orm_meta.Orm):
         """
         sql = '''
             CREATE TABLE datafeed_src (
-            id serial PRIMARY KEY,
-            config_parser text NOT NULL,
-            is_init_complete boolean,
-            progress_marker text,
-            UNIQUE (config_parser)
-        )
+                id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                config_parser text NOT NULL,
+                is_init_complete boolean,
+                progress_marker text,
+                UNIQUE (config_parser)
+            )
         '''
         self._db.execute(sql)
 
