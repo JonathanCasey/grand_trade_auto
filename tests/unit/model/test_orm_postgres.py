@@ -211,17 +211,13 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.add(ModelTest, bad_col)
     assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    pg_test_orm._db._conn.rollback()
 
     with pytest.raises(
             psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
             ) as ex:
         pg_test_orm.add(ModelTest, bad_type)
     assert 'invalid input syntax for type integer: "four"' in str(ex.value)
-    # NOTE: The connection could NOT be reused after this exception test for
-    #    the monkeypatch test below, otherwise cleaning up the database after
-    #    all tests would report a user is still connected.  Reason unknown.
-    pg_test_orm._db._conn.close()
-    pg_test_orm._db._conn = None
 
     def mock_execute(self, command, val_vars=None, cursor=None, commit=True,
             close_cursor=True, **kwargs):
