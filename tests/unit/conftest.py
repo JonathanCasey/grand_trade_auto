@@ -13,8 +13,6 @@ Module Attributes:
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
-import time
-
 import pytest
 
 from grand_trade_auto.database import databases
@@ -40,25 +38,6 @@ def fixture_create_test_db():
     """
     test_db = databases._get_database_from_config(_TEST_PG_DB_ID, _TEST_PG_ENV)
     test_db._drop_db() # Ensure cleared to start
-
-    is_dropped = False
-    conn = test_db.connect(False, 'postgres')
-    for _ in range(10):
-        sql_check_name = f'''
-            SELECT COUNT(datname)
-            FROM pg_database
-            WHERE datname=%(database)s
-        '''
-        cursor = conn.cursor()
-        cursor.execute(sql_check_name, {'database': test_db._database})
-        if cursor.rowcount > 0 and cursor.fetchone()[0] == 0:
-            is_dropped = True
-        cursor.close()
-        if is_dropped:
-            break
-        time.sleep(1)
-    conn.close()
-
     test_db.create_db()
     yield
     test_db._drop_db()
