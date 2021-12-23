@@ -2,6 +2,10 @@
 """
 Tests the grand_trade_auto.model.orm_postgres functionality.
 
+Note that most of these tests are NOT intended to be run in parallel -- changes
+would need to be made to ensure they do not conflict with the state of the
+database (probably easiest to make a dedicated table for each test).
+
 Per [pytest](https://docs.pytest.org/en/reorganize-docs/new-docs/user/naming_conventions.html),
 all tiles, classes, and methods will be prefaced with `test_/Test` to comply
 with auto-discovery (others may exist, but will not be part of test suite
@@ -32,7 +36,6 @@ from tests.unit import conftest as unit_conftest
 
 logger = logging.getLogger(__name__)
 
-# TODO: Add 'where' for test_name to all tests
 
 
 @pytest.fixture(name='pg_test_orm')
