@@ -245,6 +245,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     sql_select = 'SELECT * FROM test_orm_postgres WHERE test_name=%(test_name)s'
     select_var_vals = {'test_name': 'test_add'}
 
+    # Ensure single row add; can supply a cursor, keep it open
     pg_test_orm.add(ModelTest, good_data, cursor=cursor_2, close_cursor=False)
     cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
             cursor=cursor_2, close_cursor=False)
@@ -255,7 +256,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     assert results['str_data'] == good_data['str_data']
     cursor.close() # Effectively also closes cursor_2
 
-
+    # Ensure cannot set id col
     with pytest.raises(
             psycopg2.errors.GeneratedAlways           #pylint: disable=no-member
             ) as ex:
@@ -263,6 +264,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     assert 'cannot insert into column "id"' in str(ex.value)
     pg_test_orm._db._conn.rollback()
 
+    # Ensure bad col in new data caught
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.add(ModelTest, bad_col)
@@ -272,12 +274,14 @@ def test_add(monkeypatch, caplog, pg_test_orm):
             "Invalid columns for ModelTest: ['bad_col']"),
     ]
 
+    # Ensure bad type in new data is caught
     with pytest.raises(
             psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
             ) as ex:
         pg_test_orm.add(ModelTest, bad_type)
     assert 'invalid input syntax for type integer: "four"' in str(ex.value)
 
+    # Ensure SQL generated as expected
     monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
     caplog.clear()
     pg_test_orm.add(ModelTest, good_data)
@@ -354,9 +358,9 @@ def test_update(monkeypatch, caplog, pg_test_orm):
 
     _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
 
+    # Ensure simple where; single row update; can supply a cursor, keep it open
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
-
     where_1 = ('int_data', model_meta.LogicOp.EQ, 1)
     pg_test_orm.update(ModelTest, new_data[0], where_1, cursor=cursor_2,
             close_cursor=False)
@@ -374,6 +378,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
             assert results == init_data[i]
     cursor_2.close() # Effectively also closes cursor_2
 
+    # Ensure complex where, multiple rows updated to same vals
     where_1_2 = {
         model_meta.LogicCombo.OR: [
             ('int_data', model_meta.LogicOp.EQ, 1),
@@ -391,6 +396,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         assert results == {**init_data[i], **new_data[1]}
     cursor.close()
 
+    # Ensure cannot update id col
     with pytest.raises(
             psycopg2.errors.GeneratedAlways           #pylint: disable=no-member
             ) as ex:
@@ -400,6 +406,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
             in str(ex.value)
     pg_test_orm._db._conn.rollback()
 
+    # Ensure bad col in new data caught
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.update(ModelTest, bad_col, where_1)
@@ -409,12 +416,14 @@ def test_update(monkeypatch, caplog, pg_test_orm):
             "Invalid columns for ModelTest: ['bad_col']"),
     ]
 
+    # Ensure bad type in new data is caught
     with pytest.raises(
             psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
             ) as ex:
         pg_test_orm.update(ModelTest, bad_type, where_1)
     assert 'invalid input syntax for type integer: "five"' in str(ex.value)
 
+    # Ensure SQL generated as expected
     monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
     caplog.clear()
     pg_test_orm.update(ModelTest, new_data[1], where_1_2)
@@ -466,9 +475,10 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     select_var_vals = {'test_name': 'test_delete'}
 
     _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
+
+    # Ensure simple where; can supply a cursor, keep it open
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
-
     where_1 = ('int_data', model_meta.LogicOp.EQ, 1)
     pg_test_orm.delete(ModelTest, where_1, cursor=cursor_2, close_cursor=False)
     cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
@@ -482,6 +492,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
         assert results == init_data[i+1]
     cursor_2.close() # Effectively also closes cursor_2
 
+    # Ensure complex where
     where_2_3 = {
         model_meta.LogicCombo.OR: [
             ('int_data', model_meta.LogicOp.EQ, 2),
@@ -494,6 +505,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     assert cursor.rowcount == 0
     cursor.close()
 
+    # Ensure delete all fails without explicit delete all
     _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
     caplog.clear()
     with pytest.raises(ValueError) as ex:
@@ -506,6 +518,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
                     + '  Likely intended to specify `where`?'),
     ]
 
+    # Ensure delete all works with explicit delete all
     _confirm_all_data(pg_test_orm, init_data, sql_select, select_var_vals)
     pg_test_orm.delete(ModelTest, None, really_delete_all=True)
     cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
@@ -513,6 +526,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     assert cursor.rowcount == 0
     cursor.close()
 
+    # Ensure bad col in where caught
     caplog.clear()
     where_bad_col = ('bad_col', model_meta.LogicOp.NOT_NULL)
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
@@ -523,6 +537,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
             "Invalid columns for ModelTest: ['bad_col']"),
     ]
 
+    # Ensure bad type in where is caught
     where_bad_type = ('id', model_meta.LogicOp.GTE, 'nan')
     with pytest.raises(
             psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
@@ -530,6 +545,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.delete(ModelTest, where_bad_type)
     assert 'invalid input syntax for type integer: "nan"' in str(ex.value)
 
+    # Ensure SQL generated as expected
     monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
     caplog.clear()
     pg_test_orm.delete(ModelTest, where_2_3)
@@ -594,7 +610,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     assert cursor.closed is True
     assert len(pd_df['test_name']=='test_query') >= len(init_data)
 
-    # Ensure can supply a cursor, keep it open, and return as model(enum)
+    # Ensure can supply a cursor, keep it open; and return as model(enum)
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
     where_1 = ('int_data', model_meta.LogicOp.EQ, 1)
