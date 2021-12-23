@@ -579,10 +579,6 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         },
     ]
 
-    bad_col = [
-        'bad_col',
-    ]
-
     sql_select = '''
         SELECT * FROM test_orm_postgres
         WHERE test_name=%(test_name)s
@@ -592,9 +588,16 @@ def test_query(monkeypatch, caplog, pg_test_orm):
 
     _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
 
+    # Ensure good without where clause; cursor closed; return as pandas(enum)
+    cursor = pg_test_orm._db.cursor()
+    pd_df = pg_test_orm.query(ModelTest, model_meta.ReturnAs.PANDAS,
+            cursor=cursor, close_cursor=True)
+    assert cursor.closed is True
+    assert len(pd_df['test_name']=='test_query') >= len(init_data)
+
+    # Ensure can supply a cursor, keep it open, and return as model(enum)
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
-
     where_1 = ('int_data', model_meta.LogicOp.EQ, 1)
     models = pg_test_orm.query(ModelTest, model_meta.ReturnAs.MODEL,
             ModelTest._columns, where_1, cursor=cursor_2, close_cursor=False)
@@ -607,7 +610,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         assert isinstance(mdl.id, int)
     cursor_2.close() # Effectively also closes cursor_2
 
-
+    # Ensure more complex where; with cols, order, limit; return pandas(str)
     where_2_3 = {
         model_meta.LogicCombo.OR: [
             ('int_data', model_meta.LogicOp.EQ, 2),
@@ -617,27 +620,35 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     cols_to_return = ['id', 'int_data']
     order_id_desc = [('id', model_meta.SortOrder.DESC)]
     limit = len(init_data)
-    models = pg_test_orm.query(ModelTest, 'model', cols_to_return, where_2_3,
+    pd_df = pg_test_orm.query(ModelTest, 'pandas', cols_to_return, where_2_3,
             limit, order_id_desc)
     init_data_model_indices = [2, 1]
-    assert len(models) == len(init_data_model_indices)
+    assert len(pd_df) == len(init_data_model_indices)
+    assert list(pd_df.columns) == cols_to_return
     min_id_so_far = 65535   # Must be much larger than anything expected
-    for i, mdl in enumerate(models):
+    for i in range(len(pd_df)):
         for k, v in init_data[init_data_model_indices[i]].items():
             if k not in cols_to_return or k == 'id':
                 continue
-            assert getattr(mdl, k) == v
-        assert isinstance(mdl.id, int)
-        assert mdl.id < min_id_so_far
-        min_id_so_far = mdl.id
+            assert pd_df.iloc[i].loc[k] == v
+        try:
+            pd_id = int(pd_df.iloc[i].loc['id'])
+        except ValueError:
+            assert False
+        assert pd_id == pd_df.iloc[i].loc['id']
+        assert pd_id < min_id_so_far
+        min_id_so_far = pd_id
 
+    # Ensure complex order; effective limit; cursor closed; return model(str)
+    cursor = pg_test_orm._db.cursor()
     order_bool_asc_int_desc = [
         ('bool_data', model_meta.SortOrder.ASC),
         ('int_data', model_meta.SortOrder.DESC),
     ]
     limit = len(init_data) - 1
     models = pg_test_orm.query(ModelTest, 'model', limit=limit,
-            order=order_bool_asc_int_desc)
+            order=order_bool_asc_int_desc, cursor=cursor)
+    assert cursor.closed is True
     init_data_model_indices = [2, 3, 1]
     assert len(models) == len(init_data_model_indices)
     for i, mdl in enumerate(models):
@@ -645,6 +656,75 @@ def test_query(monkeypatch, caplog, pg_test_orm):
             assert getattr(mdl, k) == v
         assert isinstance(mdl.id, int)
 
+    # Ensure invalid return as caught
+    with pytest.raises(ValueError) as ex:
+        pg_test_orm.query(ModelTest, 'invalid-return-as')
+    assert "'invalid-return-as' is not a valid ReturnAs" in str(ex.value)
+
+    # Ensure bad col in return cols caught
+    caplog.clear()
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        pg_test_orm.query(ModelTest, 'model', ['bad_col'])
+    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid columns for ModelTest: ['bad_col']"),
+    ]
+
+    # Ensure bad col in where caught
+    caplog.clear()
+    where_bad_col = ('bad_col', model_meta.LogicOp.NOT_NULL)
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        pg_test_orm.query(ModelTest, 'model', where=where_bad_col)
+    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid columns for ModelTest: ['bad_col']"),
+    ]
+
+    # Ensure bad col in order caught
+    caplog.clear()
+    order_bad_col = [('bad_col', model_meta.SortOrder.ASC)]
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        pg_test_orm.query(ModelTest, 'model', order=order_bad_col)
+    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid columns for ModelTest: ['bad_col']"),
+    ]
+
+    # Ensure bad limit arg caught
+    caplog.clear()
+    with pytest.raises(ValueError) as ex:
+        pg_test_orm.query(ModelTest, 'model', limit='nan')
+    assert "Failed to limit, likely not a number:" in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Failed to limit, likely not a number: invalid literal for int()"
+            + " with base 10: 'nan'"),
+    ]
+
+    # Ensure bad type anywhere is caught
+    where_bad_type = ('id', model_meta.LogicOp.GTE, 'nan')
+    with pytest.raises(
+            psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
+            ) as ex:
+        pg_test_orm.query(ModelTest, 'pandas', where=where_bad_type)
+    assert 'invalid input syntax for type integer: "nan"' in str(ex.value)
+
+    # Ensure SQL generated as expected
+    monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
+    caplog.clear()
+    # Don't really care about exception -- just side effect of mock
+    with pytest.raises(AttributeError):
+        pg_test_orm.query(ModelTest, 'model', where=where_2_3, limit=100,
+                order=order_bool_asc_int_desc)
+    assert caplog.record_tuples == [
+        ('tests.unit.model.test_orm_postgres', logging.WARNING,
+            "b'SELECT * FROM test_orm_postgres WHERE (int_data = 2 OR"
+            + " int_data = 3) ORDER BY bool_data ASC, int_data DESC"
+            + " LIMIT 100'"),
+    ]
 
     conn_2.close()
     pg_test_orm._db._conn.close()

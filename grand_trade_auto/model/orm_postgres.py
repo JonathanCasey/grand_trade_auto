@@ -232,6 +232,11 @@ class PostgresOrm(orm_meta.Orm):
             results = self._convert_cursor_to_models(model_cls, cursor)
         elif model_meta.ReturnAs(return_as) is model_meta.ReturnAs.PANDAS:
             results = PostgresOrm._convert_cursor_to_pandas_dataframe(cursor)
+        else:
+            err_msg = 'Query must return as a value from ReturnAs enum.'
+            err_msg += f'  Got: {return_as}'
+            logger.error(err_msg)
+            raise ValueError(err_msg)
 
         if 'close_cursor' not in kwargs or kwargs['close_cursor'] is True:
             cursor.close()
