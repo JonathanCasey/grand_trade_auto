@@ -18,6 +18,7 @@ Module Attributes:
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
+import itertools
 import logging
 import re
 import uuid
@@ -862,7 +863,7 @@ def test__convert_cursor_to_pandas_dataframe(pg_test_orm):
 
 def test__validate_cols(caplog):
     """
-    Tests the `_validate_cols()` in `orm_postgres`.
+    Tests the `_validate_cols()` method in `orm_postgres`.
     """
     caplog.set_level(logging.WARNING)
 
@@ -895,3 +896,81 @@ def test__validate_cols(caplog):
     msg_parts = caplog.record_tuples[0][2].split(': ', 1)
     assert msg_parts[0] == 'Invalid column(s) for ModelTest'
     assert set(msg_parts[1].split(', ')) == set([f'`{c}`' for c in bad_cols])
+
+
+
+def test__prep_sanitized_vars():
+    """
+    Tests the `_prep_sanitized_vars()` method in `orm_postgres`.
+    """
+    data = {
+        'col_1': 'val_1',
+        'col_2': 'val_2',
+        'col_3': 'val_3',
+    }
+
+    val_vars = orm_postgres._prep_sanitized_vars('', data)
+    for i, (k, v) in enumerate(val_vars.items()):
+        assert k == f'val{i}'
+        assert v == data[list(data.keys())[i]]
+
+
+    val_vars = orm_postgres._prep_sanitized_vars('test',
+            dict(itertools.islice(data.items(), 1)))
+    for i, (k, v) in enumerate(val_vars.items()):
+        assert k == f'testval{i}'
+        assert v == data[list(data.keys())[i]]
+
+    val_vars = orm_postgres._prep_sanitized_vars('empty', {})
+    assert val_vars == {}
+
+
+
+def test__build_var_list_str():
+    """
+    Tests the `_build_var_list_str()` method in `orm_postgres`.
+    """
+    names = [
+        'var_1',
+        'var_2',
+        'var_3',
+    ]
+
+    var_str = orm_postgres._build_var_list_str(names)
+    assert var_str == '%(var_1)s, %(var_2)s, %(var_3)s'
+
+    var_str = orm_postgres._build_var_list_str(names[:1])
+    assert var_str == '%(var_1)s'
+
+    var_str = orm_postgres._build_var_list_str([])
+    assert var_str == ''
+
+
+
+def test__build_col_var_list_str():
+    """
+    Tests the `_build_col_var_list_str()` method in `orm_postgres`.
+    """
+    col_names = [
+        'col_1',
+        'col_2',
+        'col_3',
+    ]
+    var_names = [
+        'var_1',
+        'var_2',
+        'var_3',
+    ]
+
+    cv_str = orm_postgres._build_col_var_list_str(col_names, var_names)
+    assert cv_str == 'col_1 = %(var_1)s, col_2 = %(var_2)s, col_3 = %(var_3)s'
+
+    cv_str = orm_postgres._build_col_var_list_str(col_names[:1], var_names[:1])
+    assert cv_str == 'col_1 = %(var_1)s'
+
+    cv_str = orm_postgres._build_col_var_list_str([], [])
+    assert cv_str == ''
+
+    with pytest.raises(AssertionError) as ex:
+        orm_postgres._build_col_var_list_str([], [1])
+    assert 'Col and vars must be same length!' == str(ex.value)
