@@ -746,3 +746,109 @@ def test_query(monkeypatch, caplog, pg_test_orm):
 
     conn_2.close()
     pg_test_orm._db._conn.close()
+
+
+
+def test__convert_cursor_to_models(pg_test_orm):
+    """
+    Tests the `_convert_cursor_to_models()` method in `PostgresOrm`.
+    """
+    test_name = 'test__convert_cursor_to_models'
+    init_data = [
+        {
+            'test_name': test_name,
+            'str_data': str(uuid.uuid4()),
+            'int_data': 1,
+            'bool_data': True,
+        },
+        {
+            'test_name': test_name,
+            'str_data': str(uuid.uuid4()),
+            'int_data': 2,
+            'bool_data': True,
+        },
+        {
+            'test_name': test_name,
+            'str_data': str(uuid.uuid4()),
+            'int_data': 3,
+            'bool_data': False,
+        },
+    ]
+
+    sql_select = '''
+        SELECT * FROM test_orm_postgres
+        WHERE test_name=%(test_name)s
+        ORDER BY id
+    '''
+    select_var_vals = {'test_name': test_name}
+
+    _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
+
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            close_cursor=False)
+    models = pg_test_orm._convert_cursor_to_models(ModelTest, cursor)
+    assert cursor.rowcount == 3
+    assert len(models) == len(init_data)
+    for i, mdl in enumerate(models):
+        for k, v in init_data[i].items():
+            assert getattr(mdl, k) == v
+        assert isinstance(mdl.id, int)
+
+    cursor.close()
+    pg_test_orm._db._conn.close()
+
+
+
+def test__convert_cursor_to_pandas_dataframe(pg_test_orm):
+    """
+    Tests the `_convert_cursor_to_pandas_dataframe()` method in `PostgresOrm`.
+    """
+    test_name = 'test__convert_cursor_to_pandas_dataframe'
+    init_data = [
+        {
+            'test_name': test_name,
+            'str_data': str(uuid.uuid4()),
+            'int_data': 1,
+            'bool_data': True,
+        },
+        {
+            'test_name': test_name,
+            'str_data': str(uuid.uuid4()),
+            'int_data': 2,
+            'bool_data': True,
+        },
+        {
+            'test_name': test_name,
+            'str_data': str(uuid.uuid4()),
+            'int_data': 3,
+            'bool_data': False,
+        },
+    ]
+
+    sql_select = '''
+        SELECT * FROM test_orm_postgres
+        WHERE test_name=%(test_name)s
+        ORDER BY id
+    '''
+    select_var_vals = {'test_name': test_name}
+
+    _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
+
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            close_cursor=False)
+    pd_df = pg_test_orm._convert_cursor_to_pandas_dataframe(cursor)
+    assert len(pd_df) == len(init_data)
+    assert set(pd_df.columns) == set(ModelTest._columns)
+    for i in range(len(pd_df)):
+        for k, v in init_data[i].items():
+            if k == 'id':
+                continue
+            assert pd_df.iloc[i].loc[k] == v
+        try:
+            pd_id = int(pd_df.iloc[i].loc['id'])
+        except ValueError:
+            assert False
+        assert pd_id == pd_df.iloc[i].loc['id']
+
+    cursor.close()
+    pg_test_orm._db._conn.close()
