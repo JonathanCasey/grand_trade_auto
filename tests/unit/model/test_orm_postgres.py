@@ -1148,3 +1148,124 @@ def test__build_conditional_combo(caplog):
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
             "Invalid or Unsupported Logic Combo: bad combo"),
     ]
+
+
+
+def test__build_conditional_single(caplog):
+    """
+    Tests the `_build_conditional_single()` method in `orm_postgres`.
+    """
+    # Ensure all supported ops work as expected
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_1', model_meta.LogicOp.NOT_NULL), vals)
+    assert clause == 'col_1 NOT NULL'
+    assert vals == {}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_2', model_meta.LogicOp.EQ, 2), vals)
+    assert clause == 'col_2 = %(wval0)s'
+    assert vals == {'wval0': 2}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_3', model_meta.LogicOp.EQUAL, 3), vals)
+    assert clause == 'col_3 = %(wval0)s'
+    assert vals == {'wval0': 3}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_4', model_meta.LogicOp.EQUALS, 4), vals)
+    assert clause == 'col_4 = %(wval0)s'
+    assert vals == {'wval0': 4}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_5', model_meta.LogicOp.LT, 5), vals)
+    assert clause == 'col_5 < %(wval0)s'
+    assert vals == {'wval0': 5}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_6', model_meta.LogicOp.LESS_THAN, 6), vals)
+    assert clause == 'col_6 < %(wval0)s'
+    assert vals == {'wval0': 6}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_7', model_meta.LogicOp.LTE, 7), vals)
+    assert clause == 'col_7 <= %(wval0)s'
+    assert vals == {'wval0': 7}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_8', model_meta.LogicOp.LESS_THAN_OR_EQUAL, 8), vals)
+    assert clause == 'col_8 <= %(wval0)s'
+    assert vals == {'wval0': 8}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_9', model_meta.LogicOp.GT, 9), vals)
+    assert clause == 'col_9 > %(wval0)s'
+    assert vals == {'wval0': 9}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_10', model_meta.LogicOp.GREATER_THAN, 10), vals)
+    assert clause == 'col_10 > %(wval0)s'
+    assert vals == {'wval0': 10}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_11', model_meta.LogicOp.GTE, 11), vals)
+    assert clause == 'col_11 >= %(wval0)s'
+    assert vals == {'wval0': 11}
+
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('col_12', model_meta.LogicOp.GREATER_THAN_OR_EQUAL, 12), vals)
+    assert clause == 'col_12 >= %(wval0)s'
+    assert vals == {'wval0': 12}
+
+    # Ensure no issue providing 3 cond's when 2 expected and with vars
+    vals = {'existing_col': 'ex_val'}
+    clause = orm_postgres._build_conditional_single(
+            ('col_13', model_meta.LogicOp.NOT_NULL, 'no_val'), vals)
+    assert clause == 'col_13 NOT NULL'
+    assert vals == {'existing_col': 'ex_val'}
+
+    # Ensure works with existing values
+    vals = {'existing_col': 'ex_val'}
+    clause = orm_postgres._build_conditional_single(
+            ('col_14', model_meta.LogicOp.EQ, 14), vals)
+    assert clause == 'col_14 = %(wval1)s'
+    assert vals == {'existing_col': 'ex_val', 'wval1': 14}
+
+    # Ensure works with col valid
+    vals = {}
+    clause = orm_postgres._build_conditional_single(
+            ('id', model_meta.LogicOp.EQ, 15), vals, ModelTest)
+    assert clause == 'id = %(wval0)s'
+    assert vals == {'wval0': 15}
+
+    # Ensure bad col caught
+    caplog.clear()
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        orm_postgres._build_conditional_single(
+            ('bad_col', model_meta.LogicOp.EQ, 16), {}, ModelTest)
+    assert 'Invalid column(s) for ModelTest:' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid column(s) for ModelTest: `bad_col`"),
+    ]
+
+    # Ensure bad op caught
+    caplog.clear()
+    with pytest.raises(ValueError) as ex:
+        orm_postgres._build_conditional_single(('col_17', 'bad op'), {})
+    assert 'Invalid or Unsupported Logic Op: bad op' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid or Unsupported Logic Op: bad op"),
+    ]
