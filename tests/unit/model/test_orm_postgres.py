@@ -394,3 +394,146 @@ def test_update(monkeypatch, caplog, pg_test_orm):
 
     conn_2.close()
     pg_test_orm._db._conn.close()
+
+
+
+def test_delete(monkeypatch, caplog, pg_test_orm):
+    """
+    Tests the `delete()` method in `PostgresOrm`.
+    """
+    #pylint: disable=too-many-locals, too-many-statements
+    caplog.set_level(logging.WARNING)
+
+    initial_data = [
+        {
+            'test_name': 'test_delete',
+            'str_data': str(uuid.uuid4()),
+            'int_data': 1,
+            'bool_data': True,
+        },
+        {
+            'test_name': 'test_delete',
+            'str_data': str(uuid.uuid4()),
+            'int_data': 2,
+            'bool_data': True,
+        },
+        {
+            'test_name': 'test_delete',
+            'str_data': str(uuid.uuid4()),
+            'int_data': 3,
+            'bool_data': True,
+        },
+    ]
+
+    sql_select = '''
+        SELECT * FROM test_orm_postgres
+        WHERE test_name=%(test_name)s
+        ORDER BY id
+    '''
+    select_var_vals = {'test_name': 'test_delete'}
+
+    def _confirm_all_initial_data():
+        """
+        Confirms the initial data struct is loaded in the table and is the only
+        thing loaded in the table.
+        """
+        conn_3 = pg_test_orm._db.connect(False)
+        cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+                close_cursor=False, conn=conn_3)
+        assert cursor.rowcount == 3
+        cols = [d[0] for d in cursor.description]
+        for i in range(cursor.rowcount):
+            results = dict(zip(cols, cursor.fetchone()))
+            results.pop('id')
+            assert results == initial_data[i]
+        cursor.close()
+        conn_3.close()
+
+    def _load_data_and_confirm():
+        """
+        Load initial data in table and confirm it is there.  Table expected to
+        be empty priot to call.
+        """
+        conn_4 = pg_test_orm._db.connect(False)
+        for data in initial_data:
+            pg_test_orm.add(ModelTest, data, conn=conn_4)
+        conn_4.close()
+        _confirm_all_initial_data()
+
+    _load_data_and_confirm()
+    conn_2 = pg_test_orm._db.connect(False)
+    cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
+
+    where_1 = ('int_data', model_meta.LogicOp.EQ, 1)
+    pg_test_orm.delete(ModelTest, where_1, cursor=cursor_2, close_cursor=False)
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            cursor=cursor_2, close_cursor=False)
+    assert cursor == cursor_2
+    assert cursor.rowcount == 2
+    cols = [d[0] for d in cursor.description]
+    for i in range(cursor.rowcount):
+        results = dict(zip(cols, cursor.fetchone()))
+        results.pop('id')
+        assert results == initial_data[i+1]
+    cursor_2.close() # Effectively also closes cursor_2
+
+    where_2_3 = {
+        model_meta.LogicCombo.OR: [
+            ('int_data', model_meta.LogicOp.EQ, 2),
+            ('int_data', model_meta.LogicOp.EQ, 3),
+        ],
+    }
+    pg_test_orm.delete(ModelTest, where_2_3)
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            close_cursor=False)
+    assert cursor.rowcount == 0
+    cursor.close()
+
+    _load_data_and_confirm()
+    caplog.clear()
+    with pytest.raises(ValueError) as ex:
+        pg_test_orm.delete(ModelTest, {})
+    assert 'Invalid delete parameters: `where` empty, but' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            'Invalid delete parameters: `where` empty, but did not'
+                    + ' set `really_delete_all` to confirm delete all.'
+                    + '  Likely intended to specify `where`?'),
+    ]
+
+    _confirm_all_initial_data()
+    pg_test_orm.delete(ModelTest, None, really_delete_all=True)
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            close_cursor=False)
+    assert cursor.rowcount == 0
+    cursor.close()
+
+    caplog.clear()
+    where_bad_col = ('bad_col', model_meta.LogicOp.NOT_NULL)
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        pg_test_orm.delete(ModelTest, where_bad_col)
+    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid columns for ModelTest: ['bad_col']"),
+    ]
+    pg_test_orm._db._conn.rollback()
+
+    where_bad_type = ('id', model_meta.LogicOp.GTE, 'nan')
+    with pytest.raises(
+            psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
+            ) as ex:
+        pg_test_orm.delete(ModelTest, where_bad_type)
+    assert 'invalid input syntax for type integer: "nan"' in str(ex.value)
+
+    monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
+    caplog.clear()
+    pg_test_orm.delete(ModelTest, where_2_3)
+    assert caplog.record_tuples == [
+        ('tests.unit.model.test_orm_postgres', logging.WARNING,
+            "b'DELETE FROM test_orm_postgres WHERE"
+            + " (int_data = 2 OR int_data = 3)'"),
+    ]
+
+    conn_2.close()
+    pg_test_orm._db._conn.close()
