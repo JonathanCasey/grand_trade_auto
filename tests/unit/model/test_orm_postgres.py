@@ -261,6 +261,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
             ) as ex:
         pg_test_orm.add(ModelTest, bad_id)
     assert 'cannot insert into column "id"' in str(ex.value)
+    pg_test_orm._db._conn.rollback()
 
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
@@ -270,7 +271,6 @@ def test_add(monkeypatch, caplog, pg_test_orm):
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
             "Invalid columns for ModelTest: ['bad_col']"),
     ]
-    pg_test_orm._db._conn.rollback()
 
     with pytest.raises(
             psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
@@ -398,6 +398,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     assert 'column "id" can only be updated to DEFAULT\nDETAIL:  Column "id"' \
             + ' is an identity column defined as GENERATED ALWAYS.' \
             in str(ex.value)
+    pg_test_orm._db._conn.rollback()
 
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
@@ -407,7 +408,6 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
             "Invalid columns for ModelTest: ['bad_col']"),
     ]
-    pg_test_orm._db._conn.rollback()
 
     with pytest.raises(
             psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
@@ -522,7 +522,6 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
             "Invalid columns for ModelTest: ['bad_col']"),
     ]
-    pg_test_orm._db._conn.rollback()
 
     where_bad_type = ('id', model_meta.LogicOp.GTE, 'nan')
     with pytest.raises(
