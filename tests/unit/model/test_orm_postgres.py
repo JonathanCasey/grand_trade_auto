@@ -1057,8 +1057,8 @@ def test__build_where(caplog):
     caplog.clear()
     where_combo = {
         model_meta.LogicCombo.AND: [
-            ('id', model_meta.LogicOp.EQ, 'val_4'),
-            ('bad_col', model_meta.LogicOp.EQ, 5),
+            ('id', model_meta.LogicOp.EQ, 'val_12'),
+            ('bad_col', model_meta.LogicOp.EQ, 13),
         ],
     }
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
@@ -1067,4 +1067,84 @@ def test__build_where(caplog):
     assert caplog.record_tuples == [
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
+    ]
+
+    # Ensure combo where clause fails with any value error
+    caplog.clear()
+    where_combo = {
+        'not a combo': [
+            ('col_1', 'not an op', 'val_14'),
+            ('col_2', model_meta.LogicOp.EQ, 15),
+        ],
+    }
+    with pytest.raises(ValueError) as ex:
+        orm_postgres._build_where(where_combo)
+    assert 'Invalid or Unsupported Logic Op: not an op' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid or Unsupported Logic Op: not an op"),
+    ]
+
+
+
+def test__build_conditional_combo(caplog):
+    """
+    Tests the `_build_conditional_combo()` method in `orm_postgres`.
+    """
+    # Ensure simply combo where clause works without col check
+    where_conds = [
+        ('col_1', model_meta.LogicOp.EQ, 'val_1'),
+        ('col_2', model_meta.LogicOp.EQ, 2),
+    ]
+    vals = {}
+    clause = orm_postgres._build_conditional_combo(model_meta.LogicCombo.AND,
+            where_conds, vals)
+    assert clause == '(col_1 = %(wval0)s AND col_2 = %(wval1)s)'
+    assert vals == {'wval0': 'val_1', 'wval1': 2}
+
+    # Ensure nested combo where clause works with col check
+    vals = {'existing_item': 'ex_val'}
+    where_conds = [
+            ('id', model_meta.LogicOp.EQ, 'val_3'),
+            {
+                model_meta.LogicCombo.AND: [
+                    ('int_data', model_meta.LogicOp.EQ, 4),
+                    ('bool_data', model_meta.LogicOp.EQ, 5),
+                ],
+            },
+    ]
+    clause = orm_postgres._build_conditional_combo(
+            model_meta.LogicCombo.OR, where_conds, vals, ModelTest)
+    assert clause == '(id = %(wval1)s OR (int_data = %(wval2)s' \
+            + ' AND bool_data = %(wval3)s))'
+    assert vals == {
+        'existing_item': 'ex_val',
+        'wval1': 'val_3',
+        'wval2': 4,
+        'wval3': 5,
+    }
+
+    # Ensure fails with bad col
+    caplog.clear()
+    where_conds = [
+        ('bad_col', model_meta.LogicOp.EQ, 'val_6'),
+        ('col_2', model_meta.LogicOp.EQ, 7),
+    ]
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        orm_postgres._build_conditional_combo(
+            model_meta.LogicCombo.OR, where_conds, {}, ModelTest)
+    assert 'Invalid column(s) for ModelTest:' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid column(s) for ModelTest: `bad_col`"),
+    ]
+
+    # Ensure fails with bad combo
+    caplog.clear()
+    with pytest.raises(ValueError) as ex:
+        orm_postgres._build_conditional_combo('bad combo', [], {})
+    assert 'Invalid or Unsupported Logic Combo:' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid or Unsupported Logic Combo: bad combo"),
     ]
