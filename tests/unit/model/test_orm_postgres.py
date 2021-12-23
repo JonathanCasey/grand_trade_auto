@@ -345,7 +345,6 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         else:
             assert results == initial_data[i]
     cursor_2.close() # Effectively also closes cursor_2
-    conn_2.close() # Must release lock so main conn can have access
 
     where_1_2 = {
         model_meta.LogicCombo.OR: {
@@ -393,4 +392,5 @@ def test_update(monkeypatch, caplog, pg_test_orm):
             + ' (int_data = 2 OR int_data = 1)"')
     ]
 
+    conn_2.close()
     pg_test_orm._db._conn.close()

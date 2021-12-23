@@ -326,7 +326,7 @@ class Postgres(database_meta.Database):
         cursor = cursor or self.cursor(**kwargs)
         cursor.execute(command, val_vars)
         if commit:
-            self._get_conn(**kwargs).commit()
+            cursor.connection.commit()
         if close_cursor:
             cursor.close()
         return cursor

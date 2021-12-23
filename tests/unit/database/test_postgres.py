@@ -292,6 +292,26 @@ def test_execute(pg_test_db):               #pylint: disable=too-many-statements
     assert cursor.fetchone()[0] == test_vals_2['test_val_b']
     cursor.close()
 
+    # Finally, ensure commit happens on correct connection
+    cursor = pg_test_db.execute(sql_select_data, close_cursor=False,
+            conn=conn_2)
+    assert cursor.connection == conn_2
+    assert cursor.rowcount == 2
+    test_vals_3 = {
+        'test_val_a': 3,
+        'test_val_b': 'three',
+    }
+    cursor_2 = pg_test_db.cursor(conn=conn_2)
+    pg_test_db.execute(sql_insert_data, val_vars=test_vals_3,
+            cursor=cursor_2, close_cursor=False)
+    cursor = pg_test_db.execute(sql_select_data, close_cursor=False)
+    assert cursor.rowcount == 3
+    assert cursor.fetchone()[0] == test_vals_1['test_val_b']
+    assert cursor.fetchone()[0] == test_vals_2['test_val_b']
+    assert cursor.fetchone()[0] == test_vals_3['test_val_b']
+    cursor.close()
+    cursor_2.close()
+
     # Ensure cleaned up for this test
     conn_2.close()
     _drop_test_table()
