@@ -974,3 +974,97 @@ def test__build_col_var_list_str():
     with pytest.raises(AssertionError) as ex:
         orm_postgres._build_col_var_list_str([], [1])
     assert 'Col and vars must be same length!' == str(ex.value)
+
+
+
+def test__build_where(caplog):
+    """
+    Tests the `_build_where()` method in `orm_postgres`.
+    """
+    # Ensure empty where should be empty
+    assert orm_postgres._build_where(None) == ('', {})
+
+    # Ensure single where clause works without col check
+    where_single = ('col_1', model_meta.LogicOp.EQ, 'val_1')
+    clause, vals = orm_postgres._build_where(where_single)
+    assert clause == 'col_1 = %(wval0)s'
+    assert vals == {'wval0': 'val_1'}
+
+    # Ensure single where clause works with col check
+    where_single = ('id', model_meta.LogicOp.EQ, 2)
+    clause, vals = orm_postgres._build_where(where_single, ModelTest)
+    assert clause == 'id = %(wval0)s'
+    assert vals == {'wval0': 2}
+
+    # Ensure single where clause fails with col check
+    caplog.clear()
+    where_single = ('bad_col', model_meta.LogicOp.EQ, 3)
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        orm_postgres._build_where(where_single, ModelTest)
+    assert 'Invalid column(s) for ModelTest:' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid column(s) for ModelTest: `bad_col`"),
+    ]
+
+    # Ensure simply combo where clause works without col check
+    where_combo = {
+        model_meta.LogicCombo.AND: [
+            ('col_1', model_meta.LogicOp.EQ, 'val_4'),
+            ('col_2', model_meta.LogicOp.EQ, 5),
+        ],
+    }
+    clause, vals = orm_postgres._build_where(where_combo)
+    assert clause == '(col_1 = %(wval0)s AND col_2 = %(wval1)s)'
+    assert vals == {'wval0': 'val_4', 'wval1': 5}
+
+    # Ensure complex combo where clause works with col check
+    where_combo = {
+        model_meta.LogicCombo.AND: [
+            ('col_1', model_meta.LogicOp.EQ, 'val_6'),
+            {
+                model_meta.LogicCombo.OR: [
+                    ('col_2', model_meta.LogicOp.EQ, 7),
+                    ('col_3', model_meta.LogicOp.EQ, 8),
+                    {
+                        model_meta.LogicCombo.AND: [
+                            ('col_4', model_meta.LogicOp.EQ, 9),
+                            ('col_5', model_meta.LogicOp.EQ, 10),
+                            ('col_6', model_meta.LogicOp.EQ, 11),
+                        ],
+                    },
+                ],
+            },
+            ('col_7', model_meta.LogicOp.EQ, 12),
+        ],
+    }
+    clause, vals = orm_postgres._build_where(where_combo)
+    assert clause == '(col_1 = %(wval0)s AND (col_2 = %(wval1)s' \
+            + ' OR col_3 = %(wval2)s OR (col_4 = %(wval3)s' \
+            + ' AND col_5 = %(wval4)s AND col_6 = %(wval5)s)) AND' \
+            + ' col_7 = %(wval6)s)'
+    assert vals == {
+        'wval0': 'val_6',
+        'wval1': 7,
+        'wval2': 8,
+        'wval3': 9,
+        'wval4': 10,
+        'wval5': 11,
+        'wval6': 12,
+    }
+
+    # Ensure combo where clause fails with col check
+    caplog.clear()
+    where_combo = {
+        model_meta.LogicCombo.AND: [
+            ('id', model_meta.LogicOp.EQ, 'val_4'),
+            ('bad_col', model_meta.LogicOp.EQ, 5),
+        ],
+    }
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        orm_postgres._build_where(where_combo, ModelTest)
+    assert 'Invalid column(s) for ModelTest:' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid column(s) for ModelTest: `bad_col`"),
+    ]
