@@ -216,28 +216,29 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     """
     caplog.set_level(logging.WARNING)
 
+    test_name = 'test_add'
     good_data = {
-        'test_name': 'test_add',
+        'test_name': test_name,
         'str_data': str(uuid.uuid4()),
         'int_data': 1,
         'bool_data': True,
     }
     bad_id = {
         'id': 2,
-        'test_name': 'test_add',
+        'test_name': test_name,
         'str_data': str(uuid.uuid4()),
         'int_data': 2,
         'bool_data': True,
     }
     bad_col = {
-        'test_name': 'test_add',
+        'test_name': test_name,
         'str_data': str(uuid.uuid4()),
         'int_data': 3,
         'bool_data': True,
         'bad_col': 'nonexistent col'
     }
     bad_type = {
-        'test_name': 'test_add',
+        'test_name': test_name,
         'str_data': str(uuid.uuid4()),
         'int_data': 'four',
         'bool_data': True,
@@ -246,7 +247,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
     sql_select = 'SELECT * FROM test_orm_postgres WHERE test_name=%(test_name)s'
-    select_var_vals = {'test_name': 'test_add'}
+    select_var_vals = {'test_name': test_name}
 
     # Ensure single row add; can supply a cursor, keep it open
     pg_test_orm.add(ModelTest, good_data, cursor=cursor_2, close_cursor=False)
@@ -308,15 +309,16 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     #pylint: disable=too-many-locals, too-many-statements
     caplog.set_level(logging.WARNING)
 
+    test_name = 'test_update'
     init_data = [
         {
-            'test_name': 'test_update',
+            'test_name': test_name,
             'str_data': str(uuid.uuid4()),
             'int_data': 1,
             'bool_data': True,
         },
         {
-            'test_name': 'test_update',
+            'test_name': test_name,
             'str_data': str(uuid.uuid4()),
             'int_data': 2,
             'bool_data': True,
@@ -333,20 +335,20 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     ]
     bad_id = {
         'id': 3,
-        'test_name': 'test_update',
+        'test_name': test_name,
         'str_data': str(uuid.uuid4()),
         'int_data': 3,
         'bool_data': True,
     }
     bad_col = {
-        'test_name': 'test_update',
+        'test_name': test_name,
         'str_data': str(uuid.uuid4()),
         'int_data': 4,
         'bool_data': True,
         'bad_col': 'nonexistent col'
     }
     bad_type = {
-        'test_name': 'test_update',
+        'test_name': test_name,
         'str_data': str(uuid.uuid4()),
         'int_data': 'five',
         'bool_data': True,
@@ -357,7 +359,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
-    select_var_vals = {'test_name': 'test_update'}
+    select_var_vals = {'test_name': test_name}
 
     _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
 
@@ -449,21 +451,22 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     #pylint: disable=too-many-locals, too-many-statements
     caplog.set_level(logging.WARNING)
 
+    test_name = 'test_delete'
     init_data = [
         {
-            'test_name': 'test_delete',
+            'test_name': test_name,
             'str_data': str(uuid.uuid4()),
             'int_data': 1,
             'bool_data': True,
         },
         {
-            'test_name': 'test_delete',
+            'test_name': test_name,
             'str_data': str(uuid.uuid4()),
             'int_data': 2,
             'bool_data': True,
         },
         {
-            'test_name': 'test_delete',
+            'test_name': test_name,
             'str_data': str(uuid.uuid4()),
             'int_data': 3,
             'bool_data': True,
@@ -475,7 +478,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
-    select_var_vals = {'test_name': 'test_delete'}
+    select_var_vals = {'test_name': test_name}
 
     _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
 
@@ -570,27 +573,28 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     #pylint: disable=too-many-locals, too-many-statements
     caplog.set_level(logging.WARNING)
 
+    test_name = 'test_query'
     init_data = [
         {
-            'test_name': 'test_query',
+            'test_name': test_name,
             'str_data': str(uuid.uuid4()),
             'int_data': 1,
             'bool_data': True,
         },
         {
-            'test_name': 'test_query',
+            'test_name': test_name,
             'str_data': str(uuid.uuid4()),
             'int_data': 2,
             'bool_data': True,
         },
         {
-            'test_name': 'test_query',
+            'test_name': test_name,
             'str_data': str(uuid.uuid4()),
             'int_data': 3,
             'bool_data': False,
         },
         {
-            'test_name': 'test_query',
+            'test_name': test_name,
             'str_data': str(uuid.uuid4()),
             'int_data': 4,
             'bool_data': True,
@@ -602,7 +606,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
-    select_var_vals = {'test_name': 'test_query'}
+    select_var_vals = {'test_name': test_name}
 
     _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
 
@@ -611,7 +615,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     pd_df = pg_test_orm.query(ModelTest, model_meta.ReturnAs.PANDAS,
             cursor=cursor, close_cursor=True)
     assert cursor.closed is True
-    assert len(pd_df['test_name']=='test_query') >= len(init_data)
+    assert len(pd_df['test_name']==test_name) >= len(init_data)
 
     # Ensure can supply a cursor, keep it open; and return as model(enum)
     conn_2 = pg_test_orm._db.connect(False)
