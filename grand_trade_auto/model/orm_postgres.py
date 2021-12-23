@@ -299,8 +299,8 @@ def _validate_cols(cols, model_cls):
     # Check cols to avoid SQL injection in case `data` is from external
     valid_cols = model_cls.get_columns()
     if not set(cols).issubset(valid_cols):
-        err_msg = f'Invalid columns for {model_cls.__name__}:'
-        err_msg += f' {[", ".join(set(cols) - set(valid_cols))]}'
+        err_msg = f'Invalid column(s) for {model_cls.__name__}:'
+        err_msg += f' `{"`, `".join(set(cols) - set(valid_cols))}`'
         logger.error(err_msg)
         raise orm_meta.NonexistentColumnError(err_msg)
 

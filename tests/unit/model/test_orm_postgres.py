@@ -29,6 +29,7 @@ from grand_trade_auto.database import databases
 from grand_trade_auto.database import postgres
 from grand_trade_auto.model import model_meta
 from grand_trade_auto.model import orm_meta
+from grand_trade_auto.model import orm_postgres
 
 from tests.unit import conftest as unit_conftest
 
@@ -272,10 +273,10 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.add(ModelTest, bad_col)
-    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
-            "Invalid columns for ModelTest: ['bad_col']"),
+            "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
     # Ensure bad type in new data is caught
@@ -415,10 +416,10 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.update(ModelTest, bad_col, where_1)
-    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
-            "Invalid columns for ModelTest: ['bad_col']"),
+            "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
     # Ensure bad type in new data is caught
@@ -537,10 +538,10 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     where_bad_col = ('bad_col', model_meta.LogicOp.NOT_NULL)
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.delete(ModelTest, where_bad_col)
-    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
-            "Invalid columns for ModelTest: ['bad_col']"),
+            "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
     # Ensure bad type in where is caught
@@ -687,10 +688,10 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.query(ModelTest, 'model', ['bad_col'])
-    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
-            "Invalid columns for ModelTest: ['bad_col']"),
+            "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
     # Ensure bad col in where caught
@@ -698,10 +699,10 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     where_bad_col = ('bad_col', model_meta.LogicOp.NOT_NULL)
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.query(ModelTest, 'model', where=where_bad_col)
-    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
-            "Invalid columns for ModelTest: ['bad_col']"),
+            "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
     # Ensure bad col in order caught
@@ -709,10 +710,10 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     order_bad_col = [('bad_col', model_meta.SortOrder.ASC)]
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.query(ModelTest, 'model', order=order_bad_col)
-    assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
-            "Invalid columns for ModelTest: ['bad_col']"),
+            "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
     # Ensure bad limit arg caught
@@ -856,3 +857,41 @@ def test__convert_cursor_to_pandas_dataframe(pg_test_orm):
 
     cursor.close()
     pg_test_orm._db._conn.close()
+
+
+
+def test__validate_cols(caplog):
+    """
+    Tests the `_validate_cols()` in `orm_postgres`.
+    """
+    caplog.set_level(logging.WARNING)
+
+    bad_cols = [
+        'bad_col_1',
+        'bad_col_2',
+    ]
+
+    # Ensure works with good columns, including with a subset of them
+    orm_postgres._validate_cols(ModelTest._columns, ModelTest)
+    orm_postgres._validate_cols(ModelTest._columns[1:3], ModelTest)
+
+    caplog.clear()
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        orm_postgres._validate_cols([*ModelTest._columns[1:2], bad_cols[0]],
+                ModelTest)
+    assert 'Invalid column(s) for ModelTest:' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid column(s) for ModelTest: `bad_col_1`"),
+    ]
+
+    caplog.clear()
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        orm_postgres._validate_cols([*ModelTest._columns, *bad_cols], ModelTest)
+    assert 'Invalid column(s) for ModelTest:' in str(ex.value)
+    assert caplog.record_tuples[0][0] == 'grand_trade_auto.model.orm_postgres'
+    assert caplog.record_tuples[0][1] == logging.ERROR
+    # Since code under test uses set, order varies -- must compare as set
+    msg_parts = caplog.record_tuples[0][2].split(': ', 1)
+    assert msg_parts[0] == 'Invalid column(s) for ModelTest'
+    assert set(msg_parts[1].split(', ')) == set([f'`{c}`' for c in bad_cols])
