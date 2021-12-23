@@ -230,9 +230,14 @@ def test_add(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.add(ModelTest, bad_id)
     assert 'cannot insert into column "id"' in str(ex.value)
 
+    caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.add(ModelTest, bad_col)
     assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid columns for ModelTest: ['bad_col']"),
+    ]
     pg_test_orm._db._conn.rollback()
 
     with pytest.raises(
@@ -246,9 +251,10 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     pg_test_orm.add(ModelTest, good_data)
     assert caplog.record_tuples == [
         ('tests.unit.model.test_orm_postgres', logging.WARNING,
-            'b"INSERT INTO test_orm_postgres (test_name,str_data,int_data)'
+            'b"INSERT INTO test_orm_postgres'
+            + ' (test_name,str_data,int_data,bool_data)'
             + ' VALUES (\'test_add\','
-            + f' \'{str(good_data["str_data"])}\', 1)"')
+            + f' \'{str(good_data["str_data"])}\', 1, true)"'),
     ]
 
     conn_2.close()
@@ -347,10 +353,10 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     cursor_2.close() # Effectively also closes cursor_2
 
     where_1_2 = {
-        model_meta.LogicCombo.OR: {
+        model_meta.LogicCombo.OR: [
             ('int_data', model_meta.LogicOp.EQ, 1),
             ('int_data', model_meta.LogicOp.EQ, 2),
-        },
+        ],
     }
     pg_test_orm.update(ModelTest, new_data[1], where_1_2)
     cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
@@ -371,9 +377,14 @@ def test_update(monkeypatch, caplog, pg_test_orm):
             + ' is an identity column defined as GENERATED ALWAYS.' \
             in str(ex.value)
 
+    caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         pg_test_orm.update(ModelTest, bad_col, where_1)
     assert "Invalid columns for ModelTest: ['bad_col']" in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Invalid columns for ModelTest: ['bad_col']"),
+    ]
     pg_test_orm._db._conn.rollback()
 
     with pytest.raises(
@@ -389,7 +400,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         ('tests.unit.model.test_orm_postgres', logging.WARNING,
             'b"UPDATE test_orm_postgres SET str_data = \''
             + f'{new_data[1]["str_data"]}\', bool_data = false WHERE'
-            + ' (int_data = 2 OR int_data = 1)"')
+            + ' (int_data = 1 OR int_data = 2)"'),
     ]
 
     conn_2.close()
