@@ -102,7 +102,7 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public'):
 
 
 @pytest.mark.alters_db_schema
-@pytest.mark.order(1)
+@pytest.mark.order(-2)
 def test__create_schema_datafeed_src(pg_test_orm):
     """
     Tests the `_create_schema_datafeed_src()` method in `PostgresOrm`.
