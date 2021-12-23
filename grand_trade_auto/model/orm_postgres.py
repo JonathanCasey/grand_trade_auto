@@ -226,7 +226,7 @@ class PostgresOrm(orm_meta.Orm):
 
         # Must force cursor to stay open until results parsed
         cursor = self._db.execute(sql, where_vars,
-                {**kwargs, **{'close_cursor': False}})
+                **{**kwargs, **{'close_cursor': False}})
 
         if model_meta.ReturnAs(return_as) is model_meta.ReturnAs.MODEL:
             results = self._convert_cursor_to_models(model_cls, cursor)

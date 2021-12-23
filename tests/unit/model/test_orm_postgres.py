@@ -32,7 +32,7 @@ from tests.unit import conftest as unit_conftest
 
 logger = logging.getLogger(__name__)
 
-
+# TODO: Add 'where' for test_name to all tests
 
 
 @pytest.fixture(name='pg_test_orm')
@@ -175,6 +175,38 @@ def mock_execute_log(self, command, val_vars=None, cursor=None, commit=True,
 
 
 
+def _confirm_all_data(orm, data, sql_select, select_var_vals):
+    """
+    Confirms the data struct is loaded in the table and is the only thing loaded
+    in the table.
+    """
+    conn = orm._db.connect(False)
+    cursor = orm._db.execute(sql_select, select_var_vals,
+            close_cursor=False, conn=conn)
+    assert cursor.rowcount == len(data)
+    cols = [d[0] for d in cursor.description]
+    for i in range(cursor.rowcount):
+        results = dict(zip(cols, cursor.fetchone()))
+        results.pop('id')
+        assert results == data[i]
+    cursor.close()
+    conn.close()
+
+
+
+def _load_data_and_confirm(orm, data, sql_select, select_var_vals):
+    """
+    Load data in table and confirm it is there.  Table expected to be empty
+    prior to call.
+    """
+    conn = orm._db.connect(False)
+    for d in data:
+        orm.add(ModelTest, d, conn=conn)
+    conn.close()
+    _confirm_all_data(orm, data, sql_select, select_var_vals)
+
+
+
 def test_add(monkeypatch, caplog, pg_test_orm):
     """
     Tests the `add()` method in `PostgresOrm`.
@@ -269,7 +301,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     #pylint: disable=too-many-locals, too-many-statements
     caplog.set_level(logging.WARNING)
 
-    initial_data = [
+    init_data = [
         {
             'test_name': 'test_update',
             'str_data': str(uuid.uuid4()),
@@ -313,24 +345,14 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         'bool_data': True,
     }
 
-    for data in initial_data:
-        pg_test_orm.add(ModelTest, data)
-
     sql_select = '''
         SELECT * FROM test_orm_postgres
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
     select_var_vals = {'test_name': 'test_update'}
-    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
-            close_cursor=False)
-    assert cursor.rowcount == 2
-    cols = [d[0] for d in cursor.description]
-    for i in range(cursor.rowcount):
-        results = dict(zip(cols, cursor.fetchone()))
-        results.pop('id')
-        assert results == initial_data[i]
-    cursor.close()
+
+    _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
 
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
@@ -347,9 +369,9 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         results = dict(zip(cols, cursor.fetchone()))
         results.pop('id')
         if i == 0:
-            assert results == {**initial_data[i], **new_data[0]}
+            assert results == {**init_data[i], **new_data[0]}
         else:
-            assert results == initial_data[i]
+            assert results == init_data[i]
     cursor_2.close() # Effectively also closes cursor_2
 
     where_1_2 = {
@@ -366,7 +388,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     for i in range(cursor.rowcount):
         results = dict(zip(cols, cursor.fetchone()))
         results.pop('id')
-        assert results == {**initial_data[i], **new_data[1]}
+        assert results == {**init_data[i], **new_data[1]}
     cursor.close()
 
     with pytest.raises(
@@ -415,7 +437,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     #pylint: disable=too-many-locals, too-many-statements
     caplog.set_level(logging.WARNING)
 
-    initial_data = [
+    init_data = [
         {
             'test_name': 'test_delete',
             'str_data': str(uuid.uuid4()),
@@ -443,35 +465,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     '''
     select_var_vals = {'test_name': 'test_delete'}
 
-    def _confirm_all_initial_data():
-        """
-        Confirms the initial data struct is loaded in the table and is the only
-        thing loaded in the table.
-        """
-        conn_3 = pg_test_orm._db.connect(False)
-        cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
-                close_cursor=False, conn=conn_3)
-        assert cursor.rowcount == 3
-        cols = [d[0] for d in cursor.description]
-        for i in range(cursor.rowcount):
-            results = dict(zip(cols, cursor.fetchone()))
-            results.pop('id')
-            assert results == initial_data[i]
-        cursor.close()
-        conn_3.close()
-
-    def _load_data_and_confirm():
-        """
-        Load initial data in table and confirm it is there.  Table expected to
-        be empty priot to call.
-        """
-        conn_4 = pg_test_orm._db.connect(False)
-        for data in initial_data:
-            pg_test_orm.add(ModelTest, data, conn=conn_4)
-        conn_4.close()
-        _confirm_all_initial_data()
-
-    _load_data_and_confirm()
+    _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
 
@@ -485,7 +479,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     for i in range(cursor.rowcount):
         results = dict(zip(cols, cursor.fetchone()))
         results.pop('id')
-        assert results == initial_data[i+1]
+        assert results == init_data[i+1]
     cursor_2.close() # Effectively also closes cursor_2
 
     where_2_3 = {
@@ -500,7 +494,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     assert cursor.rowcount == 0
     cursor.close()
 
-    _load_data_and_confirm()
+    _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
     caplog.clear()
     with pytest.raises(ValueError) as ex:
         pg_test_orm.delete(ModelTest, {})
@@ -512,7 +506,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
                     + '  Likely intended to specify `where`?'),
     ]
 
-    _confirm_all_initial_data()
+    _confirm_all_data(pg_test_orm, init_data, sql_select, select_var_vals)
     pg_test_orm.delete(ModelTest, None, really_delete_all=True)
     cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
             close_cursor=False)
@@ -545,6 +539,112 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
             "b'DELETE FROM test_orm_postgres WHERE"
             + " (int_data = 2 OR int_data = 3)'"),
     ]
+
+    conn_2.close()
+    pg_test_orm._db._conn.close()
+
+
+
+def test_query(monkeypatch, caplog, pg_test_orm):
+    """
+    Tests the `query()` method in `PostgresOrm`.
+    """
+    #pylint: disable=too-many-locals, too-many-statements
+    caplog.set_level(logging.WARNING)
+
+    init_data = [
+        {
+            'test_name': 'test_query',
+            'str_data': str(uuid.uuid4()),
+            'int_data': 1,
+            'bool_data': True,
+        },
+        {
+            'test_name': 'test_query',
+            'str_data': str(uuid.uuid4()),
+            'int_data': 2,
+            'bool_data': True,
+        },
+        {
+            'test_name': 'test_query',
+            'str_data': str(uuid.uuid4()),
+            'int_data': 3,
+            'bool_data': False,
+        },
+        {
+            'test_name': 'test_query',
+            'str_data': str(uuid.uuid4()),
+            'int_data': 4,
+            'bool_data': True,
+        },
+    ]
+
+    bad_col = [
+        'bad_col',
+    ]
+
+    sql_select = '''
+        SELECT * FROM test_orm_postgres
+        WHERE test_name=%(test_name)s
+        ORDER BY id
+    '''
+    select_var_vals = {'test_name': 'test_query'}
+
+    _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
+
+    conn_2 = pg_test_orm._db.connect(False)
+    cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
+
+    where_1 = ('int_data', model_meta.LogicOp.EQ, 1)
+    models = pg_test_orm.query(ModelTest, model_meta.ReturnAs.MODEL,
+            ModelTest._columns, where_1, cursor=cursor_2, close_cursor=False)
+    assert cursor_2.rowcount == 1
+    init_data_model_indices = [0]
+    assert len(models) == len(init_data_model_indices)
+    for i, mdl in enumerate(models):
+        for k, v in init_data[init_data_model_indices[i]].items():
+            assert getattr(mdl, k) == v
+        assert isinstance(mdl.id, int)
+    cursor_2.close() # Effectively also closes cursor_2
+
+
+    where_2_3 = {
+        model_meta.LogicCombo.OR: [
+            ('int_data', model_meta.LogicOp.EQ, 2),
+            ('int_data', model_meta.LogicOp.EQ, 3),
+        ],
+    }
+    cols_to_return = ['id', 'int_data']
+    order_id_desc = [('id', model_meta.SortOrder.DESC)]
+    limit = len(init_data)
+    models = pg_test_orm.query(ModelTest, 'model', cols_to_return, where_2_3,
+            limit, order_id_desc)
+    init_data_model_indices = [2, 1]
+    assert len(models) == len(init_data_model_indices)
+    min_id_so_far = 65535   # Must be much larger than anything expected
+    for i, mdl in enumerate(models):
+        for k, v in init_data[init_data_model_indices[i]].items():
+            if k not in cols_to_return or k == 'id':
+                continue
+            assert getattr(mdl, k) == v
+        assert isinstance(mdl.id, int)
+        assert mdl.id < min_id_so_far
+        min_id_so_far = mdl.id
+
+    order_bool_asc_int_desc = [
+        ('bool_data', model_meta.SortOrder.ASC),
+        ('int_data', model_meta.SortOrder.DESC),
+    ]
+    limit = len(init_data) - 1
+    models = pg_test_orm.query(ModelTest, 'model', limit=limit,
+            order=order_bool_asc_int_desc)
+    init_data_model_indices = [2, 3, 1]
+    assert len(models) == len(init_data_model_indices)
+    for i, mdl in enumerate(models):
+        for k, v in init_data[init_data_model_indices[i]].items():
+            assert getattr(mdl, k) == v
+        assert isinstance(mdl.id, int)
+
 
     conn_2.close()
     pg_test_orm._db._conn.close()
