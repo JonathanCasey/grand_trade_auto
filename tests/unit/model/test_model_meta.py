@@ -126,3 +126,25 @@ def test_model_setattr():
     model._table_name = 'not active col'
     assert model._active_cols == set(['id'])
     assert model._table_name == 'not active col'
+
+
+
+def test_get_table_name():
+    """
+    Tests the `get_table_name()` method in `Model`.
+    """
+    model = ModelTest('')
+    model._table_name = 'different name'
+    assert ModelTest.get_table_name() == 'test_model_meta'
+    assert model.get_table_name() == 'test_model_meta'
+
+
+
+def test_get_columns():
+    """
+    Tests the `get_columns()` method in `Model`.
+    """
+    model = ModelTest('')
+    model._columns = ('wrong col', 'fake_col')
+    assert ModelTest.get_columns() == ('id', 'col_1', 'col_2')
+    assert model.get_columns() == ('id', 'col_1', 'col_2')
