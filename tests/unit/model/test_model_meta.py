@@ -14,6 +14,8 @@ Module Attributes:
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
+import pytest
+
 from grand_trade_auto.model import model_meta
 
 
@@ -58,3 +60,52 @@ def test_enum_sort_order():
     # Do not need to test values since access by value unsupported
     names = {'ASC', 'DESC'}
     assert names == {e.name for e in list(model_meta.SortOrder)}
+
+
+
+class ModelTest(model_meta.Model):
+    """
+    A test model to use for testing within this module.
+    """
+    _table_name = 'test_model_meta'
+
+    _columns = (
+        'id',
+        'col_1',
+        'col_2',
+    )
+
+    # Column Attributes -- MUST match _columns!
+    # id defined in super
+    col_1 = None
+    col_2 = None
+    # End of Column Attributes
+
+
+
+def test_model_init():
+    """
+    Tests the `__init__()` method in `Model`.
+    """
+    # Ensure bare minimum init works
+    model = ModelTest('test_orm')
+    assert model._orm == 'test_orm'
+    assert model._active_cols == set()
+    for col in ModelTest._columns:
+        assert getattr(model, col) is None
+
+    # Ensure data stored properly with valid cols
+    data = {'id': 1, 'col_2': 2}
+    model = ModelTest('', data)
+    assert model._orm == ''
+    assert model._active_cols == set(data.keys())
+    for col, val in data.items():
+        assert getattr(model, col) == val
+    for col in (set(ModelTest._columns) - set(data.keys())):
+        assert getattr(model, col) is None
+
+    # Ensure invalid col fails
+    data = {'id': 3, 'bad_col': 4}
+    with pytest.raises(AssertionError) as ex:
+        ModelTest('', data)
+    assert 'Invalid data column: bad_col' in str(ex.value)

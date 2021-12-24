@@ -153,7 +153,7 @@ class Model(ABC):
 
         if data is not None:
             for k, v in data.items():
-                assert k in self._columns, 'Invalid data column'
+                assert k in self._columns, f'Invalid data column: {k}'
                 self.__setattr__(k, v)
 
 
