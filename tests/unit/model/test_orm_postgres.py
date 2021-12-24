@@ -1269,3 +1269,70 @@ def test__build_conditional_single(caplog):
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
             "Invalid or Unsupported Logic Op: bad op"),
     ]
+
+
+
+def test__build_and_validate_order(caplog):
+    """
+    Tests the `_build_and_validate_order()` method in `orm_postgres`.
+    """
+    # Ensure empty order works
+    assert orm_postgres._build_and_validate_order(None) == ''
+
+    # Ensure single order works
+    order_simple = [('col_1', model_meta.SortOrder.ASC)]
+    clause = orm_postgres._build_and_validate_order(order_simple)
+    assert clause == 'ORDER BY col_1 ASC'
+
+    # Ensure multiple order works
+    order_complex = [
+        ('col_1', model_meta.SortOrder.DESC),
+        ('col_2', model_meta.SortOrder.ASC),
+    ]
+    clause = orm_postgres._build_and_validate_order(order_complex)
+    assert clause == 'ORDER BY col_1 DESC, col_2 ASC'
+
+    # Ensure column validation works
+    order_simple = [('id', model_meta.SortOrder.ASC)]
+    clause = orm_postgres._build_and_validate_order(order_simple, ModelTest)
+    assert clause == 'ORDER BY id ASC'
+
+    # Ensure column validation fails with bad col
+    caplog.clear()
+    order_complex = [
+        ('id', model_meta.SortOrder.DESC),
+        ('bad_col', model_meta.SortOrder.ASC),
+    ]
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        orm_postgres._build_and_validate_order(order_complex, ModelTest)
+    assert 'Invalid column(s) for ModelTest:' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            'Invalid column(s) for ModelTest: `bad_col`'),
+    ]
+
+    # Ensure bad sort order fails
+    caplog.clear()
+    order_simple = [('col_1', 'bad order')]
+    with pytest.raises(ValueError) as ex:
+        orm_postgres._build_and_validate_order(order_simple)
+    assert 'Invalid or Unsupported Sort Order:' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            'Invalid or Unsupported Sort Order: bad order'),
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            'Failed to parse sort order:'
+            + ' Invalid or Unsupported Sort Order: bad order'),
+    ]
+
+    # Ensure bad order format fails
+    caplog.clear()
+    order_bad = [('col_1', model_meta.SortOrder.ASC, 'bad extra')]
+    with pytest.raises(ValueError) as ex:
+        orm_postgres._build_and_validate_order(order_bad)
+    assert 'Failed to parse sort order: ' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            'Failed to parse sort order:'
+            + ' too many values to unpack (expected 2)'),
+    ]
