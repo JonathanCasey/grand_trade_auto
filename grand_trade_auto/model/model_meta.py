@@ -53,19 +53,19 @@ class LogicOp(Enum):
     """
     EQUAL = '=='
     EQUALS = '='
-    EQ = '='
+    EQ = '= '
 
     LESS_THAN = '<'
-    LT = '<'
+    LT = '< '
 
     LESS_THAN_OR_EQUAL = '<='
-    LTE = '<='
+    LTE = '<= '
 
     GREATER_THAN = '>'
-    GT = '>'
+    GT = '> '
 
     GREATER_THAN_OR_EQUAL = '>='
-    GTE = '>='
+    GTE = '>= '
 
     NOT_NULL = 'not null'
 

@@ -61,6 +61,7 @@ def fixture_create_test_db_schema(
     """
     test_db = databases._get_database_from_config(_TEST_PG_DB_ID, _TEST_PG_ENV)
     test_db._orm.create_schemas()
+    test_db._conn.close()
 
 
 
