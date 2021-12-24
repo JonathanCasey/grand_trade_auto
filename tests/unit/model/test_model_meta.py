@@ -109,3 +109,20 @@ def test_model_init():
     with pytest.raises(AssertionError) as ex:
         ModelTest('', data)
     assert 'Invalid data column: bad_col' in str(ex.value)
+
+
+
+def test_model_setattr():
+    """
+    Tests the `__setattr__()` method in `Model`.
+    """
+    model = ModelTest('')
+    assert model._active_cols == set()
+
+    model.id = 1
+    assert model._active_cols == set(['id'])
+    assert model.id == 1
+
+    model._table_name = 'not active col'
+    assert model._active_cols == set(['id'])
+    assert model._table_name == 'not active col'
