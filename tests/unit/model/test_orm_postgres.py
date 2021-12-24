@@ -981,6 +981,8 @@ def test__build_where(caplog):
     """
     Tests the `_build_where()` method in `orm_postgres`.
     """
+    caplog.set_level(logging.WARNING)
+
     # Ensure empty where should be empty
     assert orm_postgres._build_where(None) == ('', {})
 
@@ -1091,6 +1093,8 @@ def test__build_conditional_combo(caplog):
     """
     Tests the `_build_conditional_combo()` method in `orm_postgres`.
     """
+    caplog.set_level(logging.WARNING)
+
     # Ensure simply combo where clause works without col check
     where_conds = [
         ('col_1', model_meta.LogicOp.EQ, 'val_1'),
@@ -1155,6 +1159,8 @@ def test__build_conditional_single(caplog):
     """
     Tests the `_build_conditional_single()` method in `orm_postgres`.
     """
+    caplog.set_level(logging.WARNING)
+
     # Ensure all supported ops work as expected
     vals = {}
     clause = orm_postgres._build_conditional_single(
@@ -1276,6 +1282,8 @@ def test__build_and_validate_order(caplog):
     """
     Tests the `_build_and_validate_order()` method in `orm_postgres`.
     """
+    caplog.set_level(logging.WARNING)
+
     # Ensure empty order works
     assert orm_postgres._build_and_validate_order(None) == ''
 
