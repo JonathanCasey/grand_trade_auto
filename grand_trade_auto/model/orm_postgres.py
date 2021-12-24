@@ -624,6 +624,6 @@ def _build_and_validate_limit(limit):
         return f'LIMIT {limit_num}'
 
     except ValueError as ex:
-        err_msg = f'Failed to limit, likely not a number: {ex}'
+        err_msg = f'Failed to parse limit, likely not a number: {ex}'
         logger.error(err_msg)
         raise ValueError(err_msg) from ex

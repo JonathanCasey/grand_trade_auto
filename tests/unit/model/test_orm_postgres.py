@@ -1336,3 +1336,28 @@ def test__build_and_validate_order(caplog):
             'Failed to parse sort order:'
             + ' too many values to unpack (expected 2)'),
     ]
+
+
+
+def test__build_and_validate_limit(caplog):
+    """
+    Tests the `_build_and_validate_limti()` method in `orm_postgres`.
+    """
+    caplog.set_level(logging.WARNING)
+
+    # Ensure empty limit works
+    assert orm_postgres._build_and_validate_limit(None) == ''
+
+    # Ensure integer limit works
+    assert orm_postgres._build_and_validate_limit(123) == 'LIMIT 123'
+
+    # Ensure non-integer fails
+    caplog.clear()
+    with pytest.raises(ValueError) as ex:
+        orm_postgres._build_and_validate_limit('not an int')
+    assert 'Failed to parse limit, likely not a number:' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+            "Failed to parse limit, likely not a number:"
+            + " invalid literal for int() with base 10: 'not an int'"),
+    ]
