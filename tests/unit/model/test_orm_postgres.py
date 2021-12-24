@@ -721,11 +721,11 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     with pytest.raises(ValueError) as ex:
         pg_test_orm.query(ModelTest, 'model', limit='nan')
-    assert "Failed to limit, likely not a number:" in str(ex.value)
+    assert "Failed to parse limit, likely not a number:" in str(ex.value)
     assert caplog.record_tuples == [
         ('grand_trade_auto.model.orm_postgres', logging.ERROR,
-            "Failed to limit, likely not a number: invalid literal for int()"
-            + " with base 10: 'nan'"),
+            "Failed to parse limit, likely not a number:"
+            + " invalid literal for int() with base 10: 'nan'"),
     ]
 
     # Ensure bad type anywhere is caught
