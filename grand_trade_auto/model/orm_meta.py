@@ -75,7 +75,7 @@ class Orm(ABC):
 
 
     @abstractmethod
-    def add(self, model_cls, data):
+    def add(self, model_cls, data, **kwargs):
         """
         Adds/Inserts a new record into the database.  The table is acquired from
         the model class.  All necessary data must be provided (i.e. can omit
@@ -88,12 +88,15 @@ class Orm(ABC):
           data ({str:str/int/bool/datetime/enum/etc}): The data to be inserted,
             where the keys are the column names and the values are the
             python-type values to be inserted.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Database.execute()`.  See those docstrings for more
+            details.
         """
 
 
 
     @abstractmethod
-    def update(self, model_cls, data, where):
+    def update(self, model_cls, data, where, **kwargs):
         """
         Update record(s) in the database.  The table is acquired from the model
         class.
@@ -107,12 +110,15 @@ class Orm(ABC):
             python-type values to be used as the new values.
           where ({}/[]/() or None): The structured where clause.  See the
             Model.query_direct() docs for spec.  If None, will not filter.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Database.execute()`.  See those docstrings for more
+            details.
         """
 
 
 
     @abstractmethod
-    def delete(self, model_cls, where, really_delete_all=False):
+    def delete(self, model_cls, where, really_delete_all=False, **kwargs):
         """
         Delete record(s) in the database.  The table is acquired from the model
         class.
@@ -129,13 +135,16 @@ class Orm(ABC):
           really_delete_all (bool): Confirms that all data should be deleted
             from the table.  Must be set to True AND the where clause must be
             None for this to happen.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Database.execute()`.  See those docstrings for more
+            details.
         """
 
 
 
     @abstractmethod
     def query(self, model_cls, return_as, columns_to_return=None,
-            where=None, limit=None, order=None):
+            where=None, limit=None, order=None, **kwargs):
         """
         Query/Select record(s) from the database.  The table is acquired from
         the model class.  This gives a few options as far as how the data can be
@@ -157,6 +166,9 @@ class Orm(ABC):
             None, will not impose a limit.
           order ([()]): The structured order clause.  See the
             Model.query_direct() docs for spec.  If None, will not impose order.
+          **kwargs ({}): Any additional paramaters that may be used by other
+            methods: `Database.execute()`.  See those docstrings for more
+            details.
 
         Returns:
           If return_as == ReturnAs.MODEL:

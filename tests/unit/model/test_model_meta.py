@@ -8,15 +8,22 @@ with auto-discovery (others may exist, but will not be part of test suite
 directly).
 
 Module Attributes:
-  N/A
+  logger (Logger): Logger for this module.
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
+import logging
+
 import pytest
 
 from grand_trade_auto.model import model_meta
+from grand_trade_auto.model import orm_meta
+
+
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -80,6 +87,72 @@ class ModelTest(model_meta.Model):
     col_1 = None
     col_2 = None
     # End of Column Attributes
+
+
+
+class OrmTest(orm_meta.Orm):
+    """
+    A barebones Orm that can be used for most tests.
+
+    Class/Instance Attributes:
+      mock_db_results ([]): A list of objects that would be in the database if
+        there were a db.  Meant to store results for add() so they can be
+        checked later, etc.
+    """
+    _mock_db_results = []
+
+    def _create_schema_datafeed_src(self):
+        """
+        Not needed / will not be used.
+        """
+
+    def add(self, model_cls, data, **kwargs):
+        """
+        Fake adding something to mock results, and check cols.  Expected to
+        check afterwards.
+        """
+        OrmTest._validate_cols(data.keys(), model_cls)
+        res = {
+            'model': model_cls(self, data),
+            'extra_args': kwargs,
+        }
+        self._mock_db_results.append(res)
+
+
+    def update(self, model_cls, data, where, **kwargs):
+        """
+        Fake updating something in mock results, and check cols.  Expected to
+        have existing data.  Limited 'where' clause support.
+        """
+
+
+    def delete(self, model_cls, where, really_delete_all=False, **kwargs):
+        """
+        Fake deleting something in mock results, and check cols.  Expected to
+        have existing data.  Limited 'where' clause support.
+        """
+
+
+    def query(self, model_cls, return_as, columns_to_return=None,
+            where=None, limit=None, order=None, **kwargs):
+        """
+        Fake querying something from mock results, and check cols.  Expected to
+        have existing data.  Limited 'where' and 'order' clause support.
+        """
+
+
+    @staticmethod
+    def _validate_cols(cols, model_cls):
+        """
+        A helper method just for this testing to check columns, raise an
+        exception if there is an issue.
+        """
+        valid_cols = model_cls.get_columns()
+        if not set(cols).issubset(valid_cols):
+            err_msg = f'Invalid column(s) for {model_cls.__name__}:'
+            err_msg += f' `{"`, `".join(set(cols) - set(valid_cols))}`'
+            logger.error(err_msg)
+            raise orm_meta.NonexistentColumnError(err_msg)
 
 
 
@@ -148,3 +221,72 @@ def test_get_columns():
     model._columns = ('wrong col', 'fake_col')
     assert ModelTest.get_columns() == ('id', 'col_1', 'col_2')
     assert model.get_columns() == ('id', 'col_1', 'col_2')
+
+
+
+def test_add_and_direct(caplog, monkeypatch):
+    """
+    Tests the `add()` and `add_direct()` methods in `Model`.
+    """
+    caplog.set_level(logging.WARNING)
+
+    orm = OrmTest(None)
+    assert orm._mock_db_results == []
+
+    data_1 = {
+        'col_1': 1,
+        'col_2': 2,
+    }
+    ModelTest.add_direct(orm, data_1, conn='fake_conn')
+    assert len(orm._mock_db_results) == 1
+    res = orm._mock_db_results[0]
+    assert res['model'].id is None
+    assert res['model'].col_1 == 1
+    assert res['model'].col_2 == 2
+    assert res['extra_args'] == {'conn': 'fake_conn'}
+
+    data_2 = {
+        'col_1': 3,
+        'col_2': 4,
+    }
+    model = ModelTest(orm, data_2)
+    model._active_cols.remove('col_1')
+    model.add(cursor='fake_cursor', conn=4)
+    assert len(orm._mock_db_results) == 1
+    res = orm._mock_db_results[1]
+    assert res['model'].id is None
+    assert res['model'].col_1 is None   # Removed from active, should be skipped
+    assert res['model'].col_2 == 4
+    assert res['extra_args'] == {'cursor': 'fake_cursor', 'conn': 4}
+
+    caplog.clear()
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        ModelTest.add_direct(orm, {'bad_col': 5})
+    assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('tests.unit.model.test_model_meta', logging.ERROR,
+            'Invalid column(s) for ModelTest: `bad_col`')
+    ]
+
+    def mock_get_active_data_as_dict(self):
+        """
+        Injects a bad col on purpose.
+        """
+        cols = {c: getattr(self, c) for c in self._active_cols}
+        cols['bad_col'] = 6
+        return cols
+
+    caplog.clear()
+    monkeypatch.setattr(ModelTest, '_get_active_data_as_dict',
+            mock_get_active_data_as_dict)
+    data_3 = {
+        'col_1': 7,
+    }
+    model = ModelTest(orm, data_3)
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        model.add()
+    assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('tests.unit.model.test_model_meta', logging.ERROR,
+            'Invalid column(s) for ModelTest: `bad_col`')
+    ]
