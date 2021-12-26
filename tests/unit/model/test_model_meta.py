@@ -101,10 +101,14 @@ class OrmTest(orm_meta.Orm):
     """
     _mock_db_results = []
 
+
+
     def _create_schema_datafeed_src(self):
         """
         Not needed / will not be used.
         """
+
+
 
     def add(self, model_cls, data, **kwargs):
         """
@@ -119,11 +123,21 @@ class OrmTest(orm_meta.Orm):
         self._mock_db_results.append(res)
 
 
+
     def update(self, model_cls, data, where, **kwargs):
         """
         Fake updating something in mock results, and check cols.  Expected to
         have existing data.  Limited 'where' clause support.
         """
+        OrmTest._validate_cols(data.keys(), model_cls)
+        if where[1] is not model_meta.LogicOp.EQUALS:
+            raise ValueError('Provided LogicOp not supported')
+        for res in self._mock_db_results:
+            if getattr(res['model'], where[0]) == where[2]:
+                for k, v in data.items():
+                    setattr(res['model'], k, v)
+                res['extra_args'] = kwargs
+
 
 
     def delete(self, model_cls, where, really_delete_all=False, **kwargs):
@@ -285,6 +299,129 @@ def test_add_and_direct(caplog, monkeypatch):
     model = ModelTest(orm, data_3)
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         model.add()
+    assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('tests.unit.model.test_model_meta', logging.ERROR,
+            'Invalid column(s) for ModelTest: `bad_col`')
+    ]
+
+
+
+def test_update_and_direct(caplog, monkeypatch):
+    """
+    Tests the `update()` and `udpate_direct()` methods in `Model`.
+    """
+    #pylint: disable=too-many-locals, too-many-statements
+    caplog.set_level(logging.WARNING)
+
+    data_orig = [
+        {
+            'col_1': 1,
+            'col_2': 2,
+        },
+        {
+            'col_1': 3,
+            'col_2': 2,
+        },
+    ]
+
+    orm = OrmTest(None)
+    for i, data in enumerate(data_orig):
+        orm.add(ModelTest, data, fake_count=i)
+    assert len(orm._mock_db_results) == 2
+    assert orm._mock_db_results[0]['model'].col_1 == 1
+    assert orm._mock_db_results[1]['model'].col_1 == 3
+    assert orm._mock_db_results[1]['extra_args'] == {'fake_count': 1}
+
+    new_data_1 = {
+        'id': 4,
+        'col_1': 5,
+    }
+    where_1 = ('col_1', model_meta.LogicOp.EQUALS, 1)
+    ModelTest.update_direct(orm, new_data_1, where_1, new_fake=True)
+    assert len(orm._mock_db_results) == 2
+    res_1 = orm._mock_db_results[0]
+    res_2 = orm._mock_db_results[1]
+    assert res_1['model'].id == 4
+    assert res_1['model'].col_1 == 5
+    assert res_1['model'].col_2 == 2
+    assert res_1['extra_args'] == {'new_fake': True}
+    assert res_2['model'].id is None
+    assert res_2['model'].col_1 == 3
+    assert res_2['model'].col_2 == 2
+    assert res_2['extra_args'] == {'fake_count': 1}
+
+    new_data_2 = {
+        'col_1': 6,
+    }
+    where_2 = ('col_2', model_meta.LogicOp.EQUALS, 2)
+    ModelTest.update_direct(orm, new_data_2, where_2, new_new_fake='yes')
+    assert len(orm._mock_db_results) == 2
+    res_1 = orm._mock_db_results[0]
+    res_2 = orm._mock_db_results[1]
+    assert res_1['model'].id == 4
+    assert res_1['model'].col_1 == 6
+    assert res_1['model'].col_2 == 2
+    assert res_1['extra_args'] == {'new_new_fake': 'yes'}
+    assert res_2['model'].id is None
+    assert res_2['model'].col_1 == 6
+    assert res_2['model'].col_2 == 2
+    assert res_2['extra_args'] == {'new_new_fake': 'yes'}
+
+    # Create an effective semi-shallow copy of 1st db result...
+    data_copy = {
+        'id': 4,
+        'col_1': 6,
+        'col_2': 2,
+    }
+    model_copy = ModelTest(orm, data_copy)
+    # ...then try modifying the data...
+    model_copy.col_1 = 7
+    model_copy.col_2 = 8
+    # ...but act like one col not really active...
+    model_copy._active_cols.remove('col_1')
+    model_copy.update(another_fake=9)
+    assert len(orm._mock_db_results) == 2
+    res_1 = orm._mock_db_results[0]
+    res_2 = orm._mock_db_results[1]
+    assert res_1['model'].id == 4
+    assert res_1['model'].col_1 == 6
+    assert res_1['model'].col_2 == 8
+    assert res_1['extra_args'] == {'another_fake': 9}
+    assert res_2['model'].id is None
+    assert res_2['model'].col_1 == 6
+    assert res_2['model'].col_2 == 2
+    assert res_2['extra_args'] == {'new_new_fake': 'yes'}
+    assert model_copy.col_1 == 7
+    assert model_copy.col_2 == 8
+
+    caplog.clear()
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        ModelTest.update_direct(orm, {'bad_col': 5}, None)
+    assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('tests.unit.model.test_model_meta', logging.ERROR,
+            'Invalid column(s) for ModelTest: `bad_col`')
+    ]
+
+    def mock_get_active_data_as_dict(self):
+        """
+        Injects a bad col on purpose.
+        """
+        cols = {c: getattr(self, c) for c in self._active_cols}
+        cols['bad_col'] = 10
+        return cols
+
+    caplog.clear()
+    monkeypatch.setattr(ModelTest, '_get_active_data_as_dict',
+            mock_get_active_data_as_dict)
+    data_3 = {
+        'id': 11,
+        'col_1': 12,
+    }
+    model = ModelTest(orm, data_3)
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        model.update()
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
         ('tests.unit.model.test_model_meta', logging.ERROR,
