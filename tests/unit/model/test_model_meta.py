@@ -131,7 +131,7 @@ class OrmTest(orm_meta.Orm):
         """
         OrmTest._validate_cols(data.keys(), model_cls)
         if where[1] is not model_meta.LogicOp.EQUALS:
-            raise ValueError('Provided LogicOp not supported')
+            raise ValueError('Test Error: Provided LogicOp not supported')
         for res in self._mock_db_results:
             if getattr(res['model'], where[0]) == where[2]:
                 for k, v in data.items():
@@ -145,6 +145,19 @@ class OrmTest(orm_meta.Orm):
         Fake deleting something in mock results, and check cols.  Expected to
         have existing data.  Limited 'where' clause support.
         """
+        if where and where[1] is not model_meta.LogicOp.EQUALS:
+            raise ValueError('Provided LogicOp not supported')
+        elif not where and really_delete_all:
+            self._mock_db_results = []
+            return
+        elif not where:
+            raise ValueError('Need to confirm w/ really_delete_all')
+
+        for res in self._mock_db_results:
+            if getattr(res['model'], where[0]) == where[2]:
+                del res['model']
+                res['extra_args'] = kwargs
+
 
 
     def query(self, model_cls, return_as, columns_to_return=None,
@@ -427,3 +440,91 @@ def test_update_and_direct(caplog, monkeypatch):
         ('tests.unit.model.test_model_meta', logging.ERROR,
             'Invalid column(s) for ModelTest: `bad_col`')
     ]
+
+
+
+def test_delete_and_direct():
+    """
+    Tests the `update()` and `udpate_direct()` methods in `Model`.
+    """
+    #pylint: disable=too-many-statements
+
+    data_orig = [
+        {
+            'id': 1,
+            'col_1': 2,
+            'col_2': 3,
+        },
+        {
+            'id': 4,
+            'col_1': 5,
+            'col_2': 3,
+        },
+    ]
+    orm = OrmTest(None)
+
+    def _clear_load_and_verify_init_data():
+        """
+        Clears the existing "db" data, loads the initial, and then verifies.
+        """
+        orm._mock_db_results = []
+        for i, data in enumerate(data_orig):
+            orm.add(ModelTest, data, fake_count=i)
+        assert len(orm._mock_db_results) == 2
+        assert orm._mock_db_results[0]['model'].id == 1
+        assert orm._mock_db_results[0]['model'].col_1 == 2
+        assert orm._mock_db_results[1]['model'].col_1 == 5
+        assert orm._mock_db_results[1]['extra_args'] == {'fake_count': 1}
+
+    _clear_load_and_verify_init_data()
+    where_1 = ('col_1', model_meta.LogicOp.EQUALS, 2)
+    ModelTest.delete_direct(orm, where_1, fake_arg=1)
+    assert len(orm._mock_db_results) == 2
+    res_1 = orm._mock_db_results[0]
+    res_2 = orm._mock_db_results[1]
+    assert 'model' not in res_1
+    assert res_1['extra_args'] == {'fake_arg': 1}
+    assert res_2['model'].id == 4
+    assert res_2['model'].col_1 == 5
+    assert res_2['model'].col_2 == 3
+    assert res_2['extra_args'] == {'fake_count': 1}
+
+    _clear_load_and_verify_init_data()
+    where_2 = ('col_2', model_meta.LogicOp.EQUALS, 3)
+    ModelTest.delete_direct(orm, where_2, fake_arg_again=2)
+    assert len(orm._mock_db_results) == 2
+    res_1 = orm._mock_db_results[0]
+    res_2 = orm._mock_db_results[1]
+    assert 'model' not in res_1
+    assert res_1['extra_args'] == {'fake_arg_again': 2}
+    assert 'model' not in res_2
+    assert res_2['extra_args'] == {'fake_arg_again': 2}
+
+    _clear_load_and_verify_init_data()
+    with pytest.raises(ValueError) as ex:
+        ModelTest.delete_direct(orm, None)
+    assert 'Need to confirm w/ really_delete_all' in str(ex.value)
+
+    ModelTest.delete_direct(orm, None, really_delete_all=True)
+    assert orm._mock_db_results == []
+
+    _clear_load_and_verify_init_data()
+    # Create an effective semi-shallow copy of 1st db result...
+    data_copy = {
+        'id': 1,
+        'col_1': 2,
+        'col_2': 3,
+    }
+    model_copy = ModelTest(orm, data_copy)
+    # ...then try modifying the data...
+    model_copy.col_1 = 6
+    model_copy.delete(another_fake=True)
+    assert len(orm._mock_db_results) == 2
+    res_1 = orm._mock_db_results[0]
+    res_2 = orm._mock_db_results[1]
+    assert 'model' not in res_1
+    assert res_1['extra_args'] == {'another_fake': True}
+    assert res_2['model'].id == 4
+    assert res_2['model'].col_1 == 5
+    assert res_2['model'].col_2 == 3
+    assert res_2['extra_args'] == {'fake_count': 1}
