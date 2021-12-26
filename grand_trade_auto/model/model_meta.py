@@ -385,7 +385,7 @@ class Model(ABC):
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.add()`.  See those docstrings for more details.
         """
-        Model.add_direct(self._orm, self._get_active_data_as_dict(), **kwargs)
+        self.add_direct(self._orm, self._get_active_data_as_dict(), **kwargs)
 
 
 
@@ -397,7 +397,7 @@ class Model(ABC):
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.update()`.  See those docstrings for more details.
         """
-        Model.update_direct(self._orm, self._get_active_data_as_dict(),
+        self.update_direct(self._orm, self._get_active_data_as_dict(),
                 self._get_where_self_id(), **kwargs)
 
 
@@ -410,7 +410,7 @@ class Model(ABC):
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.delete()`.  See those docstrings for more details.
         """
-        Model.delete_direct(self._orm, self._get_where_self_id(), **kwargs)
+        self.delete_direct(self._orm, self._get_where_self_id(), **kwargs)
 
 
 

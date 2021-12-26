@@ -252,7 +252,7 @@ def test_add_and_direct(caplog, monkeypatch):
     model = ModelTest(orm, data_2)
     model._active_cols.remove('col_1')
     model.add(cursor='fake_cursor', conn=4)
-    assert len(orm._mock_db_results) == 1
+    assert len(orm._mock_db_results) == 2
     res = orm._mock_db_results[1]
     assert res['model'].id is None
     assert res['model'].col_1 is None   # Removed from active, should be skipped
