@@ -107,12 +107,17 @@ class OrmTest(orm_meta.Orm):
     """
     A barebones Orm that can be used for most tests.
 
-    Class/Instance Attributes:
+    Instance Attributes:
       mock_db_results ([]): A list of objects that would be in the database if
         there were a db.  Meant to store results for add() so they can be
         checked later, etc.
     """
-    _mock_db_results = []
+    def __init__(self, db):
+        """
+        Add the `_mock_db_results` instance attribute.
+        """
+        super().__init__(db)
+        self._mock_db_results = []
 
 
 
