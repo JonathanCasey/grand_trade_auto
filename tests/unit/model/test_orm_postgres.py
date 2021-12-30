@@ -17,6 +17,9 @@ Module Attributes:
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
+#pylint: disable=too-many-lines
+#pylint: disable=use-implicit-booleaness-not-comparison
+#   +-> want to specifically check type in most tests -- `None` is a fail
 
 import itertools
 import logging
@@ -216,6 +219,8 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     """
     Tests the `add()` method in `PostgresOrm`.
     """
+    #pylint: disable=too-many-locals
+
     caplog.set_level(logging.WARNING)
 
     test_name = 'test_add'
@@ -910,7 +915,7 @@ def test__validate_cols(caplog):
     # Since code under test uses set, order varies -- must compare as set
     msg_parts = caplog.record_tuples[0][2].split(': ', 1)
     assert msg_parts[0] == 'Invalid column(s) for ModelTest'
-    assert set(msg_parts[1].split(', ')) == set([f'`{c}`' for c in bad_cols])
+    assert set(msg_parts[1].split(', ')) == {f'`{c}`' for c in bad_cols}
 
 
 
@@ -1174,6 +1179,8 @@ def test__build_conditional_single(caplog):
     """
     Tests the `_build_conditional_single()` method in `orm_postgres`.
     """
+    #pylint: disable=too-many-statements
+
     caplog.set_level(logging.WARNING)
 
     # Ensure all supported ops work as expected

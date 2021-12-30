@@ -121,8 +121,7 @@ class PostgresOrm(orm_meta.Orm):
         val_vars = _prep_sanitized_vars('u', data)
         sql = f'''
             UPDATE {model_cls.get_table_name()}
-            SET {_build_col_var_list_str(
-                [d for d in data], [v for v in val_vars])}
+            SET {_build_col_var_list_str(list(data), list(val_vars))}
         '''
         if where:
             where_clause, where_vars = _build_where(where, model_cls)

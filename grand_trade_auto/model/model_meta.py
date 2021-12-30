@@ -27,8 +27,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# TODO: Make namedtuple for single conditionals, with default(s)?
-
 
 class ReturnAs(Enum):
     """

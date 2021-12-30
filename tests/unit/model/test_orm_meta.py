@@ -34,23 +34,23 @@ class MockOrmChild(orm_meta.Orm):
         """
         logger.info('Called _create_schema_datafeed_src()')
 
-    def add(self, model_cls, data):
+    def add(self, model_cls, data, **kwargs):
         """
         Not needed / will not be used.
         """
 
-    def update(self, model_cls, data, where):
+    def update(self, model_cls, data, where, **kwargs):
         """
         Not needed / will not be used.
         """
 
-    def delete(self, model_cls, where, really_delete_all=False):
+    def delete(self, model_cls, where, really_delete_all=False, **kwargs):
         """
         Not needed / will not be used.
         """
 
     def query(self, model_cls, return_as, columns_to_return=None,
-            where=None, limit=None, order=None):
+            where=None, limit=None, order=None, **kwargs):
         """
         Not needed / will not be used.
         """

@@ -13,6 +13,8 @@ Module Attributes:
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
+#pylint: disable=use-implicit-booleaness-not-comparison
+#   +-> want to specifically check type in most tests -- `None` is a fail
 
 import copy
 import logging
@@ -166,10 +168,10 @@ class OrmTest(orm_meta.Orm):
         """
         if where and where[1] is not model_meta.LogicOp.EQUALS:
             raise ValueError('Test Error: Provided LogicOp not supported')
-        elif not where and really_delete_all:
+        if not where and really_delete_all:
             self._mock_db_results = []
             return
-        elif not where:
+        if not where:
             raise ValueError('Need to confirm w/ really_delete_all')
 
         for res in self._mock_db_results:
@@ -186,6 +188,7 @@ class OrmTest(orm_meta.Orm):
         Fake querying something from mock results, and check cols.  Expected to
         have existing data.  Limited 'where' and 'order' clause support.
         """
+        #pylint: disable=too-many-branches
         if columns_to_return is not None:
             OrmTest._validate_cols(columns_to_return, model_cls)
         if where and where[1] is not model_meta.LogicOp.EQUALS:
