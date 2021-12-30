@@ -654,3 +654,46 @@ def test_query_direct(caplog):
         ('tests.unit.model.test_model_meta', logging.ERROR,
             'Invalid column(s) for ModelTest: `bad_col`')
     ]
+
+
+
+def test__get_active_data_as_dict():
+    """
+    Tests the `_get_active_data_as_dict()` method in `Model`.
+    """
+    orm = OrmTest(None)
+    model = ModelTest(orm)
+    assert model._get_active_data_as_dict() == {}
+
+    model.col_1 = 'v1'
+    model.col_2 = 'v2'
+    assert model._get_active_data_as_dict() == {'col_1': 'v1', 'col_2': 'v2'}
+
+    data = {
+        'id': 3,
+        'col_2': 'four',
+    }
+    model = ModelTest(orm, data)
+    assert model._get_active_data_as_dict() == data
+    model._active_cols.remove('id')
+    assert model._get_active_data_as_dict() == {'col_2': 'four'}
+
+
+
+def test__get_where_self_id(caplog):
+    """
+    Tests the `_get_where_self_id()` method in `Model`.
+    """
+    orm = OrmTest(None)
+    model = ModelTest(orm, {'id': 1})
+    assert model._get_where_self_id() == ('id', model_meta.LogicOp.EQUALS, 1)
+
+    caplog.clear()
+    model.id = None
+    with pytest.raises(ValueError) as ex:
+        model._get_where_self_id()
+    assert 'Cannot generate where clause with ID being None' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.model_meta', logging.ERROR,
+            'Cannot generate where clause with ID being None')
+    ]
