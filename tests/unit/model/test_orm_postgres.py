@@ -334,6 +334,9 @@ def test_update(monkeypatch, caplog, pg_test_orm):
             'str_data': str(uuid.uuid4()),
             'bool_data': False,
         },
+        {
+            'str_data': str(uuid.uuid4()),
+        },
     ]
     bad_id = {
         'id': 3,
@@ -401,6 +404,18 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         results = dict(zip(cols, cursor.fetchone()))
         results.pop('id')
         assert results == {**init_data[i], **new_data[1]}
+    cursor.close()
+
+    # Ensure all updated if where empty
+    pg_test_orm.update(ModelTest, new_data[2], None)
+    cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
+            close_cursor=False)
+    assert cursor.rowcount == 2
+    cols = [d[0] for d in cursor.description]
+    for i in range(cursor.rowcount):
+        results = dict(zip(cols, cursor.fetchone()))
+        results.pop('id')
+        assert results == {**init_data[i], **new_data[1], **new_data[2]}
     cursor.close()
 
     # Ensure cannot update id col

@@ -108,7 +108,7 @@ class OrmTest(orm_meta.Orm):
     A barebones Orm that can be used for most tests.
 
     Instance Attributes:
-      mock_db_results ([]): A list of objects that would be in the database if
+      _mock_db_results ([]): A list of objects that would be in the database if
         there were a db.  Meant to store results for add() so they can be
         checked later, etc.
     """
