@@ -14,8 +14,10 @@ Module Attributes:
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
+import copy
 import logging
 
+import pandas as pd
 import pytest
 
 from grand_trade_auto.model import model_meta
@@ -90,6 +92,17 @@ class ModelTest(model_meta.Model):
 
 
 
+    def __copy__(self):
+        """
+        Return an effective shallow copy for these testing purposes.
+        """
+        shallow_copy = ModelTest(self._orm)
+        for attr in ['id', 'col_1', 'col_2']:
+            setattr(shallow_copy, attr, getattr(self, attr))
+        return shallow_copy
+
+
+
 class OrmTest(orm_meta.Orm):
     """
     A barebones Orm that can be used for most tests.
@@ -136,6 +149,7 @@ class OrmTest(orm_meta.Orm):
             if getattr(res['model'], where[0]) == where[2]:
                 for k, v in data.items():
                     setattr(res['model'], k, v)
+                # Intentionally override extra_args to be able to test
                 res['extra_args'] = kwargs
 
 
@@ -146,7 +160,7 @@ class OrmTest(orm_meta.Orm):
         have existing data.  Limited 'where' clause support.
         """
         if where and where[1] is not model_meta.LogicOp.EQUALS:
-            raise ValueError('Provided LogicOp not supported')
+            raise ValueError('Test Error: Provided LogicOp not supported')
         elif not where and really_delete_all:
             self._mock_db_results = []
             return
@@ -156,6 +170,7 @@ class OrmTest(orm_meta.Orm):
         for res in self._mock_db_results:
             if getattr(res['model'], where[0]) == where[2]:
                 del res['model']
+                # Intentionally override extra_args to be able to test
                 res['extra_args'] = kwargs
 
 
@@ -166,6 +181,49 @@ class OrmTest(orm_meta.Orm):
         Fake querying something from mock results, and check cols.  Expected to
         have existing data.  Limited 'where' and 'order' clause support.
         """
+        if columns_to_return is not None:
+            OrmTest._validate_cols(columns_to_return, model_cls)
+        if where and where[1] is not model_meta.LogicOp.EQUALS:
+            raise ValueError('Test Error: Provided LogicOp not supported')
+        if order and order[1] is not model_meta.SortOrder.DESC:
+            raise ValueError('Test Error: Provided SortOrder not supported')
+
+        cols_to_omit = []
+        if columns_to_return:
+            for col in ModelTest._columns:
+                if col not in columns_to_return:
+                    cols_to_omit.append(col)
+
+        results = []
+        for res in self._mock_db_results:
+            if not where or getattr(res['model'], where[0]) == where[2]:
+                # Intentionally override extra_args to be able to test
+                res_copy = {
+                    'model': copy.copy(res['model']),
+                    'extra_args': kwargs,
+                }
+                for col in cols_to_omit:
+                    setattr(res_copy['model'], col, None)
+                results.append(res_copy)
+
+        if order:
+            results.sort(key=lambda mdl: getattr(mdl, order[0]))
+
+        if limit is not None and limit < len(results):
+            results = results[:limit]
+
+        if model_meta.ReturnAs(return_as) is model_meta.ReturnAs.MODEL:
+            return [r['model'] for r in results]
+        if model_meta.ReturnAs(return_as) is model_meta.ReturnAs.PANDAS:
+            # Flatten 'model' level of dict for pd.df import
+            mdl_cols = columns_to_return or ModelTest._columns
+            for res in results:
+                for col in mdl_cols:
+                    res[col] = getattr(res['model'], col)
+                del res['model']
+            return pd.DataFrame(results)
+        raise ValueError('Test Error: Provided ReturnAs not supported')
+
 
 
     @staticmethod
@@ -382,12 +440,7 @@ def test_update_and_direct(caplog, monkeypatch):
     assert res_2['extra_args'] == {'new_new_fake': 'yes'}
 
     # Create an effective semi-shallow copy of 1st db result...
-    data_copy = {
-        'id': 4,
-        'col_1': 6,
-        'col_2': 2,
-    }
-    model_copy = ModelTest(orm, data_copy)
+    model_copy = copy.copy(orm._mock_db_results[0]['model'])
     # ...then try modifying the data...
     model_copy.col_1 = 7
     model_copy.col_2 = 8
@@ -510,12 +563,7 @@ def test_delete_and_direct():
 
     _clear_load_and_verify_init_data()
     # Create an effective semi-shallow copy of 1st db result...
-    data_copy = {
-        'id': 1,
-        'col_1': 2,
-        'col_2': 3,
-    }
-    model_copy = ModelTest(orm, data_copy)
+    model_copy = copy.copy(orm._mock_db_results[0]['model'])
     # ...then try modifying the data...
     model_copy.col_1 = 6
     model_copy.delete(another_fake=True)
@@ -528,3 +576,51 @@ def test_delete_and_direct():
     assert res_2['model'].col_1 == 5
     assert res_2['model'].col_2 == 3
     assert res_2['extra_args'] == {'fake_count': 1}
+
+
+
+def test_query_direct():
+    """
+    Tests the `query_direct()` method in `Model`.
+    """
+    #pylint: disable=too-many-statements
+
+    data_orig = [
+        {
+            'id': 1,
+            'col_1': 2,
+            'col_2': 3,
+        },
+        {
+            'id': 4,
+            'col_1': 1,
+            'col_2': 3,
+        },
+        {
+            'id': 3,
+            'col_1': 3,
+            'col_2': 3,
+        },
+    ]
+    orm = OrmTest(None)
+
+    def _clear_load_and_verify_init_data():
+        """
+        Clears the existing "db" data, loads the initial, and then verifies.
+        """
+        orm._mock_db_results = []
+        for i, data in enumerate(data_orig):
+            orm.add(ModelTest, data, fake_count=i)
+        assert len(orm._mock_db_results) == 3
+        assert orm._mock_db_results[0]['model'].id == 1
+        assert orm._mock_db_results[0]['model'].col_1 == 2
+        assert orm._mock_db_results[1]['model'].col_1 == 1
+        assert orm._mock_db_results[1]['extra_args'] == {'fake_count': 1}
+        assert orm._mock_db_results[2]['model'].id == 3
+
+    _clear_load_and_verify_init_data()
+
+    models = ModelTest.query_direct(orm, 'model')
+    for i, model in enumerate(models):
+        for col in ModelTest._columns:
+            assert data_orig[i][col] == getattr(model, col)
