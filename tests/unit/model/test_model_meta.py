@@ -207,7 +207,9 @@ class OrmTest(orm_meta.Orm):
                 results.append(res_copy)
 
         if order:
-            results.sort(key=lambda mdl: getattr(mdl, order[0]))
+            # Hard-coded to only support DESC, hence reverse is True
+            results.sort(key=lambda mdl: getattr(mdl['model'], order[0]),
+                    reverse=True)
 
         if limit is not None and limit < len(results):
             results = results[:limit]
@@ -579,11 +581,11 @@ def test_delete_and_direct():
 
 
 
-def test_query_direct():
+def test_query_direct(caplog):
     """
     Tests the `query_direct()` method in `Model`.
     """
-    #pylint: disable=too-many-statements
+    caplog.set_level(logging.WARNING)
 
     data_orig = [
         {
@@ -597,30 +599,58 @@ def test_query_direct():
             'col_2': 3,
         },
         {
+            'id': 5,
+            'col_1': 2,
+            'col_2': 3,
+        },
+        {
             'id': 3,
-            'col_1': 3,
+            'col_1': 2,
             'col_2': 3,
         },
     ]
     orm = OrmTest(None)
-
-    def _clear_load_and_verify_init_data():
-        """
-        Clears the existing "db" data, loads the initial, and then verifies.
-        """
-        orm._mock_db_results = []
-        for i, data in enumerate(data_orig):
-            orm.add(ModelTest, data, fake_count=i)
-        assert len(orm._mock_db_results) == 3
-        assert orm._mock_db_results[0]['model'].id == 1
-        assert orm._mock_db_results[0]['model'].col_1 == 2
-        assert orm._mock_db_results[1]['model'].col_1 == 1
-        assert orm._mock_db_results[1]['extra_args'] == {'fake_count': 1}
-        assert orm._mock_db_results[2]['model'].id == 3
-
-    _clear_load_and_verify_init_data()
+    for i, data in enumerate(data_orig):
+        orm.add(ModelTest, data, fake_count=i)
+    assert len(orm._mock_db_results) == 4
+    assert orm._mock_db_results[0]['model'].id == 1
+    assert orm._mock_db_results[0]['model'].col_1 == 2
+    assert orm._mock_db_results[1]['model'].col_1 == 1
+    assert orm._mock_db_results[1]['extra_args'] == {'fake_count': 1}
+    assert orm._mock_db_results[2]['model'].id == 5
+    assert orm._mock_db_results[3]['model'].col_1 == 2
 
     models = ModelTest.query_direct(orm, 'model')
+    assert len(models) == len(data_orig)
     for i, model in enumerate(models):
         for col in ModelTest._columns:
             assert data_orig[i][col] == getattr(model, col)
+
+    rtn_cols = ['col_1', 'col_2']
+    models = ModelTest.query_direct(orm, model_meta.ReturnAs.MODEL,
+            rtn_cols, limit=2)
+    assert len(models) == 2
+    for i, model in enumerate(models):
+        for col in rtn_cols:
+            assert data_orig[i][col] == getattr(model, col)
+        assert model.id is None
+
+    where = ('col_1', model_meta.LogicOp.EQUALS, 2)
+    order = ('id', model_meta.SortOrder.DESC)
+    pd_df = ModelTest.query_direct(orm, 'pandas', where=where, order=order,
+            fake_extra='fake val')
+    assert len(pd_df) == 3
+    data_expected = [data_orig[2], data_orig[3], data_orig[0]]
+    for i in range(len(pd_df)):
+        for col in ModelTest._columns:
+            assert pd_df.iloc[i].loc[col] == data_expected[i][col]
+        assert pd_df.iloc[i].loc['extra_args'] == {'fake_extra': 'fake val'}
+
+    caplog.clear()
+    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
+        ModelTest.query_direct(orm, 'model', ['bad_col'])
+    assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('tests.unit.model.test_model_meta', logging.ERROR,
+            'Invalid column(s) for ModelTest: `bad_col`')
+    ]
