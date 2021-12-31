@@ -20,11 +20,13 @@ import inspect
 import pytest
 
 from grand_trade_auto.model import datafeed_src
+from grand_trade_auto.model import exchange
 
 
 
 @pytest.mark.parametrize('model_cls, extra_attrs', [
     (datafeed_src.DatafeedSrc, []),
+    (exchange.Exchange, []),
 ])
 def test_model_attrs(model_cls, extra_attrs):
     """

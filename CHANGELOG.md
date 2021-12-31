@@ -459,6 +459,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       defining table name and columns ([#98][]).
 
 
+### Model: Exchange
+- [Added] `exchange.py` added with `Exchange` subclasses from `Model`, defining
+      table name and columns ([#98][]).
+
+
 ### ORMs / Meta
 - [Added] `orm_meta.py` added to define `Orm` generic interface to be
       implemented by each database to support all models for object-relational
@@ -473,6 +478,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       create all tables for all concrete models ([#98][]).
   - Model tables implemented:
     - `DatafeedSrc`
+    - `Exchange`
 
 
 ### Web: Backend / Meta

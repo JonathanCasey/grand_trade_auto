@@ -34,6 +34,12 @@ class MockOrmChild(orm_meta.Orm):
         """
         logger.info('Called _create_schema_datafeed_src()')
 
+    def _create_schema_exchange(self):
+        """
+        Log something so it can be traced that this was called.
+        """
+        logger.info('Called _create_schema_exchange()')
+
     def add(self, model_cls, data, **kwargs):
         """
         Not needed / will not be used.
@@ -77,5 +83,7 @@ def test_create_schemas(caplog):
     mock_orm.create_schemas()
     assert caplog.record_tuples == [
         ('tests.unit.orm.test_orm_meta', logging.INFO,
-            'Called _create_schema_datafeed_src()')
+            'Called _create_schema_datafeed_src()'),
+        ('tests.unit.orm.test_orm_meta', logging.INFO,
+            'Called _create_schema_exchange()'),
     ]

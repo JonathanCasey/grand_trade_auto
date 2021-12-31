@@ -70,6 +70,32 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
+    def _create_schema_exchange(self):
+        """
+        Create the exchange table.
+
+        Dependent on: datafeed_src.
+
+        Subclass must define and execute SQL/etc.
+        """
+        sql = '''
+            CREATE TABLE exchange (
+                id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                name varchar(50) NOT NULL,
+                acronym varchar(50) NOT NULL,
+                datafeed_src_id integer NOT NULL,
+                CONSTRAINT fk_datafeed_src
+                    FOREIGN KEY (datafeed_src_id)
+                    REFERENCES datafeed_src (id)
+                    ON DELETE SET NULL
+                    ON UPDATE CASCADE,
+                UNIQUE (name)
+            )
+        '''
+        self._db.execute(sql)
+
+
+
     def add(self, model_cls, data, **kwargs):
         """
         Adds/Inserts a new record into the database.  The table is acquired from

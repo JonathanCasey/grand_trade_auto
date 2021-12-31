@@ -61,6 +61,7 @@ class Orm(ABC):
         tables will be loaded with data in this particular database.
         """
         self._create_schema_datafeed_src()
+        self._create_schema_exchange()
 
 
 
@@ -68,6 +69,18 @@ class Orm(ABC):
     def _create_schema_datafeed_src(self):
         """
         Create the datafeed_src table.
+
+        Subclass must define and execute SQL/etc.
+        """
+
+
+
+    @abstractmethod
+    def _create_schema_exchange(self):
+        """
+        Create the exchange table.
+
+        Dependent on: datafeed_src.
 
         Subclass must define and execute SQL/etc.
         """
