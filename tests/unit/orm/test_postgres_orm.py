@@ -111,15 +111,17 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public'):
 
 @pytest.mark.alters_db_schema
 @pytest.mark.order(-2)
-def test__create_schema_datafeed_src(pg_test_orm):
+@pytest.mark.parametrize('method_name, table_name', [
+    ('_create_schema_datafeed_src', 'datafeed_src'),
+])
+def test__create_schemas_individually(pg_test_orm, method_name, table_name):
     """
-    Tests the `_create_schema_datafeed_src()` method in `PostgresOrm`.
+    Tests the `_create_schema_*()` methods in `PostgresOrm`.
     """
     # Ensure db exists since not guaranteed in alters_db_schema
     pg_test_orm._db.create_db()
-
-    _test_create_schema(pg_test_orm, pg_test_orm._create_schema_datafeed_src,
-            'datafeed_src')
+    _test_create_schema(pg_test_orm, getattr(pg_test_orm, method_name),
+            table_name)
     pg_test_orm._db._conn.close()
 
 
