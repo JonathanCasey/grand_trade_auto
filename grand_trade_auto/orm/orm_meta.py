@@ -62,6 +62,19 @@ class Orm(ABC):
         """
         self._create_schema_datafeed_src()
         self._create_schema_exchange()
+        self._create_schema_company()
+
+
+
+    @abstractmethod
+    def _create_schema_company(self):
+        """
+        Create the company table.
+
+        Dependent on: datafeed_src.
+
+        Subclass must define and execute SQL/etc.
+        """
 
 
 

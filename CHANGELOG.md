@@ -454,6 +454,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
         docstring.
 
 
+### Model: Company
+- [Added] `company.py` added with `Company` subclasses from `Model`, defining
+      table name and columns ([#98][]).
+
+
 ### Model: DatafeedSrc
 - [Added] `datafeed_src.py` added with `DatafeedSrc` subclasses from `Model`,
       defining table name and columns ([#98][]).
@@ -477,6 +482,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       SQL operations needed to support generic `Model` interface as well as
       create all tables for all concrete models ([#98][]).
   - Model tables implemented:
+    - `Company`
     - `DatafeedSrc`
     - `Exchange`
 

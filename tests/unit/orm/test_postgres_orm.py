@@ -121,6 +121,7 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public',
 @pytest.mark.parametrize('method_name, table_name', [
     ('_create_schema_datafeed_src', 'datafeed_src'),
     ('_create_schema_exchange', 'exchange'),
+    ('_create_schema_company', 'company'),
 ])
 def test__create_schemas_individually(pg_test_orm, method_name, table_name):
     """

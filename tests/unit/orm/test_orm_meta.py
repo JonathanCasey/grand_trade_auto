@@ -28,6 +28,12 @@ class MockOrmChild(orm_meta.Orm):
     """"
     Simple mock class to subclass Orm.
     """
+    def _create_schema_company(self):
+        """
+        Log something so it can be traced that this was called.
+        """
+        logger.info('Called _create_schema_company()')
+
     def _create_schema_datafeed_src(self):
         """
         Log something so it can be traced that this was called.
@@ -86,4 +92,6 @@ def test_create_schemas(caplog):
             'Called _create_schema_datafeed_src()'),
         ('tests.unit.orm.test_orm_meta', logging.INFO,
             'Called _create_schema_exchange()'),
+        ('tests.unit.orm.test_orm_meta', logging.INFO,
+            'Called _create_schema_company()'),
     ]

@@ -51,6 +51,35 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
+    def _create_schema_company(self):
+        """
+        Create the company table.
+
+        Dependent on: datafeed_src.
+
+        Subclass must define and execute SQL/etc.
+        """
+        sql = '''
+            CREATE TABLE company (
+                id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                name varchar(50) NOT NULL,
+                sector varchar(50),
+                industry_group varchar(50),
+                industry_category varchar(50),
+                cik varchar(10),
+                sic varchar(4),
+                datafeed_src_id integer NOT NULL,
+                CONSTRAINT fk_datafeed_src
+                    FOREIGN KEY (datafeed_src_id)
+                    REFERENCES datafeed_src (id)
+                    ON DELETE SET NULL
+                    ON UPDATE CASCADE
+            )
+        '''
+        self._db.execute(sql)
+
+
+
     def _create_schema_datafeed_src(self):
         """
         Create the datafeed_src table.
