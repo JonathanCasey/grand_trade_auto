@@ -30,10 +30,10 @@ class DatafeedSrc(model_meta.Model):
           should each have a class attribute with a matching name for ease of
           access.  Subclasses should override this with the name of columns and
           then never change...
-        id (int or None): [Column var] The value of the id column in the table for
-          this record.  All tables MUST have an id field, at least until some
-          TSDB shows up.  As a class attribute, this is intended to hold some
-          default value.  It will be superseded its corresponding instance
+        id (int or None): [Column var] The value of the id column in the table
+          for this record.  All tables MUST have an id field, at least until
+          some TSDB shows up.  As a class attribute, this is intended to hold
+          some default value.  It will be superseded its corresponding instance
           variable upon being written to.  This is the practice for all
           column-related attributes.
 
