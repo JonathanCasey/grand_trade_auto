@@ -24,12 +24,12 @@ _TEST_PG_ENV = 'test'
 
 
 
-@pytest.fixture(name='create_test_db', scope='session', autouse=True)
-def fixture_create_test_db():
+@pytest.fixture(name='create_pg_test_db', scope='session', autouse=True)
+def fixture_create_pg_test_db():
     """
-    Creates the test database to be used for all tests.
+    Creates the test database in Postgres to be used for all tests.
 
-    Note that the `create_test_db_schema` fixture relies on this dropping the
+    Note that the `create_pg_test_db_schema` fixture relies on this dropping the
     database when done.  If that ever changes, that fixture may need to be
     revisited for cleanup items.
 
@@ -44,17 +44,17 @@ def fixture_create_test_db():
 
 
 
-@pytest.fixture(name='create_test_db_schema', scope='session', autouse=True)
-def fixture_create_test_db_schema(
-        create_test_db):                        #pylint: disable=unused-argument
+@pytest.fixture(name='create_pg_test_db_schema', scope='session', autouse=True)
+def fixture_create_pg_test_db_schema(
+        create_pg_test_db):                     #pylint: disable=unused-argument
     """
-    Creates the tables/schema in the database once the database has been
-    initialized.
+    Creates the tables/schema in the Postgres database once the database has
+    been initialized.
 
-    This does NOT destroy the tables after, as the `create_test_db` fixture this
-    depends upon will drop the entire database (it also depends on it setting up
-    first, hence it's inclusion as an arg despite not explicitly used in fixture
-    body).
+    This does NOT destroy the tables after, as the `create_pg_test_db` fixture
+    this depends upon will drop the entire database (it also depends on it
+    setting up first, hence it's inclusion as an arg despite not explicitly used
+    in fixture body).
 
     This is NOT to be relied upon for any tests marked as alters_db_schema, but
     they should consider that this will create the tables prior to those tests.
