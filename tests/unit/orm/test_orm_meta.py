@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tests the grand_trade_auto.model.orm_meta functionality.
+Tests the grand_trade_auto.orm.orm_meta functionality.
 
 Per [pytest](https://docs.pytest.org/en/reorganize-docs/new-docs/user/naming_conventions.html),
 all tiles, classes, and methods will be prefaced with `test_/Test` to comply
@@ -16,7 +16,7 @@ Module Attributes:
 
 import logging
 
-from grand_trade_auto.model import orm_meta
+from grand_trade_auto.orm import orm_meta
 
 
 
@@ -76,6 +76,6 @@ def test_create_schemas(caplog):
     caplog.clear()
     mock_orm.create_schemas()
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_orm_meta', logging.INFO,
+        ('tests.unit.orm.test_orm_meta', logging.INFO,
             'Called _create_schema_datafeed_src()')
     ]

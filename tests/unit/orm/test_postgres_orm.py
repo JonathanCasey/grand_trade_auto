@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tests the grand_trade_auto.model.orm_postgres functionality.
+Tests the grand_trade_auto.orm.postgres_orm functionality.
 
 Note that most of these tests are NOT intended to be run in parallel -- changes
 would need to be made to ensure they do not conflict with the state of the
@@ -32,8 +32,8 @@ import pytest
 from grand_trade_auto.database import databases
 from grand_trade_auto.database import postgres
 from grand_trade_auto.model import model_meta
-from grand_trade_auto.model import orm_meta
-from grand_trade_auto.model import orm_postgres
+from grand_trade_auto.orm import orm_meta
+from grand_trade_auto.orm import postgres_orm
 
 from tests.unit import conftest as unit_conftest
 
@@ -135,7 +135,7 @@ def fixture_create_test_table():
             unit_conftest._TEST_PG_ENV)
     conn = test_db.connect(False)
     sql = '''
-        CREATE TABLE test_orm_postgres (
+        CREATE TABLE test_postgres_orm (
             id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             test_name text,
             str_data text,
@@ -154,7 +154,7 @@ class ModelTest(model_meta.Model):
 
     This MUST match with the `fixture_create_test_table` in this module.
     """
-    _table_name = 'test_orm_postgres'
+    _table_name = 'test_postgres_orm'
 
     _columns = (
         'id',
@@ -253,7 +253,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
 
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
-    sql_select = 'SELECT * FROM test_orm_postgres WHERE test_name=%(test_name)s'
+    sql_select = 'SELECT * FROM test_postgres_orm WHERE test_name=%(test_name)s'
     select_var_vals = {'test_name': test_name}
 
     # Ensure single row add; can supply a cursor, keep it open
@@ -281,7 +281,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.add(ModelTest, bad_col)
     assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
@@ -297,8 +297,8 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     pg_test_orm.add(ModelTest, good_data)
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_orm_postgres', logging.WARNING,
-            'b"INSERT INTO test_orm_postgres'
+        ('tests.unit.orm.test_postgres_orm', logging.WARNING,
+            'b"INSERT INTO test_postgres_orm'
             + ' (test_name,str_data,int_data,bool_data)'
             + ' VALUES (\'test_add\','
             + f' \'{str(good_data["str_data"])}\', 1, true)"'),
@@ -365,7 +365,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     }
 
     sql_select = '''
-        SELECT * FROM test_orm_postgres
+        SELECT * FROM test_postgres_orm
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
@@ -439,7 +439,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.update(ModelTest, bad_col, where_1)
     assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
@@ -455,8 +455,8 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     pg_test_orm.update(ModelTest, new_data[1], where_1_2)
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_orm_postgres', logging.WARNING,
-            'b"UPDATE test_orm_postgres SET str_data = \''
+        ('tests.unit.orm.test_postgres_orm', logging.WARNING,
+            'b"UPDATE test_postgres_orm SET str_data = \''
             + f'{new_data[1]["str_data"]}\', bool_data = false WHERE'
             + ' (int_data = 1 OR int_data = 2)"'),
     ]
@@ -496,7 +496,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     ]
 
     sql_select = '''
-        SELECT * FROM test_orm_postgres
+        SELECT * FROM test_postgres_orm
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
@@ -540,7 +540,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.delete(ModelTest, {})
     assert 'Invalid delete parameters: `where` empty, but' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             'Invalid delete parameters: `where` empty, but did not'
                     + ' set `really_delete_all` to confirm delete all.'
                     + '  Likely intended to specify `where`?'),
@@ -561,7 +561,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.delete(ModelTest, where_bad_col)
     assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
@@ -578,8 +578,8 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     pg_test_orm.delete(ModelTest, where_2_3)
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_orm_postgres', logging.WARNING,
-            "b'DELETE FROM test_orm_postgres WHERE"
+        ('tests.unit.orm.test_postgres_orm', logging.WARNING,
+            "b'DELETE FROM test_postgres_orm WHERE"
             + " (int_data = 2 OR int_data = 3)'"),
     ]
 
@@ -624,7 +624,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     ]
 
     sql_select = '''
-        SELECT * FROM test_orm_postgres
+        SELECT * FROM test_postgres_orm
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
@@ -711,7 +711,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.query(ModelTest, 'model', ['bad_col'])
     assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
@@ -722,7 +722,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.query(ModelTest, 'model', where=where_bad_col)
     assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
@@ -733,7 +733,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.query(ModelTest, 'model', order=order_bad_col)
     assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
@@ -743,7 +743,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.query(ModelTest, 'model', limit='nan')
     assert "Failed to parse limit, likely not a number:" in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Failed to parse limit, likely not a number:"
             + " invalid literal for int() with base 10: 'nan'"),
     ]
@@ -764,8 +764,8 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.query(ModelTest, 'model', where=where_2_3, limit=100,
                 order=order_bool_asc_int_desc)
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_orm_postgres', logging.WARNING,
-            "b'SELECT * FROM test_orm_postgres WHERE (int_data = 2 OR"
+        ('tests.unit.orm.test_postgres_orm', logging.WARNING,
+            "b'SELECT * FROM test_postgres_orm WHERE (int_data = 2 OR"
             + " int_data = 3) ORDER BY bool_data ASC, int_data DESC"
             + " LIMIT 100'"),
     ]
@@ -802,7 +802,7 @@ def test__convert_cursor_to_models(pg_test_orm):
     ]
 
     sql_select = '''
-        SELECT * FROM test_orm_postgres
+        SELECT * FROM test_postgres_orm
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
@@ -852,7 +852,7 @@ def test__convert_cursor_to_pandas_dataframe(pg_test_orm):
     ]
 
     sql_select = '''
-        SELECT * FROM test_orm_postgres
+        SELECT * FROM test_postgres_orm
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
@@ -883,7 +883,7 @@ def test__convert_cursor_to_pandas_dataframe(pg_test_orm):
 
 def test__validate_cols(caplog):
     """
-    Tests the `_validate_cols()` method in `orm_postgres`.
+    Tests the `_validate_cols()` method in `postgres_orm`.
     """
     caplog.set_level(logging.WARNING)
 
@@ -893,24 +893,24 @@ def test__validate_cols(caplog):
     ]
 
     # Ensure works with good columns, including with a subset of them
-    orm_postgres._validate_cols(ModelTest._columns, ModelTest)
-    orm_postgres._validate_cols(ModelTest._columns[1:3], ModelTest)
+    postgres_orm._validate_cols(ModelTest._columns, ModelTest)
+    postgres_orm._validate_cols(ModelTest._columns[1:3], ModelTest)
 
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        orm_postgres._validate_cols([*ModelTest._columns[1:2], bad_cols[0]],
+        postgres_orm._validate_cols([*ModelTest._columns[1:2], bad_cols[0]],
                 ModelTest)
     assert 'Invalid column(s) for ModelTest:' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col_1`"),
     ]
 
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        orm_postgres._validate_cols([*ModelTest._columns, *bad_cols], ModelTest)
+        postgres_orm._validate_cols([*ModelTest._columns, *bad_cols], ModelTest)
     assert 'Invalid column(s) for ModelTest:' in str(ex.value)
-    assert caplog.record_tuples[0][0] == 'grand_trade_auto.model.orm_postgres'
+    assert caplog.record_tuples[0][0] == 'grand_trade_auto.orm.postgres_orm'
     assert caplog.record_tuples[0][1] == logging.ERROR
     # Since code under test uses set, order varies -- must compare as set
     msg_parts = caplog.record_tuples[0][2].split(': ', 1)
@@ -921,7 +921,7 @@ def test__validate_cols(caplog):
 
 def test__prep_sanitized_vars():
     """
-    Tests the `_prep_sanitized_vars()` method in `orm_postgres`.
+    Tests the `_prep_sanitized_vars()` method in `postgres_orm`.
     """
     data = {
         'col_1': 'val_1',
@@ -929,26 +929,26 @@ def test__prep_sanitized_vars():
         'col_3': 'val_3',
     }
 
-    val_vars = orm_postgres._prep_sanitized_vars('', data)
+    val_vars = postgres_orm._prep_sanitized_vars('', data)
     for i, (k, v) in enumerate(val_vars.items()):
         assert k == f'val{i}'
         assert v == data[list(data.keys())[i]]
 
 
-    val_vars = orm_postgres._prep_sanitized_vars('test',
+    val_vars = postgres_orm._prep_sanitized_vars('test',
             dict(itertools.islice(data.items(), 1)))
     for i, (k, v) in enumerate(val_vars.items()):
         assert k == f'testval{i}'
         assert v == data[list(data.keys())[i]]
 
-    val_vars = orm_postgres._prep_sanitized_vars('empty', {})
+    val_vars = postgres_orm._prep_sanitized_vars('empty', {})
     assert val_vars == {}
 
 
 
 def test__build_var_list_str():
     """
-    Tests the `_build_var_list_str()` method in `orm_postgres`.
+    Tests the `_build_var_list_str()` method in `postgres_orm`.
     """
     names = [
         'var_1',
@@ -956,20 +956,20 @@ def test__build_var_list_str():
         'var_3',
     ]
 
-    var_str = orm_postgres._build_var_list_str(names)
+    var_str = postgres_orm._build_var_list_str(names)
     assert var_str == '%(var_1)s, %(var_2)s, %(var_3)s'
 
-    var_str = orm_postgres._build_var_list_str(names[:1])
+    var_str = postgres_orm._build_var_list_str(names[:1])
     assert var_str == '%(var_1)s'
 
-    var_str = orm_postgres._build_var_list_str([])
+    var_str = postgres_orm._build_var_list_str([])
     assert var_str == ''
 
 
 
 def test__build_col_var_list_str():
     """
-    Tests the `_build_col_var_list_str()` method in `orm_postgres`.
+    Tests the `_build_col_var_list_str()` method in `postgres_orm`.
     """
     col_names = [
         'col_1',
@@ -982,39 +982,39 @@ def test__build_col_var_list_str():
         'var_3',
     ]
 
-    cv_str = orm_postgres._build_col_var_list_str(col_names, var_names)
+    cv_str = postgres_orm._build_col_var_list_str(col_names, var_names)
     assert cv_str == 'col_1 = %(var_1)s, col_2 = %(var_2)s, col_3 = %(var_3)s'
 
-    cv_str = orm_postgres._build_col_var_list_str(col_names[:1], var_names[:1])
+    cv_str = postgres_orm._build_col_var_list_str(col_names[:1], var_names[:1])
     assert cv_str == 'col_1 = %(var_1)s'
 
-    cv_str = orm_postgres._build_col_var_list_str([], [])
+    cv_str = postgres_orm._build_col_var_list_str([], [])
     assert cv_str == ''
 
     with pytest.raises(AssertionError) as ex:
-        orm_postgres._build_col_var_list_str([], [1])
+        postgres_orm._build_col_var_list_str([], [1])
     assert 'Col and vars must be same length!' == str(ex.value)
 
 
 
 def test__build_where(caplog):
     """
-    Tests the `_build_where()` method in `orm_postgres`.
+    Tests the `_build_where()` method in `postgres_orm`.
     """
     caplog.set_level(logging.WARNING)
 
     # Ensure empty where should be empty
-    assert orm_postgres._build_where(None) == ('', {})
+    assert postgres_orm._build_where(None) == ('', {})
 
     # Ensure single where clause works without col check
     where_single = ('col_1', model_meta.LogicOp.EQ, 'val_1')
-    clause, vals = orm_postgres._build_where(where_single)
+    clause, vals = postgres_orm._build_where(where_single)
     assert clause == 'col_1 = %(wval0)s'
     assert vals == {'wval0': 'val_1'}
 
     # Ensure single where clause works with col check
     where_single = ('id', model_meta.LogicOp.EQ, 2)
-    clause, vals = orm_postgres._build_where(where_single, ModelTest)
+    clause, vals = postgres_orm._build_where(where_single, ModelTest)
     assert clause == 'id = %(wval0)s'
     assert vals == {'wval0': 2}
 
@@ -1022,10 +1022,10 @@ def test__build_where(caplog):
     caplog.clear()
     where_single = ('bad_col', model_meta.LogicOp.EQ, 3)
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        orm_postgres._build_where(where_single, ModelTest)
+        postgres_orm._build_where(where_single, ModelTest)
     assert 'Invalid column(s) for ModelTest:' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
@@ -1036,7 +1036,7 @@ def test__build_where(caplog):
             ('col_2', model_meta.LogicOp.EQ, 5),
         ],
     }
-    clause, vals = orm_postgres._build_where(where_combo)
+    clause, vals = postgres_orm._build_where(where_combo)
     assert clause == '(col_1 = %(wval0)s AND col_2 = %(wval1)s)'
     assert vals == {'wval0': 'val_4', 'wval1': 5}
 
@@ -1060,7 +1060,7 @@ def test__build_where(caplog):
             ('col_7', model_meta.LogicOp.EQ, 12),
         ],
     }
-    clause, vals = orm_postgres._build_where(where_combo)
+    clause, vals = postgres_orm._build_where(where_combo)
     assert clause == '(col_1 = %(wval0)s AND (col_2 = %(wval1)s' \
             + ' OR col_3 = %(wval2)s OR (col_4 = %(wval3)s' \
             + ' AND col_5 = %(wval4)s AND col_6 = %(wval5)s)) AND' \
@@ -1084,10 +1084,10 @@ def test__build_where(caplog):
         ],
     }
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        orm_postgres._build_where(where_combo, ModelTest)
+        postgres_orm._build_where(where_combo, ModelTest)
     assert 'Invalid column(s) for ModelTest:' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
@@ -1100,10 +1100,10 @@ def test__build_where(caplog):
         ],
     }
     with pytest.raises(ValueError) as ex:
-        orm_postgres._build_where(where_combo)
+        postgres_orm._build_where(where_combo)
     assert 'Invalid or Unsupported Logic Op: not an op' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid or Unsupported Logic Op: not an op"),
     ]
 
@@ -1111,7 +1111,7 @@ def test__build_where(caplog):
 
 def test__build_conditional_combo(caplog):
     """
-    Tests the `_build_conditional_combo()` method in `orm_postgres`.
+    Tests the `_build_conditional_combo()` method in `postgres_orm`.
     """
     caplog.set_level(logging.WARNING)
 
@@ -1121,7 +1121,7 @@ def test__build_conditional_combo(caplog):
         ('col_2', model_meta.LogicOp.EQ, 2),
     ]
     vals = {}
-    clause = orm_postgres._build_conditional_combo(model_meta.LogicCombo.AND,
+    clause = postgres_orm._build_conditional_combo(model_meta.LogicCombo.AND,
             where_conds, vals)
     assert clause == '(col_1 = %(wval0)s AND col_2 = %(wval1)s)'
     assert vals == {'wval0': 'val_1', 'wval1': 2}
@@ -1137,7 +1137,7 @@ def test__build_conditional_combo(caplog):
                 ],
             },
     ]
-    clause = orm_postgres._build_conditional_combo(
+    clause = postgres_orm._build_conditional_combo(
             model_meta.LogicCombo.OR, where_conds, vals, ModelTest)
     assert clause == '(id = %(wval1)s OR (int_data = %(wval2)s' \
             + ' AND bool_data = %(wval3)s))'
@@ -1155,21 +1155,21 @@ def test__build_conditional_combo(caplog):
         ('col_2', model_meta.LogicOp.EQ, 7),
     ]
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        orm_postgres._build_conditional_combo(
+        postgres_orm._build_conditional_combo(
             model_meta.LogicCombo.OR, where_conds, {}, ModelTest)
     assert 'Invalid column(s) for ModelTest:' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
     # Ensure fails with bad combo
     caplog.clear()
     with pytest.raises(ValueError) as ex:
-        orm_postgres._build_conditional_combo('bad combo', [], {})
+        postgres_orm._build_conditional_combo('bad combo', [], {})
     assert 'Invalid or Unsupported Logic Combo:' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid or Unsupported Logic Combo: bad combo"),
     ]
 
@@ -1177,7 +1177,7 @@ def test__build_conditional_combo(caplog):
 
 def test__build_conditional_single(caplog):
     """
-    Tests the `_build_conditional_single()` method in `orm_postgres`.
+    Tests the `_build_conditional_single()` method in `postgres_orm`.
     """
     #pylint: disable=too-many-statements
 
@@ -1185,94 +1185,94 @@ def test__build_conditional_single(caplog):
 
     # Ensure all supported ops work as expected
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_1', model_meta.LogicOp.NOT_NULL), vals)
     assert clause == 'col_1 NOT NULL'
     assert vals == {}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_2', model_meta.LogicOp.EQ, 2), vals)
     assert clause == 'col_2 = %(wval0)s'
     assert vals == {'wval0': 2}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_3', model_meta.LogicOp.EQUAL, 3), vals)
     assert clause == 'col_3 = %(wval0)s'
     assert vals == {'wval0': 3}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_4', model_meta.LogicOp.EQUALS, 4), vals)
     assert clause == 'col_4 = %(wval0)s'
     assert vals == {'wval0': 4}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_5', model_meta.LogicOp.LT, 5), vals)
     assert clause == 'col_5 < %(wval0)s'
     assert vals == {'wval0': 5}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_6', model_meta.LogicOp.LESS_THAN, 6), vals)
     assert clause == 'col_6 < %(wval0)s'
     assert vals == {'wval0': 6}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_7', model_meta.LogicOp.LTE, 7), vals)
     assert clause == 'col_7 <= %(wval0)s'
     assert vals == {'wval0': 7}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_8', model_meta.LogicOp.LESS_THAN_OR_EQUAL, 8), vals)
     assert clause == 'col_8 <= %(wval0)s'
     assert vals == {'wval0': 8}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_9', model_meta.LogicOp.GT, 9), vals)
     assert clause == 'col_9 > %(wval0)s'
     assert vals == {'wval0': 9}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_10', model_meta.LogicOp.GREATER_THAN, 10), vals)
     assert clause == 'col_10 > %(wval0)s'
     assert vals == {'wval0': 10}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_11', model_meta.LogicOp.GTE, 11), vals)
     assert clause == 'col_11 >= %(wval0)s'
     assert vals == {'wval0': 11}
 
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_12', model_meta.LogicOp.GREATER_THAN_OR_EQUAL, 12), vals)
     assert clause == 'col_12 >= %(wval0)s'
     assert vals == {'wval0': 12}
 
     # Ensure no issue providing 3 cond's when 2 expected and with vars
     vals = {'existing_col': 'ex_val'}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_13', model_meta.LogicOp.NOT_NULL, 'no_val'), vals)
     assert clause == 'col_13 NOT NULL'
     assert vals == {'existing_col': 'ex_val'}
 
     # Ensure works with existing values
     vals = {'existing_col': 'ex_val'}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('col_14', model_meta.LogicOp.EQ, 14), vals)
     assert clause == 'col_14 = %(wval1)s'
     assert vals == {'existing_col': 'ex_val', 'wval1': 14}
 
     # Ensure works with col valid
     vals = {}
-    clause = orm_postgres._build_conditional_single(
+    clause = postgres_orm._build_conditional_single(
             ('id', model_meta.LogicOp.EQ, 15), vals, ModelTest)
     assert clause == 'id = %(wval0)s'
     assert vals == {'wval0': 15}
@@ -1280,21 +1280,21 @@ def test__build_conditional_single(caplog):
     # Ensure bad col caught
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        orm_postgres._build_conditional_single(
+        postgres_orm._build_conditional_single(
             ('bad_col', model_meta.LogicOp.EQ, 16), {}, ModelTest)
     assert 'Invalid column(s) for ModelTest:' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
     # Ensure bad op caught
     caplog.clear()
     with pytest.raises(ValueError) as ex:
-        orm_postgres._build_conditional_single(('col_17', 'bad op'), {})
+        postgres_orm._build_conditional_single(('col_17', 'bad op'), {})
     assert 'Invalid or Unsupported Logic Op: bad op' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Invalid or Unsupported Logic Op: bad op"),
     ]
 
@@ -1302,16 +1302,16 @@ def test__build_conditional_single(caplog):
 
 def test__build_and_validate_order(caplog):
     """
-    Tests the `_build_and_validate_order()` method in `orm_postgres`.
+    Tests the `_build_and_validate_order()` method in `postgres_orm`.
     """
     caplog.set_level(logging.WARNING)
 
     # Ensure empty order works
-    assert orm_postgres._build_and_validate_order(None) == ''
+    assert postgres_orm._build_and_validate_order(None) == ''
 
     # Ensure single order works
     order_simple = [('col_1', model_meta.SortOrder.ASC)]
-    clause = orm_postgres._build_and_validate_order(order_simple)
+    clause = postgres_orm._build_and_validate_order(order_simple)
     assert clause == 'ORDER BY col_1 ASC'
 
     # Ensure multiple order works
@@ -1319,12 +1319,12 @@ def test__build_and_validate_order(caplog):
         ('col_1', model_meta.SortOrder.DESC),
         ('col_2', model_meta.SortOrder.ASC),
     ]
-    clause = orm_postgres._build_and_validate_order(order_complex)
+    clause = postgres_orm._build_and_validate_order(order_complex)
     assert clause == 'ORDER BY col_1 DESC, col_2 ASC'
 
     # Ensure column validation works
     order_simple = [('id', model_meta.SortOrder.ASC)]
-    clause = orm_postgres._build_and_validate_order(order_simple, ModelTest)
+    clause = postgres_orm._build_and_validate_order(order_simple, ModelTest)
     assert clause == 'ORDER BY id ASC'
 
     # Ensure column validation fails with bad col
@@ -1334,10 +1334,10 @@ def test__build_and_validate_order(caplog):
         ('bad_col', model_meta.SortOrder.ASC),
     ]
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        orm_postgres._build_and_validate_order(order_complex, ModelTest)
+        postgres_orm._build_and_validate_order(order_complex, ModelTest)
     assert 'Invalid column(s) for ModelTest:' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
@@ -1345,12 +1345,12 @@ def test__build_and_validate_order(caplog):
     caplog.clear()
     order_simple = [('col_1', 'bad order')]
     with pytest.raises(ValueError) as ex:
-        orm_postgres._build_and_validate_order(order_simple)
+        postgres_orm._build_and_validate_order(order_simple)
     assert 'Invalid or Unsupported Sort Order:' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             'Invalid or Unsupported Sort Order: bad order'),
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             'Failed to parse sort order:'
             + ' Invalid or Unsupported Sort Order: bad order'),
     ]
@@ -1359,10 +1359,10 @@ def test__build_and_validate_order(caplog):
     caplog.clear()
     order_bad = [('col_1', model_meta.SortOrder.ASC, 'bad extra')]
     with pytest.raises(ValueError) as ex:
-        orm_postgres._build_and_validate_order(order_bad)
+        postgres_orm._build_and_validate_order(order_bad)
     assert 'Failed to parse sort order: ' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             'Failed to parse sort order:'
             + ' too many values to unpack (expected 2)'),
     ]
@@ -1371,23 +1371,23 @@ def test__build_and_validate_order(caplog):
 
 def test__build_and_validate_limit(caplog):
     """
-    Tests the `_build_and_validate_limti()` method in `orm_postgres`.
+    Tests the `_build_and_validate_limti()` method in `postgres_orm`.
     """
     caplog.set_level(logging.WARNING)
 
     # Ensure empty limit works
-    assert orm_postgres._build_and_validate_limit(None) == ''
+    assert postgres_orm._build_and_validate_limit(None) == ''
 
     # Ensure integer limit works
-    assert orm_postgres._build_and_validate_limit(123) == 'LIMIT 123'
+    assert postgres_orm._build_and_validate_limit(123) == 'LIMIT 123'
 
     # Ensure non-integer fails
     caplog.clear()
     with pytest.raises(ValueError) as ex:
-        orm_postgres._build_and_validate_limit('not an int')
+        postgres_orm._build_and_validate_limit('not an int')
     assert 'Failed to parse limit, likely not a number:' in str(ex.value)
     assert caplog.record_tuples == [
-        ('grand_trade_auto.model.orm_postgres', logging.ERROR,
+        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
             "Failed to parse limit, likely not a number:"
             + " invalid literal for int() with base 10: 'not an int'"),
     ]

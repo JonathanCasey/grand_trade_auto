@@ -15,7 +15,7 @@ from psycopg2 import sql
 
 from grand_trade_auto.database import database_meta
 from grand_trade_auto.general import config
-from grand_trade_auto.model import orm_postgres
+from grand_trade_auto.orm import postgres_orm
 
 
 
@@ -69,7 +69,7 @@ class Postgres(database_meta.Database):
 
         self._conn = None
 
-        self._orm = orm_postgres.PostgresOrm(self)
+        self._orm = postgres_orm.PostgresOrm(self)
 
 
 

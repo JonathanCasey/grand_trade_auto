@@ -23,7 +23,7 @@ import pandas as pd
 import pytest
 
 from grand_trade_auto.model import model_meta
-from grand_trade_auto.model import orm_meta
+from grand_trade_auto.orm import orm_meta
 
 
 
