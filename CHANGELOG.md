@@ -471,6 +471,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `postgres_orm.py` added with `PostgresOrm` defined to implement all
       SQL operations needed to support generic `Model` interface as well as
       create all tables for all concrete models ([#98][]).
+  - Model tables implemented:
+    - `DatafeedSrc`
 
 
 ### Web: Backend / Meta
