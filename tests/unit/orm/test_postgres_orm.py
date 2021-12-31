@@ -56,7 +56,8 @@ def fixture_pg_test_orm(pg_test_db):
 
 
 
-def _test_create_schema(orm, test_func, table_name, table_schema='public'):
+def _test_create_schema(orm, test_func, table_name, table_schema='public',
+        drop_table_after=False):
     """
     A generic set of steps to test table creation.
 
@@ -74,12 +75,16 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public'):
       table_name (str): The name of the table that is being created.
       table_schema (str): The schema name of the table that is being created.
         Can likely use default unless it was changed elsewhere.
+      drop_table_after (bool): Whether or not to drop the table after testing is
+        complete.
     """
     def _drop_own_table():
         """
         Drop the table being created in this subtest.
+
+        Despite the name, this MAY drop other tables if necessary via cascade.
         """
-        sql_drop_table = f'DROP TABLE IF EXISTS {table_name}'
+        sql_drop_table = f'DROP TABLE IF EXISTS {table_name} CASCADE'
         cursor = orm._db.connect().cursor()
         cursor.execute(sql_drop_table)
         cursor.connection.commit()
@@ -105,12 +110,14 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public'):
     assert cursor.fetchone()[0] is True
     cursor.close()
 
-    _drop_own_table()
+    if drop_table_after:
+        _drop_own_table()
 
 
 
 @pytest.mark.alters_db_schema
 @pytest.mark.order(-2)
+# Order of parameters must match order in _create_schemas() due to dependencies
 @pytest.mark.parametrize('method_name, table_name', [
     ('_create_schema_datafeed_src', 'datafeed_src'),
 ])
