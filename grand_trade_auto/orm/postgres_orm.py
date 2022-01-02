@@ -117,6 +117,28 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
+    def _create_schema_enum_price_frequency(self):
+        """
+        Create the price_frequency enum.  The values must all match exactly the
+        values as shown in model_meta.
+
+        Dependent on: None
+        Dependent on tables: N/A
+
+        Subclass must define and execute SQL/etc.
+        """
+        enum_name = 'price_frequency'
+        sql_create = f'''
+            CREATE TYPE {enum_name} AS ENUM (
+                '1min', '5min', '10min', '15min', '30min', 'hourly', 'daily'
+            )
+        '''
+        sql = self._sql_exec_if_type_not_exists.substitute(type_name=enum_name,
+                schema_name=_SCHEMA_NAME, sql_exec_if_not_exists=sql_create)
+        self._db.execute(sql)
+
+
+
     def _create_schema_table_company(self):
         """
         Create the company table.
@@ -231,6 +253,50 @@ class PostgresOrm(orm_meta.Orm):
                     ON DELETE SET NULL
                     ON UPDATE CASCADE,
                 UNIQUE (exchange_id, ticker)
+            )
+        '''
+        self._db.execute(sql)
+
+
+
+    def _create_schema_table_security_price(self):
+        """
+        Create the security_price table.
+
+        Dependent on enums: price_frequency
+        Dependent on tables: datefeed_src, security
+
+        Subclass must define and execute SQL/etc.
+        """
+        sql = '''
+            CREATE TABLE IF NOT EXISTS security_price (
+                id bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                security_id integer NOT NULL,
+                CONSTRAINT fk_security
+                    FOREIGN KEY (security_id)
+                    REFERENCES security (id)
+                    ON DELETE CASCADE
+                    ON UPDATE CASCADE,
+                datetime timestamptz NOT NULL,
+                raw_open double precision,
+                raw_close double precision,
+                raw_high double precision,
+                raw_low double precision,
+                raw_volume double precision,
+                adj_open double precision,
+                adj_close double precision,
+                adj_high double precision,
+                adj_low double precision,
+                adj_volume double precision,
+                intraperiod boolean NOT NULL,
+                frequency price_frequency NOT NULL,
+                datafeed_src_id integer NOT NULL,
+                CONSTRAINT fk_datafeed_src
+                    FOREIGN KEY (datafeed_src_id)
+                    REFERENCES datafeed_src (id)
+                    ON DELETE SET NULL
+                    ON UPDATE CASCADE,
+                UNIQUE (security_id, datetime, datafeed_src_id)
             )
         '''
         self._db.execute(sql)

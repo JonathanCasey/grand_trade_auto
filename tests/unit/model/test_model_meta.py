@@ -56,6 +56,28 @@ def test_enum_currency():
 
 
 
+def test_enum_price_frequency():
+    """
+    Tests the essential items of the `PriceFrequency` Enum in `model_meta`.
+    """
+    # Must test enum values since these are set in the database schema
+    assert model_meta.PriceFrequency('1min') == model_meta.PriceFrequency.MIN_1
+    assert model_meta.PriceFrequency('5min') == model_meta.PriceFrequency.MIN_5
+    assert model_meta.PriceFrequency('10min') \
+            == model_meta.PriceFrequency.MIN_10
+    assert model_meta.PriceFrequency('15min') \
+            == model_meta.PriceFrequency.MIN_15
+    assert model_meta.PriceFrequency('30min') \
+            == model_meta.PriceFrequency.MIN_30
+    assert model_meta.PriceFrequency('hourly') \
+            == model_meta.PriceFrequency.HOURLY
+    assert model_meta.PriceFrequency('daily') \
+            == model_meta.PriceFrequency.DAILY
+    # Failing length here likely means new values added -- just add above
+    assert len(model_meta.PriceFrequency) == 7
+
+
+
 def test_enum_return_as():
     """
     Tests the essential items of the `ReturnAs` Enum in `model_meta`.
@@ -158,6 +180,11 @@ class OrmTest(orm_meta.Orm):
         Not needed / will not be used.
         """
 
+    def _create_schema_enum_price_frequency(self):
+        """
+        Not needed / will not be used.
+        """
+
     def _create_schema_table_company(self):
         """
         Not needed / will not be used.
@@ -174,6 +201,11 @@ class OrmTest(orm_meta.Orm):
         """
 
     def _create_schema_table_security(self):
+        """
+        Not needed / will not be used.
+        """
+
+    def _create_schema_table_security_price(self):
         """
         Not needed / will not be used.
         """

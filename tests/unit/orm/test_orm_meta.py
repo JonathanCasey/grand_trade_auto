@@ -40,6 +40,12 @@ class MockOrmChild(orm_meta.Orm):
         """
         logger.info('Called _create_schema_enum_market()')
 
+    def _create_schema_enum_price_frequency(self):
+        """
+        Log something so it can be traced that this was called.
+        """
+        logger.info('Called _create_schema_enum_price_frequency()')
+
     def _create_schema_table_company(self):
         """
         Log something so it can be traced that this was called.
@@ -63,6 +69,12 @@ class MockOrmChild(orm_meta.Orm):
         Log something so it can be traced that this was called.
         """
         logger.info('Called _create_schema_table_security()')
+
+    def _create_schema_table_security_price(self):
+        """
+        Log something so it can be traced that this was called.
+        """
+        logger.info('Called _create_schema_table_security_price()')
 
     def _create_schema_table_stock_adjustment(self):
         """
@@ -117,6 +129,8 @@ def test_create_schemas(caplog):
         ('tests.unit.orm.test_orm_meta', logging.INFO,
             'Called _create_schema_enum_market()'),
         ('tests.unit.orm.test_orm_meta', logging.INFO,
+            'Called _create_schema_enum_price_frequency()'),
+        ('tests.unit.orm.test_orm_meta', logging.INFO,
             'Called _create_schema_table_datafeed_src()'),
         ('tests.unit.orm.test_orm_meta', logging.INFO,
             'Called _create_schema_table_exchange()'),
@@ -124,6 +138,8 @@ def test_create_schemas(caplog):
             'Called _create_schema_table_company()'),
         ('tests.unit.orm.test_orm_meta', logging.INFO,
             'Called _create_schema_table_security()'),
+        ('tests.unit.orm.test_orm_meta', logging.INFO,
+            'Called _create_schema_table_security_price()'),
         ('tests.unit.orm.test_orm_meta', logging.INFO,
             'Called _create_schema_table_stock_adjustment()'),
     ]

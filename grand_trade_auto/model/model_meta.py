@@ -53,6 +53,23 @@ class Currency(Enum):
 
 
 
+class PriceFrequency(Enum):
+    """
+    Possible frequency of pricing data that can be specified in a database.
+
+    These are used as enum values in the database, so do NOT remove/change
+    existing values unless prepared to do a database migration!
+    """
+    MIN_1 = '1min'
+    MIN_5 = '5min'
+    MIN_10 = '10min'
+    MIN_15 = '15min'
+    MIN_30 = '30min'
+    HOURLY = 'hourly'
+    DAILY = 'daily'
+
+
+
 class ReturnAs(Enum):
     """
     Options for how query results can be returned.  In some places, can use

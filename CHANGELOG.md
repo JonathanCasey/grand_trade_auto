@@ -456,6 +456,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       database ([#98][]).
 - [Added] `Market` enum added to define market options as they appear in the
       database ([#98][]).
+- [Added] `PriceFrequency` enum added to define options for security price
+      frequency as they appear in the database ([#98][]).
 
 
 ### Model: Company
@@ -478,6 +480,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       table name and columns ([#98][]).
 
 
+### Model: SecurityPrice
+- [Added] `security_price.py` added with `SecurityPrice` subclasses from
+      `Model`, defining table name and columns ([#98][]).
+
+
 ### Model: StockAdjustment
 - [Added] `stock_adjustment.py` added with `StockAdjustment` subclasses from
       `Model`, defining table name and columns ([#98][]).
@@ -498,11 +505,13 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
   - Enums implemented:
     - `Currency`
     - `Market`
+    - `PriceFrequency`
   - Model tables implemented:
     - `Company`
     - `DatafeedSrc`
     - `Exchange`
     - `Security`
+    - `SecurityPrice`
     - `StockAdjustment`
 - [Added] `_SCHEMA_NAME` added to define an overall schema name used for
       everything.  This is set to `public` to match the default; primarily to

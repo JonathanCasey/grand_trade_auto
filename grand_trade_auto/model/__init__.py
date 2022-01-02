@@ -5,5 +5,6 @@ __all__ = [
         'exchange',
         'model_meta',
         'security',
+        'security_price',
         'stock_adjustment',
 ]
