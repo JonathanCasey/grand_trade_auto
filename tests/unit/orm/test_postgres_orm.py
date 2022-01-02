@@ -128,8 +128,8 @@ def _test_create_schema_enum(orm, test_func, enum_name,
 @pytest.mark.order(-2)      # After this, types exist, but maybe not tables/data
 # Order of parameters must match order in _create_schemas() due to dependencies
 @pytest.mark.parametrize('method_name, enum_name', [
-    ('_create_schema_enum_market', 'market'),
     ('_create_schema_enum_currency', 'currency'),
+    ('_create_schema_enum_market', 'market'),
     ('_create_schema_enum_price_frequency', 'price_frequency'),
 ])
 def test__create_schemas_enums(pg_test_orm, method_name, enum_name):
@@ -210,8 +210,8 @@ def _test_create_schema_table(orm, test_func, table_name,
 # Order of parameters must match order in _create_schemas() due to dependencies
 @pytest.mark.parametrize('method_name, table_name', [
     ('_create_schema_table_datafeed_src', 'datafeed_src'),
-    ('_create_schema_table_exchange', 'exchange'),
     ('_create_schema_table_company', 'company'),
+    ('_create_schema_table_exchange', 'exchange'),
     ('_create_schema_table_security', 'security'),
     ('_create_schema_table_security_price', 'security_price'),
     ('_create_schema_table_stock_adjustment', 'stock_adjustment'),

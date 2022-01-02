@@ -65,8 +65,8 @@ class Orm(ABC):
         self._create_schema_enum_price_frequency()
 
         self._create_schema_table_datafeed_src()
-        self._create_schema_table_exchange()
         self._create_schema_table_company()
+        self._create_schema_table_exchange()
         self._create_schema_table_security()
         self._create_schema_table_security_price()
         self._create_schema_table_stock_adjustment()
@@ -183,7 +183,7 @@ class Orm(ABC):
     @abstractmethod
     def _create_schema_table_stock_adjustment(self):
         """
-        Create the stock adjustment table.
+        Create the stock_adjustment table.
 
         Dependent on enums: None
         Dependent on tables: datafeed_src, security

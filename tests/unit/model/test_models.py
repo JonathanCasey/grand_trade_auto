@@ -30,8 +30,8 @@ from grand_trade_auto.model import stock_adjustment
 
 @pytest.mark.parametrize('model_cls, table_name, extra_attrs', [
     (datafeed_src.DatafeedSrc, 'datafeed_src', []),
-    (exchange.Exchange, 'exchange', []),
     (company.Company, 'company', []),
+    (exchange.Exchange, 'exchange', []),
     (security.Security, 'security', []),
     (security_price.SecurityPrice, 'security_price', []),
     (stock_adjustment.StockAdjustment, 'stock_adjustment', []),

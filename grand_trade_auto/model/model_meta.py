@@ -28,6 +28,17 @@ logger = logging.getLogger(__name__)
 
 
 
+class Currency(Enum):
+    """
+    Possible currencies that can be specified in a database.
+
+    These are used as enum values in the database, so do NOT remove/change
+    existing values unless prepared to do a database migration!
+    """
+    USD = 'usd'
+
+
+
 class Market(Enum):
     """
     Possible stock market types that can be specified in a database.
@@ -39,17 +50,6 @@ class Market(Enum):
     FOREX = 'forex'
     FUTURES = 'futures'
     STOCK = 'stock'
-
-
-
-class Currency(Enum):
-    """
-    Possible currencies that can be specified in a database.
-
-    These are used as enum values in the database, so do NOT remove/change
-    existing values unless prepared to do a database migration!
-    """
-    USD = 'usd'
 
 
 
@@ -70,13 +70,16 @@ class PriceFrequency(Enum):
 
 
 
-class ReturnAs(Enum):
+class LogicCombo(Enum):
     """
-    Options for how query results can be returned.  In some places, can use
-    value directly, but there may be a performance cost.
+    The logic combiners/conjunctions that can be used to specify how a multitude
+    of subclauses are to be combined at a given level.  See the
+    Model.query_direct() for more details on the structure of this where clause.
+    Intended to use as enum, not as value directly due to performance hit to
+    support both.
     """
-    MODEL = 'model'
-    PANDAS = 'pandas'
+    AND = 'and'
+    OR = 'or'
 
 
 
@@ -113,16 +116,13 @@ class LogicOp(Enum):
 
 
 
-class LogicCombo(Enum):
+class ReturnAs(Enum):
     """
-    The logic combiners/conjunctions that can be used to specify how a multitude
-    of subclauses are to be combined at a given level.  See the
-    Model.query_direct() for more details on the structure of this where clause.
-    Intended to use as enum, not as value directly due to performance hit to
-    support both.
+    Options for how query results can be returned.  In some places, can use
+    value directly, but there may be a performance cost.
     """
-    AND = 'and'
-    OR = 'or'
+    MODEL = 'model'
+    PANDAS = 'pandas'
 
 
 

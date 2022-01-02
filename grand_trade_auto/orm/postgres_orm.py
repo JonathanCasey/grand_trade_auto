@@ -305,7 +305,7 @@ class PostgresOrm(orm_meta.Orm):
 
     def _create_schema_table_stock_adjustment(self):
         """
-        Create the stock adjustment table.
+        Create the stock_adjustment table.
 
         Dependent on enums: None
         Dependent on tables: datafeed_src, security

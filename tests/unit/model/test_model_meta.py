@@ -31,6 +31,17 @@ logger = logging.getLogger(__name__)
 
 
 
+def test_enum_currency():
+    """
+    Tests the essential items of the `Currency` Enum in `model_meta`.
+    """
+    # Must test enum values since these are set in the database schema
+    assert model_meta.Currency('usd') == model_meta.Currency.USD
+    # Failing length here likely means new values added -- just add above
+    assert len(model_meta.Currency) == 1
+
+
+
 def test_enum_market():
     """
     Tests the essential items of the `Market` Enum in `model_meta`.
@@ -42,17 +53,6 @@ def test_enum_market():
     assert model_meta.Market('stock') == model_meta.Market.STOCK
     # Failing length here likely means new values added -- just add above
     assert len(model_meta.Market) == 4
-
-
-
-def test_enum_currency():
-    """
-    Tests the essential items of the `Currency` Enum in `model_meta`.
-    """
-    # Must test enum values since these are set in the database schema
-    assert model_meta.Currency('usd') == model_meta.Currency.USD
-    # Failing length here likely means new values added -- just add above
-    assert len(model_meta.Currency) == 1
 
 
 
@@ -78,14 +78,13 @@ def test_enum_price_frequency():
 
 
 
-def test_enum_return_as():
+def test_enum_logic_combo():
     """
-    Tests the essential items of the `ReturnAs` Enum in `model_meta`.
+    Tests the essential items of the `LogicCombo` Enum in `model_meta`.
     """
-    # Must test enum values since this allows access by value
-    assert model_meta.ReturnAs('model') == model_meta.ReturnAs.MODEL
-    assert model_meta.ReturnAs('pandas') == model_meta.ReturnAs.PANDAS
-    assert len(model_meta.ReturnAs) == 2
+    # Do not need to test values since access by value unsupported
+    names = {'AND', 'OR'}
+    assert names == {e.name for e in list(model_meta.LogicCombo)}
 
 
 
@@ -101,13 +100,14 @@ def test_enum_logic_op():
 
 
 
-def test_enum_logic_combo():
+def test_enum_return_as():
     """
-    Tests the essential items of the `LogicCombo` Enum in `model_meta`.
+    Tests the essential items of the `ReturnAs` Enum in `model_meta`.
     """
-    # Do not need to test values since access by value unsupported
-    names = {'AND', 'OR'}
-    assert names == {e.name for e in list(model_meta.LogicCombo)}
+    # Must test enum values since this allows access by value
+    assert model_meta.ReturnAs('model') == model_meta.ReturnAs.MODEL
+    assert model_meta.ReturnAs('pandas') == model_meta.ReturnAs.PANDAS
+    assert len(model_meta.ReturnAs) == 2
 
 
 
