@@ -60,9 +60,25 @@ class Orm(ABC):
         expected to create the full database schema, even if not all of the
         tables will be loaded with data in this particular database.
         """
+        self._create_schema_enum_market()
+
         self._create_schema_datafeed_src()
         self._create_schema_exchange()
         self._create_schema_company()
+
+
+
+    @abstractmethod
+    def _create_schema_enum_market(self):
+        """
+        Create the market enum.  The values must all match exactly the values as
+        shown in model_meta.
+
+        Dependent on: None.
+        Dependent on tables: N/A.
+
+        Subclass must define and execute SQL/etc.
+        """
 
 
 

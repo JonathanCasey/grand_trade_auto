@@ -28,6 +28,20 @@ logger = logging.getLogger(__name__)
 
 
 
+class Market(Enum):
+    """
+    Possible stock market types that can be specified in a database.
+
+    These are used as enum values in the database, so do NOT remove/change
+    existing values unless prepared to do a database migration!
+    """
+    CRYPTO = 'crypto'
+    FOREX = 'forex'
+    FUTURES = 'futures'
+    STOCK = 'stock'
+
+
+
 class ReturnAs(Enum):
     """
     Options for how query results can be returned.  In some places, can use

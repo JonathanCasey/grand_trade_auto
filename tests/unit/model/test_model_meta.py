@@ -31,6 +31,20 @@ logger = logging.getLogger(__name__)
 
 
 
+def test_enum_market():
+    """
+    Tests the essential items of the `Market` Enum in `model_meta`.
+    """
+    # Must test enum values since these are set in the database schema
+    assert model_meta.Market('crypto') == model_meta.Market.CRYPTO
+    assert model_meta.Market('forex') == model_meta.Market.FOREX
+    assert model_meta.Market('futures') == model_meta.Market.FUTURES
+    assert model_meta.Market('stock') == model_meta.Market.STOCK
+    # Failing length here likely means new values added -- just add above
+    assert len(model_meta.Market) == 4
+
+
+
 def test_enum_return_as():
     """
     Tests the essential items of the `ReturnAs` Enum in `model_meta`.

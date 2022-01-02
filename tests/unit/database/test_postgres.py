@@ -82,7 +82,7 @@ def test_connect(pg_test_db):
 
 
 @pytest.mark.alters_db_schema
-@pytest.mark.order(-1)
+@pytest.mark.order(-1)  # After this, db exists, but maybe not types/tables/data
 def test_create_drop_check_if_db_exists(pg_test_db):
     """
     Tests the `create_db()`, `_drop_db()`, and `_check_if_db_exists()` methods

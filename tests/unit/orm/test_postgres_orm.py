@@ -56,14 +56,92 @@ def fixture_pg_test_orm(pg_test_db):
 
 
 
+def _test_create_schema_enum(orm, test_func, enum_name, enum_schema='public',
+        drop_enum_after=False):
+    """
+    A generic set of steps to test enum creation.
+
+    This will alter the database schema for the database in the provided orm,
+    ultimately possibly leaving the enum non-existent and definitely leaving
+    dependent tables non-existent, so tests using this likely should be marked
+    with alters_db_schema.
+
+    This will use the cached connection of the Orm's db, so the caller must
+    handle closing that connection.
+
+    Args:
+      orm (PostgresOrm): The PostgresOrm to use for this test.
+      test_func (function): The create schema enum function to test, probably
+        from that Orm.
+      enum_name (str): The name of the enum that is being created.
+      enum_schema (str): The schema name of the enum that is being created.
+        Can likely use default unless it was changed elsewhere.
+      drop_enum_after (bool): Whether or not to drop the enum after testing is
+        complete.  Drop is cascaded, so dependent tables would also be dropped,
+        but they should have already been dropped at start of this test.
+    """
+    def _drop_own_enum():
+        """
+        Drop the enum being created in this subtest.
+
+        Despite the name, this MAY drop other tables if necessary via cascade.
+        """
+        sql_drop_enum = f'DROP TYPE IF EXISTS {enum_name} CASCADE'
+        cursor = orm._db.connect().cursor()
+        cursor.execute(sql_drop_enum)
+        cursor.connection.commit()
+        cursor.close()
+
+    _drop_own_enum()
+
+    # Sanity check -- ensure table really does not exist
+    sql_enum_exists = f'''
+        SELECT EXISTS (
+            SELECT 1 FROM pg_type t
+                LEFT JOIN pg_namespace p ON t.typnamespace=p.oid
+            WHERE t.typname='{enum_name}'
+                AND p.nspname='{enum_schema}'
+        )
+    '''
+
+    cursor = orm._db.execute(sql_enum_exists, close_cursor=False)
+    assert cursor.fetchone()[0] is False
+    cursor.close()
+
+    test_func()
+    cursor = orm._db.execute(sql_enum_exists, close_cursor=False)
+    assert cursor.fetchone()[0] is True
+    cursor.close()
+
+    if drop_enum_after:
+        _drop_own_enum()
+
+
+
+@pytest.mark.alters_db_schema
+@pytest.mark.order(-3)      # After this, types exist, but maybe not tables/data
+# Order of parameters must match order in _create_schemas() due to dependencies
+@pytest.mark.parametrize('method_name, enum_name', [
+    ('_create_schema_enum_market', 'market'),
+])
+def test__create_schemas_enums(pg_test_orm, method_name, enum_name):
+    """
+    Tests the `_create_schema_enum_*()` methods in `PostgresOrm`.
+    """
+    _test_create_schema_enum(pg_test_orm, getattr(pg_test_orm, method_name),
+            enum_name)
+    pg_test_orm._db._conn.close()
+
+
+
 def _test_create_schema(orm, test_func, table_name, table_schema='public',
         drop_table_after=False):
     """
     A generic set of steps to test table creation.
 
     This will alter the database schema for the database in the provided orm,
-    ultimately leaving the table non-existent, so tests using this likely should
-    be marked with alters_db_schema.
+    ultimately possibly leaving the table non-existent, so tests using this
+    likely should be marked with alters_db_schema.
 
     This will use the cached connection of the Orm's db, so the caller must
     handle closing that connection.
@@ -116,7 +194,7 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public',
 
 
 @pytest.mark.alters_db_schema
-@pytest.mark.order(-2)
+@pytest.mark.order(-2)      # After this, tables/types exist, but maybe not data
 # Order of parameters must match order in _create_schemas() due to dependencies
 @pytest.mark.parametrize('method_name, table_name', [
     ('_create_schema_datafeed_src', 'datafeed_src'),

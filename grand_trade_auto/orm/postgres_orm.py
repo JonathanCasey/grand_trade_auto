@@ -18,6 +18,9 @@ other uses are expected to directly use database invocation as needed.  In this
 vein, joins are NOT supported at this time.
 
 Module Attributes:
+  _SCHEMA_NAME (str): The name of the schema in which all of this exists in the
+    database.  This is likely the default value and is just there to ensure unit
+    tests will always match what is used here.
   logger (Logger): Logger for this module.
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
@@ -30,6 +33,8 @@ from grand_trade_auto.model import model_meta
 from grand_trade_auto.orm import orm_meta
 
 
+
+_SCHEMA_NAME = 'public' # "public" is the default schema name is psql
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +53,34 @@ class PostgresOrm(orm_meta.Orm):
       [inherited from Orm]:
         _db (Database): The database instance that this interfaces with.
     """
+
+
+
+    def _create_schema_enum_market(self):
+        """
+        Create all enumerations used in the database.  This is intended to be
+        executed before any tables are created.  These must all match exactly
+        the values as shown in model_meta.
+
+        Dependent on: N/A.
+
+        Subclass must define and execute SQL/etc.
+        """
+        enum_name = 'market'
+        sql = f'''
+            DO $$ BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_type t
+                        LEFT JOIN pg_namespace p ON t.typnamespace=p.oid
+                    WHERE t.typname='{enum_name}' AND p.nspname='{_SCHEMA_NAME}'
+                ) THEN
+                    CREATE TYPE market AS ENUM (
+                        'crypto', 'forex', 'futures', 'stock'
+                    );
+                END IF;
+            END $$;
+        '''
+        self._db.execute(sql)
 
 
 
