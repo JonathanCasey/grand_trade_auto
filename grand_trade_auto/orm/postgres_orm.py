@@ -60,9 +60,11 @@ class PostgresOrm(orm_meta.Orm):
     _sql_exec_if_type_not_exists = Template('''
         DO $$$$ BEGIN
             IF NOT EXISTS (
-                SELECT 1 FROM pg_type t
+                SELECT 1
+                FROM pg_type t
                     LEFT JOIN pg_namespace p ON t.typnamespace=p.oid
-                WHERE t.typname='$type_name' AND p.nspname='$schema_name'
+                WHERE t.typname='$type_name'
+                    AND p.nspname='$schema_name'
             ) THEN
                 $sql_exec_if_not_exists;
             END IF;
@@ -73,11 +75,11 @@ class PostgresOrm(orm_meta.Orm):
 
     def _create_schema_enum_market(self):
         """
-        Create all enumerations used in the database.  This is intended to be
-        executed before any tables are created.  These must all match exactly
-        the values as shown in model_meta.
+        Create the market enum.  The values must all match exactly the values as
+        shown in model_meta.
 
-        Dependent on: N/A.
+        Dependent on: None
+        Dependent on tables: N/A
 
         Subclass must define and execute SQL/etc.
         """
@@ -93,16 +95,17 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
-    def _create_schema_company(self):
+    def _create_schema_table_company(self):
         """
         Create the company table.
 
-        Dependent on: datafeed_src.
+        Dependent on enums: None
+        Dependent on tables: datafeed_src
 
         Subclass must define and execute SQL/etc.
         """
         sql = '''
-            CREATE TABLE company (
+            CREATE TABLE IF NOT EXISTS company (
                 id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                 name varchar(50) NOT NULL,
                 sector varchar(50),
@@ -122,14 +125,17 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
-    def _create_schema_datafeed_src(self):
+    def _create_schema_table_datafeed_src(self):
         """
         Create the datafeed_src table.
+
+        Dependent on enums: None
+        Dependent on tables: None
 
         Subclass must define and execute SQL/etc.
         """
         sql = '''
-            CREATE TABLE datafeed_src (
+            CREATE TABLE IF NOT EXISTS datafeed_src (
                 id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                 config_parser text NOT NULL,
                 is_init_complete boolean,
@@ -141,16 +147,17 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
-    def _create_schema_exchange(self):
+    def _create_schema_table_exchange(self):
         """
         Create the exchange table.
 
-        Dependent on: datafeed_src.
+        Dependent on enums: None
+        Dependent on tables: datafeed_src
 
         Subclass must define and execute SQL/etc.
         """
         sql = '''
-            CREATE TABLE exchange (
+            CREATE TABLE IF NOT EXISTS exchange (
                 id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                 name varchar(50) NOT NULL,
                 acronym varchar(50) NOT NULL,

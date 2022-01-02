@@ -62,9 +62,9 @@ class Orm(ABC):
         """
         self._create_schema_enum_market()
 
-        self._create_schema_datafeed_src()
-        self._create_schema_exchange()
-        self._create_schema_company()
+        self._create_schema_table_datafeed_src()
+        self._create_schema_table_exchange()
+        self._create_schema_table_company()
 
 
 
@@ -74,8 +74,8 @@ class Orm(ABC):
         Create the market enum.  The values must all match exactly the values as
         shown in model_meta.
 
-        Dependent on: None.
-        Dependent on tables: N/A.
+        Dependent on: None
+        Dependent on tables: N/A
 
         Subclass must define and execute SQL/etc.
         """
@@ -83,11 +83,12 @@ class Orm(ABC):
 
 
     @abstractmethod
-    def _create_schema_company(self):
+    def _create_schema_table_company(self):
         """
         Create the company table.
 
-        Dependent on: datafeed_src.
+        Dependent on enums: None
+        Dependent on tables: datafeed_src
 
         Subclass must define and execute SQL/etc.
         """
@@ -95,21 +96,25 @@ class Orm(ABC):
 
 
     @abstractmethod
-    def _create_schema_datafeed_src(self):
+    def _create_schema_table_datafeed_src(self):
         """
         Create the datafeed_src table.
 
+        Dependent on enums: None
+        Dependent on tables: None
+
         Subclass must define and execute SQL/etc.
         """
 
 
 
     @abstractmethod
-    def _create_schema_exchange(self):
+    def _create_schema_table_exchange(self):
         """
         Create the exchange table.
 
-        Dependent on: datafeed_src.
+        Dependent on enums: None
+        Dependent on tables: datafeed_src
 
         Subclass must define and execute SQL/etc.
         """

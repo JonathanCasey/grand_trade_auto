@@ -137,17 +137,22 @@ class OrmTest(orm_meta.Orm):
 
 
 
-    def _create_schema_company(self):
+    def _create_schema_enum_market(self):
         """
         Not needed / will not be used.
         """
 
-    def _create_schema_datafeed_src(self):
+    def _create_schema_table_company(self):
         """
         Not needed / will not be used.
         """
 
-    def _create_schema_exchange(self):
+    def _create_schema_table_datafeed_src(self):
+        """
+        Not needed / will not be used.
+        """
+
+    def _create_schema_table_exchange(self):
         """
         Not needed / will not be used.
         """

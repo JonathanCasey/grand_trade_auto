@@ -74,7 +74,7 @@ def _test_create_schema_enum(orm, test_func, enum_name,
       test_func (function): The create schema enum function to test, probably
         from that Orm.
       enum_name (str): The name of the enum that is being created.
-      enum_schema (str): The schema name of the enum that is being created.
+      schema_name (str): The schema name of the enum that is being created.
         Can likely use default unless it was changed elsewhere.
       drop_enum_after (bool): Whether or not to drop the enum after testing is
         complete.  Drop is cascaded, so dependent tables would also be dropped,
@@ -96,11 +96,13 @@ def _test_create_schema_enum(orm, test_func, enum_name,
 
     sql_enum_exists = f'''
         WITH namespace AS (
-            SELECT oid FROM pg_namespace
+            SELECT oid
+            FROM pg_namespace
             WHERE nspname='{schema_name}'
         ),
         type_name AS (
-            SELECT 1 type_exists FROM pg_type
+            SELECT 1 type_exists
+            FROM pg_type
             WHERE typname='{enum_name}'
                 AND typnamespace=(SELECT * FROM namespace)
         )
@@ -131,6 +133,9 @@ def _test_create_schema_enum(orm, test_func, enum_name,
 def test__create_schemas_enums(pg_test_orm, method_name, enum_name):
     """
     Tests the `_create_schema_enum_*()` methods in `PostgresOrm`.
+
+    This should be run before any tests that drop the database (but can be run
+    after any tests dropping tables).
     """
     _test_create_schema_enum(pg_test_orm, getattr(pg_test_orm, method_name),
             enum_name)
@@ -138,8 +143,8 @@ def test__create_schemas_enums(pg_test_orm, method_name, enum_name):
 
 
 
-def _test_create_schema(orm, test_func, table_name, table_schema='public',
-        drop_table_after=False):
+def _test_create_schema_table(orm, test_func, table_name,
+        schema_name=postgres_orm._SCHEMA_NAME, drop_table_after=False):
     """
     A generic set of steps to test table creation.
 
@@ -155,7 +160,7 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public',
       test_func (function): The create schema function to test, probably from
         that Orm.
       table_name (str): The name of the table that is being created.
-      table_schema (str): The schema name of the table that is being created.
+      schema_name (str): The schema name of the table that is being created.
         Can likely use default unless it was changed elsewhere.
       drop_table_after (bool): Whether or not to drop the table after testing is
         complete.
@@ -174,15 +179,16 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public',
 
     _drop_own_table()
 
-    # Sanity check -- ensure table really does not exist
     sql_table_exists = f'''
         SELECT EXISTS (
-            SELECT FROM information_schema.tables
-            WHERE  table_schema = '{table_schema}'
-            AND    table_name   = '{table_name}'
+            SELECT 1
+            FROM information_schema.tables
+            WHERE  table_schema = '{schema_name}'
+                AND    table_name   = '{table_name}'
         )
     '''
 
+    # Sanity check -- ensure table really does not exist
     cursor = orm._db.execute(sql_table_exists, close_cursor=False)
     assert cursor.fetchone()[0] is False
     cursor.close()
@@ -201,17 +207,17 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public',
 @pytest.mark.order(-3)      # After this, tables/types exist, but maybe not data
 # Order of parameters must match order in _create_schemas() due to dependencies
 @pytest.mark.parametrize('method_name, table_name', [
-    ('_create_schema_datafeed_src', 'datafeed_src'),
-    ('_create_schema_exchange', 'exchange'),
-    ('_create_schema_company', 'company'),
+    ('_create_schema_table_datafeed_src', 'datafeed_src'),
+    ('_create_schema_table_exchange', 'exchange'),
+    ('_create_schema_table_company', 'company'),
 ])
-def test__create_schemas_individually(pg_test_orm, method_name, table_name):
+def test__create_schemas_tables(pg_test_orm, method_name, table_name):
     """
-    Tests the `_create_schema_*()` methods in `PostgresOrm`.
+    Tests the `_create_schema_table_*()` methods in `PostgresOrm`.
+
+    This should be run before any tests that drop the database or types.
     """
-    # Ensure db exists since not guaranteed in alters_db_schema
-    pg_test_orm._db.create_db()
-    _test_create_schema(pg_test_orm, getattr(pg_test_orm, method_name),
+    _test_create_schema_table(pg_test_orm, getattr(pg_test_orm, method_name),
             table_name)
     pg_test_orm._db._conn.close()
 

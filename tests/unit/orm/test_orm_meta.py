@@ -28,23 +28,29 @@ class MockOrmChild(orm_meta.Orm):
     """"
     Simple mock class to subclass Orm.
     """
-    def _create_schema_company(self):
+    def _create_schema_enum_market(self):
         """
         Log something so it can be traced that this was called.
         """
-        logger.info('Called _create_schema_company()')
+        logger.info('Called _create_schema_enum_market()')
 
-    def _create_schema_datafeed_src(self):
+    def _create_schema_table_company(self):
         """
         Log something so it can be traced that this was called.
         """
-        logger.info('Called _create_schema_datafeed_src()')
+        logger.info('Called _create_schema_table_company()')
 
-    def _create_schema_exchange(self):
+    def _create_schema_table_datafeed_src(self):
         """
         Log something so it can be traced that this was called.
         """
-        logger.info('Called _create_schema_exchange()')
+        logger.info('Called _create_schema_table_datafeed_src()')
+
+    def _create_schema_table_exchange(self):
+        """
+        Log something so it can be traced that this was called.
+        """
+        logger.info('Called _create_schema_table_exchange()')
 
     def add(self, model_cls, data, **kwargs):
         """
@@ -89,9 +95,11 @@ def test_create_schemas(caplog):
     mock_orm.create_schemas()
     assert caplog.record_tuples == [
         ('tests.unit.orm.test_orm_meta', logging.INFO,
-            'Called _create_schema_datafeed_src()'),
+            'Called _create_schema_enum_market()'),
         ('tests.unit.orm.test_orm_meta', logging.INFO,
-            'Called _create_schema_exchange()'),
+            'Called _create_schema_table_datafeed_src()'),
         ('tests.unit.orm.test_orm_meta', logging.INFO,
-            'Called _create_schema_company()'),
+            'Called _create_schema_table_exchange()'),
+        ('tests.unit.orm.test_orm_meta', logging.INFO,
+            'Called _create_schema_table_company()'),
     ]
