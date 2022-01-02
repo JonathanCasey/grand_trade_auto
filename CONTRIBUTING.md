@@ -9,6 +9,7 @@ Respect the CI and the CI will respect you.
 
 - [One-time Setup](#one-time-setup)
 - [Usage](#usage)
+- [Design Conventions](#design-conventions)
 
 
 
@@ -170,3 +171,16 @@ The following is the color scheme used for this project.
  Primary   | ![#85BB65](https://via.placeholder.com/15/85BB65/000000?text=+) `#85BB65` | Pistachio / Dollar bill
  Secondary | ![#363636](https://via.placeholder.com/15/363636/000000?text=+) `#363636` | Jet
  Tertiary  | ![#7D869C](https://via.placeholder.com/15/7D869C/000000?text=+) `#7D869C` | Roman Silver
+
+
+
+# Design Conventions
+
+## Unit Test Order
+As much as possible, this is avoided; but with some tests that interact with
+persistent data such as a database, this can be important.
+
+When it comes to `pytest.mark.alters_db_schema`, these tests have an order for
+the tests to do last, where the last test is the lowest level / most disruptive
+test (drop database), and the 2nd to last is the next lowest level (e.g. types),
+the 3rd to last is the next lowest (e.g. tables), etc.

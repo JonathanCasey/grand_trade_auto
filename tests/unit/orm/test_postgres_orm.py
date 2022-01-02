@@ -56,8 +56,8 @@ def fixture_pg_test_orm(pg_test_db):
 
 
 
-def _test_create_schema_enum(orm, test_func, enum_name, enum_schema='public',
-        drop_enum_after=False):
+def _test_create_schema_enum(orm, test_func, enum_name,
+        schema_name=postgres_orm._SCHEMA_NAME, drop_enum_after=False):
     """
     A generic set of steps to test enum creation.
 
@@ -94,16 +94,20 @@ def _test_create_schema_enum(orm, test_func, enum_name, enum_schema='public',
 
     _drop_own_enum()
 
-    # Sanity check -- ensure table really does not exist
     sql_enum_exists = f'''
-        SELECT EXISTS (
-            SELECT 1 FROM pg_type t
-                LEFT JOIN pg_namespace p ON t.typnamespace=p.oid
-            WHERE t.typname='{enum_name}'
-                AND p.nspname='{enum_schema}'
+        WITH namespace AS (
+            SELECT oid FROM pg_namespace
+            WHERE nspname='{schema_name}'
+        ),
+        type_name AS (
+            SELECT 1 type_exists FROM pg_type
+            WHERE typname='{enum_name}'
+                AND typnamespace=(SELECT * FROM namespace)
         )
+        SELECT EXISTS (SELECT * FROM type_name)
     '''
 
+    # Sanity check -- ensure table really does not exist
     cursor = orm._db.execute(sql_enum_exists, close_cursor=False)
     assert cursor.fetchone()[0] is False
     cursor.close()
@@ -119,7 +123,7 @@ def _test_create_schema_enum(orm, test_func, enum_name, enum_schema='public',
 
 
 @pytest.mark.alters_db_schema
-@pytest.mark.order(-3)      # After this, types exist, but maybe not tables/data
+@pytest.mark.order(-2)      # After this, types exist, but maybe not tables/data
 # Order of parameters must match order in _create_schemas() due to dependencies
 @pytest.mark.parametrize('method_name, enum_name', [
     ('_create_schema_enum_market', 'market'),
@@ -194,7 +198,7 @@ def _test_create_schema(orm, test_func, table_name, table_schema='public',
 
 
 @pytest.mark.alters_db_schema
-@pytest.mark.order(-2)      # After this, tables/types exist, but maybe not data
+@pytest.mark.order(-3)      # After this, tables/types exist, but maybe not data
 # Order of parameters must match order in _create_schemas() due to dependencies
 @pytest.mark.parametrize('method_name, table_name', [
     ('_create_schema_datafeed_src', 'datafeed_src'),

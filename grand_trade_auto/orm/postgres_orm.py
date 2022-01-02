@@ -26,6 +26,7 @@ Module Attributes:
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 import logging
+from string import Template
 
 import pandas as pd
 
@@ -46,13 +47,27 @@ class PostgresOrm(orm_meta.Orm):
     to create all tables as well as all CRUD operations for all Models.
 
     Class Attributes:
-      N/A
+      _sql_exec_if_type_not_exists (string.Template): A wrapper for executing a
+        SQL command only if a type does not exist within a given schema.  Since
+        this is using template substitution rather than any kind of sanitized
+        input, this is intended for internal use ONLY, and NOT for any external
+        user input!
 
     Instance Attributes:
-
       [inherited from Orm]:
         _db (Database): The database instance that this interfaces with.
     """
+    _sql_exec_if_type_not_exists = Template('''
+        DO $$$$ BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_type t
+                    LEFT JOIN pg_namespace p ON t.typnamespace=p.oid
+                WHERE t.typname='$type_name' AND p.nspname='$schema_name'
+            ) THEN
+                $sql_exec_if_not_exists;
+            END IF;
+        END $$$$;
+    ''')
 
 
 
@@ -67,19 +82,13 @@ class PostgresOrm(orm_meta.Orm):
         Subclass must define and execute SQL/etc.
         """
         enum_name = 'market'
-        sql = f'''
-            DO $$ BEGIN
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_type t
-                        LEFT JOIN pg_namespace p ON t.typnamespace=p.oid
-                    WHERE t.typname='{enum_name}' AND p.nspname='{_SCHEMA_NAME}'
-                ) THEN
-                    CREATE TYPE market AS ENUM (
-                        'crypto', 'forex', 'futures', 'stock'
-                    );
-                END IF;
-            END $$;
+        sql_create = f'''
+            CREATE TYPE {enum_name} AS ENUM (
+                'crypto', 'forex', 'futures', 'stock'
+            )
         '''
+        sql = self._sql_exec_if_type_not_exists.substitute(type_name=enum_name,
+                schema_name=_SCHEMA_NAME, sql_exec_if_not_exists=sql_create)
         self._db.execute(sql)
 
 
