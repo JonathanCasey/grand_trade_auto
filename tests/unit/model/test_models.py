@@ -26,13 +26,13 @@ from grand_trade_auto.model import security
 
 
 
-@pytest.mark.parametrize('model_cls, extra_attrs', [
-    (datafeed_src.DatafeedSrc, []),
-    (exchange.Exchange, []),
-    (company.Company, []),
-    (security.Security, []),
+@pytest.mark.parametrize('model_cls, table_name, extra_attrs', [
+    (datafeed_src.DatafeedSrc, 'datafeed_src', []),
+    (exchange.Exchange, 'exchange', []),
+    (company.Company, 'company', []),
+    (security.Security, 'security', []),
 ])
-def test_model_attrs(model_cls, extra_attrs):
+def test_model_attrs(model_cls, table_name, extra_attrs):
     """
     Tests all the attributes of the provided Models to ensure it is a complete
     and expected model definition.
@@ -41,6 +41,7 @@ def test_model_attrs(model_cls, extra_attrs):
     not in the Model abstract class nor are columns names.
     """
     assert model_cls._table_name is not None
+    assert model_cls._table_name == table_name
     assert model_cls._columns is not None
 
     class EmptyAbstract(ABC):            #pylint: disable=too-few-public-methods

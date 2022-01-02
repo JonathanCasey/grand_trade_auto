@@ -55,7 +55,7 @@ class Company(model_meta.Model):
           update, only the columns populated here will be updated.  Subclasses
           should not need to touch this.
     """
-    _table_name = 'exchange'
+    _table_name = 'company'
 
     _columns = (
         'id',
