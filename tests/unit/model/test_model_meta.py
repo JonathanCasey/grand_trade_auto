@@ -45,6 +45,17 @@ def test_enum_market():
 
 
 
+def test_enum_currency():
+    """
+    Tests the essential items of the `Currency` Enum in `model_meta`.
+    """
+    # Must test enum values since these are set in the database schema
+    assert model_meta.Currency('usd') == model_meta.Currency.USD
+    # Failing length here likely means new values added -- just add above
+    assert len(model_meta.Currency) == 1
+
+
+
 def test_enum_return_as():
     """
     Tests the essential items of the `ReturnAs` Enum in `model_meta`.
@@ -137,6 +148,11 @@ class OrmTest(orm_meta.Orm):
 
 
 
+    def _create_schema_enum_currency(self):
+        """
+        Not needed / will not be used.
+        """
+
     def _create_schema_enum_market(self):
         """
         Not needed / will not be used.
@@ -153,6 +169,11 @@ class OrmTest(orm_meta.Orm):
         """
 
     def _create_schema_table_exchange(self):
+        """
+        Not needed / will not be used.
+        """
+
+    def _create_schema_table_security(self):
         """
         Not needed / will not be used.
         """

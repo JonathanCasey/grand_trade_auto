@@ -42,6 +42,17 @@ class Market(Enum):
 
 
 
+class Currency(Enum):
+    """
+    Possible currencies that can be specified in a database.
+
+    These are used as enum values in the database, so do NOT remove/change
+    existing values unless prepared to do a database migration!
+    """
+    USD = 'usd'
+
+
+
 class ReturnAs(Enum):
     """
     Options for how query results can be returned.  In some places, can use

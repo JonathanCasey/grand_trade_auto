@@ -22,6 +22,7 @@ import pytest
 from grand_trade_auto.model import company
 from grand_trade_auto.model import datafeed_src
 from grand_trade_auto.model import exchange
+from grand_trade_auto.model import security
 
 
 
@@ -29,6 +30,7 @@ from grand_trade_auto.model import exchange
     (datafeed_src.DatafeedSrc, []),
     (exchange.Exchange, []),
     (company.Company, []),
+    (security.Security, []),
 ])
 def test_model_attrs(model_cls, extra_attrs):
     """

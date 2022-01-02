@@ -4,4 +4,5 @@ __all__ = [
         'datafeed_src',
         'exchange',
         'model_meta',
+        'security',
 ]

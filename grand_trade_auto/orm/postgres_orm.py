@@ -73,6 +73,28 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
+    def _create_schema_enum_currency(self):
+        """
+        Create the currency enum.  The values must all match exactly the values as
+        shown in model_meta.
+
+        Dependent on: None
+        Dependent on tables: N/A
+
+        Subclass must define and execute SQL/etc.
+        """
+        enum_name = 'currency'
+        sql_create = f'''
+            CREATE TYPE {enum_name} AS ENUM (
+                'usd'
+            )
+        '''
+        sql = self._sql_exec_if_type_not_exists.substitute(type_name=enum_name,
+                schema_name=_SCHEMA_NAME, sql_exec_if_not_exists=sql_create)
+        self._db.execute(sql)
+
+
+
     def _create_schema_enum_market(self):
         """
         Create the market enum.  The values must all match exactly the values as
@@ -168,6 +190,47 @@ class PostgresOrm(orm_meta.Orm):
                     ON DELETE SET NULL
                     ON UPDATE CASCADE,
                 UNIQUE (name)
+            )
+        '''
+        self._db.execute(sql)
+
+
+
+    def _create_schema_table_security(self):
+        """
+        Create the security table.
+
+        Dependent on enums: currency, market
+        Dependent on tables: company, datafeed_src, exchange
+
+        Subclass must define and execute SQL/etc.
+        """
+        sql = '''
+            CREATE TABLE IF NOT EXISTS security (
+                id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                exchange_id integer NOT NULL,
+                CONSTRAINT fk_exchange
+                    FOREIGN KEY (exchange_id)
+                    REFERENCES exchange (id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                ticker varchar(12) NOT NULL,
+                market market NOT NULL,
+                name varchar(200) NOT NULL,
+                company_id integer NOT NULL,
+                CONSTRAINT fk_company
+                    FOREIGN KEY (company_id)
+                    REFERENCES company (id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                currency currency NOT NULL,
+                datafeed_src_id integer NOT NULL,
+                CONSTRAINT fk_datafeed_src
+                    FOREIGN KEY (datafeed_src_id)
+                    REFERENCES datafeed_src (id)
+                    ON DELETE SET NULL
+                    ON UPDATE CASCADE,
+                UNIQUE (exchange_id, ticker)
             )
         '''
         self._db.execute(sql)

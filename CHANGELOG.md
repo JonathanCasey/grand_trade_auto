@@ -452,6 +452,10 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
         used.
   - Structured "where" and "order" format defined in `query_direct()` method's
         docstring.
+- [Added] `Currency` enum added to define currency values as they appear in the
+      database ([#98][]).
+- [Added] `Market` enum added to define market options as they appear in the
+      database ([#98][]).
 
 
 ### Model: Company
@@ -469,6 +473,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       table name and columns ([#98][]).
 
 
+### Model: Security
+- [Added] `security.py` added with `Security` subclasses from `Model`, defining
+      table name and columns ([#98][]).
+
+
 ### ORMs / Meta
 - [Added] `orm_meta.py` added to define `Orm` generic interface to be
       implemented by each database to support all models for object-relational
@@ -481,10 +490,17 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `postgres_orm.py` added with `PostgresOrm` defined to implement all
       SQL operations needed to support generic `Model` interface as well as
       create all tables for all concrete models ([#98][]).
+  - Enums implemented:
+    - `Currency`
+    - `Market`
   - Model tables implemented:
     - `Company`
     - `DatafeedSrc`
     - `Exchange`
+    - `Security`
+- [Added] `_SCHEMA_NAME` added to define an overall schema name used for
+      everything.  This is set to `public` to match the default; primarily to
+      ensure unit tests always match code ([#98][]).
 
 
 ### Web: Backend / Meta
@@ -559,6 +575,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] Workflow steps updated with additional steps for multiple pytest
       runs to support all options, as well as some steps previously missing in
       docs ([#98][]).
+- [Added] `Design Conventions` main section added, with notes on unit test order
+      ([#98][]).
 
 
 ### Docs: README

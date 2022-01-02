@@ -60,11 +60,27 @@ class Orm(ABC):
         expected to create the full database schema, even if not all of the
         tables will be loaded with data in this particular database.
         """
+        self._create_schema_enum_currency()
         self._create_schema_enum_market()
 
         self._create_schema_table_datafeed_src()
         self._create_schema_table_exchange()
         self._create_schema_table_company()
+        self._create_schema_table_security()
+
+
+
+    @abstractmethod
+    def _create_schema_enum_currency(self):
+        """
+        Create the currency enum.  The values must all match exactly the values as
+        shown in model_meta.
+
+        Dependent on: None
+        Dependent on tables: N/A
+
+        Subclass must define and execute SQL/etc.
+        """
 
 
 
@@ -115,6 +131,19 @@ class Orm(ABC):
 
         Dependent on enums: None
         Dependent on tables: datafeed_src
+
+        Subclass must define and execute SQL/etc.
+        """
+
+
+
+    @abstractmethod
+    def _create_schema_table_security(self):
+        """
+        Create the security table.
+
+        Dependent on enums: currency, market
+        Dependent on tables: company, datafeed_src, exchange
 
         Subclass must define and execute SQL/etc.
         """
