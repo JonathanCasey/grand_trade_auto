@@ -178,6 +178,11 @@ class OrmTest(orm_meta.Orm):
         Not needed / will not be used.
         """
 
+    def _create_schema_table_stock_adjustment(self):
+        """
+        Not needed / will not be used.
+        """
+
 
 
     def add(self, model_cls, data, **kwargs):

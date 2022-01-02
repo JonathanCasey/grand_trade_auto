@@ -67,6 +67,7 @@ class Orm(ABC):
         self._create_schema_table_exchange()
         self._create_schema_table_company()
         self._create_schema_table_security()
+        self._create_schema_table_stock_adjustment()
 
 
 
@@ -144,6 +145,19 @@ class Orm(ABC):
 
         Dependent on enums: currency, market
         Dependent on tables: company, datafeed_src, exchange
+
+        Subclass must define and execute SQL/etc.
+        """
+
+
+
+    @abstractmethod
+    def _create_schema_table_stock_adjustment(self):
+        """
+        Create the stock adjustment table.
+
+        Dependent on enums: None
+        Dependent on tables: datafeed_src, security
 
         Subclass must define and execute SQL/etc.
         """

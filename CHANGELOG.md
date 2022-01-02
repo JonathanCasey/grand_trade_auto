@@ -478,6 +478,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       table name and columns ([#98][]).
 
 
+### Model: StockAdjustment
+- [Added] `stock_adjustment.py` added with `StockAdjustment` subclasses from
+      `Model`, defining table name and columns ([#98][]).
+
+
 ### ORMs / Meta
 - [Added] `orm_meta.py` added to define `Orm` generic interface to be
       implemented by each database to support all models for object-relational
@@ -498,6 +503,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
     - `DatafeedSrc`
     - `Exchange`
     - `Security`
+    - `StockAdjustment`
 - [Added] `_SCHEMA_NAME` added to define an overall schema name used for
       everything.  This is set to `public` to match the default; primarily to
       ensure unit tests always match code ([#98][]).

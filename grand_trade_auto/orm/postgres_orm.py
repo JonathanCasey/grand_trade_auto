@@ -237,6 +237,41 @@ class PostgresOrm(orm_meta.Orm):
 
 
 
+    def _create_schema_table_stock_adjustment(self):
+        """
+        Create the stock adjustment table.
+
+        Dependent on enums: None
+        Dependent on tables: datafeed_src, security
+
+        Subclass must define and execute SQL/etc.
+        """
+        sql = '''
+            CREATE TABLE IF NOT EXISTS stock_adjustment (
+                id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                security_id integer NOT NULL,
+                CONSTRAINT fk_security
+                    FOREIGN KEY (security_id)
+                    REFERENCES security (id)
+                    ON DELETE CASCADE
+                    ON UPDATE CASCADE,
+                date date NOT NULL,
+                factor double precision NOT NULL,
+                dividend double precision,
+                split_ratio double precision,
+                datafeed_src_id integer NOT NULL,
+                CONSTRAINT fk_datafeed_src
+                    FOREIGN KEY (datafeed_src_id)
+                    REFERENCES datafeed_src (id)
+                    ON DELETE CASCADE
+                    ON UPDATE CASCADE,
+                UNIQUE (security_id, date, datafeed_src_id)
+            )
+        '''
+        self._db.execute(sql)
+
+
+
     def add(self, model_cls, data, **kwargs):
         """
         Adds/Inserts a new record into the database.  The table is acquired from

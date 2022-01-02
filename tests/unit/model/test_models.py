@@ -23,6 +23,7 @@ from grand_trade_auto.model import company
 from grand_trade_auto.model import datafeed_src
 from grand_trade_auto.model import exchange
 from grand_trade_auto.model import security
+from grand_trade_auto.model import stock_adjustment
 
 
 
@@ -31,6 +32,7 @@ from grand_trade_auto.model import security
     (exchange.Exchange, 'exchange', []),
     (company.Company, 'company', []),
     (security.Security, 'security', []),
+    (stock_adjustment.StockAdjustment, 'stock_adjustment', []),
 ])
 def test_model_attrs(model_cls, table_name, extra_attrs):
     """

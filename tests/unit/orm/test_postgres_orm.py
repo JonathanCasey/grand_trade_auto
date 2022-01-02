@@ -212,6 +212,7 @@ def _test_create_schema_table(orm, test_func, table_name,
     ('_create_schema_table_exchange', 'exchange'),
     ('_create_schema_table_company', 'company'),
     ('_create_schema_table_security', 'security'),
+    ('_create_schema_table_stock_adjustment', 'stock_adjustment'),
 ])
 def test__create_schemas_tables(pg_test_orm, method_name, table_name):
     """

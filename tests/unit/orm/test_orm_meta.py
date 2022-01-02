@@ -64,6 +64,12 @@ class MockOrmChild(orm_meta.Orm):
         """
         logger.info('Called _create_schema_table_security()')
 
+    def _create_schema_table_stock_adjustment(self):
+        """
+        Log something so it can be traced that this was called.
+        """
+        logger.info('Called _create_schema_table_stock_adjustment()')
+
     def add(self, model_cls, data, **kwargs):
         """
         Not needed / will not be used.
@@ -118,4 +124,6 @@ def test_create_schemas(caplog):
             'Called _create_schema_table_company()'),
         ('tests.unit.orm.test_orm_meta', logging.INFO,
             'Called _create_schema_table_security()'),
+        ('tests.unit.orm.test_orm_meta', logging.INFO,
+            'Called _create_schema_table_stock_adjustment()'),
     ]
