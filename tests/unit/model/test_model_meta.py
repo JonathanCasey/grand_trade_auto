@@ -123,7 +123,17 @@ class OrmTest(orm_meta.Orm):
 
 
 
+    def _create_schema_company(self):
+        """
+        Not needed / will not be used.
+        """
+
     def _create_schema_datafeed_src(self):
+        """
+        Not needed / will not be used.
+        """
+
+    def _create_schema_exchange(self):
         """
         Not needed / will not be used.
         """
