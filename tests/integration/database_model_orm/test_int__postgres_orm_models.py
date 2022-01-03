@@ -23,6 +23,7 @@ import pytest
 
 from grand_trade_auto.model import company
 from grand_trade_auto.model import datafeed_src
+from grand_trade_auto.model import exchange
 from grand_trade_auto.model import model_meta
 
 
@@ -127,6 +128,45 @@ def test_int__model_crud__datafeed_src(pg_test_orm):
     db_datafeed_src.delete()
     models = datafeed_src.DatafeedSrc.query_direct(pg_test_orm, 'model',
             where=where)
+    assert len(models) == 0
+
+    pg_test_orm._db._conn.close()
+
+
+
+@pytest.mark.order(1)   # Model dependencies: datafeed_src
+def test_int__model_crud__exchange(pg_test_orm, datafeed_src_from_db):
+    """
+    Tests that Exchange can be created, retrieved, updated, and deleted (in that
+    order).
+
+    Ensures compatibility between python and database representations of
+    information.
+    """
+    # Ensure add works with all columns (except id)
+    init_data = {
+        'name': str(uuid.uuid4())[:50],
+        'acronym': str(uuid.uuid4())[:50],
+        'datafeed_src_id': datafeed_src_from_db.id,
+    }
+    py_exchange = exchange.Exchange(pg_test_orm, init_data)
+    py_exchange.add()
+
+    # Ensure can pull exact model back from db and data format is valid
+    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
+    models = exchange.Exchange.query_direct(pg_test_orm, 'model', where=where)
+    assert len(models) == 1
+    db_exchange = models[0]
+    assert int(db_exchange.id) > 0
+    for k, v in init_data.items():
+        assert getattr(db_exchange, k) == v
+
+    # Write same data back unchanged with all columns active
+    db_exchange.update()
+
+    # Delete this and confirm
+    db_exchange.delete()
+    models = exchange.Exchange.query_direct(pg_test_orm, 'model', where=where)
     assert len(models) == 0
 
     pg_test_orm._db._conn.close()
