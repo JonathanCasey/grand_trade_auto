@@ -228,6 +228,12 @@ class OrmTest(orm_meta.Orm):
         """
         Fake adding something to mock results, and check cols.  Expected to
         check afterwards.
+
+        Raises:
+          (psycopg2.errors.GeneratedAlways): Raised as a simulated error if
+            attempting to update a read only column.  This should be triggered
+            and tested as part of a test.
+          [Pass through expected]
         """
         OrmTest._validate_cols(data.keys(), model_cls)
         if any(c in data for c in model_cls._read_only_columns):
@@ -246,6 +252,16 @@ class OrmTest(orm_meta.Orm):
         """
         Fake updating something in mock results, and check cols.  Expected to
         have existing data.  Limited 'where' clause support.
+
+        Raises:
+          (psycopg2.errors.GeneratedAlways): Raised as a simulated error if
+            attempting to update a read only column.  This should be triggered
+            and tested as part of a test.
+          (ValueError): Raised if an unsupported LogicOp is provided.  This has
+            much more limited support for LogicOps to limit how much needs to be
+            implemented here.  If this is raised, the test should be redesigned
+            to avoid it rather than catching it.
+          [Pass through expected]
         """
         OrmTest._validate_cols(data.keys(), model_cls)
         if where[1] is not model_meta.LogicOp.EQUALS:
@@ -267,6 +283,16 @@ class OrmTest(orm_meta.Orm):
         """
         Fake deleting something in mock results, and check cols.  Expected to
         have existing data.  Limited 'where' clause support.
+
+        Raises:
+          (ValueError):
+            [with respect to LogicOp] Raised if an unsupported LogicOp is
+              provided.  This has much more limited support for LogicOps to
+              limit how much needs to be implemented here.  If this is raised,
+              the test should be redesigned to avoid it rather than catching it.
+            [with respect to really_delete_all] Raised as a simulated error if
+              the where clause is empty but `really_delete_all` was not set to
+              True.  This should be triggered and tested as part of a test.
         """
         if where and where[1] is not model_meta.LogicOp.EQUALS:
             raise ValueError('Test Error: Provided LogicOp not supported')
@@ -289,6 +315,17 @@ class OrmTest(orm_meta.Orm):
         """
         Fake querying something from mock results, and check cols.  Expected to
         have existing data.  Limited 'where' and 'order' clause support.
+
+        Raises:
+          (psycopg2.errors.GeneratedAlways): Raised as a simulated error if
+            attempting to update a read only column.  This should be triggered
+            and tested as part of a test.
+          (ValueError): Raised if an unsupported LogicOp, SortOrder, or ReturnAs
+            is provided.  This has much more limited support for LogicOps,
+            SortOrders, and ReturnAs options to limit how much needs to be
+            implemented here.  If this is raised, the test should be redesigned
+            to avoid it rather than catching it.
+          [Pass through expected]
         """
         #pylint: disable=too-many-branches
         if columns_to_return is not None:
@@ -343,6 +380,11 @@ class OrmTest(orm_meta.Orm):
         """
         A helper method just for this testing to check columns, raise an
         exception if there is an issue.
+
+        Raises:
+          (NonexistentColumnError): Raised as a simulated error if at least one
+            column provided is not in the list of columns for the provided
+            model.  This should be triggered and tested as part of a test.
         """
         valid_cols = model_cls.get_columns()
         if not set(cols).issubset(valid_cols):
@@ -353,10 +395,12 @@ class OrmTest(orm_meta.Orm):
 
 
 
-def test_model_init():
+def test_model_init(caplog):
     """
     Tests the `__init__()` method in `Model`.
     """
+    caplog.set_level(logging.WARNING)
+
     # Ensure bare minimum init works
     model = ModelTest('test_orm')
     assert model._orm == 'test_orm'
@@ -375,10 +419,15 @@ def test_model_init():
         assert getattr(model, col) is None
 
     # Ensure invalid col fails
+    caplog.clear()
     data = {'id': 3, 'bad_col': 4}
-    with pytest.raises(AssertionError) as ex:
+    with pytest.raises(AttributeError) as ex:
         ModelTest('', data)
-    assert 'Invalid data column: bad_col' in str(ex.value)
+    assert 'Invalid data column for ModelTest: bad_col' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.model_meta', logging.ERROR,
+            'Invalid data column for ModelTest: bad_col'),
+    ]
 
 
 

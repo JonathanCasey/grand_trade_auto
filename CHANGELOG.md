@@ -519,6 +519,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `_SCHEMA_NAME` added to define an overall schema name used for
       everything.  This is set to `public` to match the default; primarily to
       ensure unit tests always match code ([#98][]).
+- [Added] `_TYPE_NAMESPACE` added to define an overall namespace used for types.
+      This is set to `public` to match the default; primarily to ensure unit
+      tests always match code ([#98][]).
 
 
 ### Web: Backend / Meta

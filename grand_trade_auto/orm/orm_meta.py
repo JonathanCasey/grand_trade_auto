@@ -59,6 +59,9 @@ class Orm(ABC):
         Create all schemas for the entire database.  Each ORM/database is
         expected to create the full database schema, even if not all of the
         tables will be loaded with data in this particular database.
+
+        Raises:
+          [Pass through expected]
         """
         self._create_schema_enum_currency()
         self._create_schema_enum_market()
@@ -210,6 +213,9 @@ class Orm(ABC):
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Database.execute()`.  See those docstrings for more
             details.
+
+        Raises:
+          [Pass through expected]
         """
 
 
@@ -232,6 +238,9 @@ class Orm(ABC):
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Database.execute()`.  See those docstrings for more
             details.
+
+        Raises:
+          [Pass through expected]
         """
 
 
@@ -257,6 +266,9 @@ class Orm(ABC):
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Database.execute()`.  See those docstrings for more
             details.
+
+        Raises:
+          [Pass through expected]
         """
 
 
@@ -295,4 +307,7 @@ class Orm(ABC):
               Empty list if no matching results.
           If return_as == ReturnAs.PANDAS:
             (pandas.dataframe): The pandas dataframe representing all results.
+
+        Raises:
+          [Pass through expected]
         """

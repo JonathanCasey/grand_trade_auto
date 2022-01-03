@@ -425,6 +425,9 @@ class PostgresOrm(orm_meta.Orm):
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Database.execute()`.  See those docstrings for more
             details.
+
+        Raises:
+          [Pass through expected]
         """
         _validate_cols(data.keys(), model_cls)
         val_vars = _prep_sanitized_vars('i', data)
@@ -455,6 +458,9 @@ class PostgresOrm(orm_meta.Orm):
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Database.execute()`.  See those docstrings for more
             details.
+
+        Raises:
+          [Pass through expected]
         """
         _validate_cols(data.keys(), model_cls)
         val_vars = _prep_sanitized_vars('u', data)
@@ -492,6 +498,9 @@ class PostgresOrm(orm_meta.Orm):
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Database.execute()`.  See those docstrings for more
             details.
+
+        Raises:
+          [Pass through expected]
         """
         sql = f'DELETE FROM {model_cls.get_table_name()}'
         if where:
@@ -544,6 +553,9 @@ class PostgresOrm(orm_meta.Orm):
               Empty list if no matching results.
           If return_as == ReturnAs.PANDAS:
             (pandas.dataframe): The pandas dataframe representing all results.
+
+        Raises:
+          [Pass through expected]
         """
         if columns_to_return:
             _validate_cols(columns_to_return, model_cls)

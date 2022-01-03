@@ -195,13 +195,21 @@ class Model(ABC):
             model's initial values, where the keys are the column names and the
             values are the python-type values.  Can be None or empty to get a
             blank record (e.g. to add a new record).
+
+        Raises:
+          (AttributeError): Raised if `data` keys contains a column name that is
+            not in the list of `_column` for this model.
         """
         self._orm = orm
         self._active_cols = set()
 
         if data is not None:
             for k, v in data.items():
-                assert k in self._columns, f'Invalid data column: {k}'
+                if k not in self._columns:
+                    err_msg = 'Invalid data column for'
+                    err_msg += f' {self.__class__.__name__}: {k}'
+                    logger.error(err_msg)
+                    raise AttributeError(err_msg)
                 self.__setattr__(k, v)
 
 
@@ -276,6 +284,9 @@ class Model(ABC):
             python-type values to be inserted.
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.add()`.  See those docstrings for more details.
+
+        Raises:
+          [Pass through expected]
         """
         orm.add(cls, data, **kwargs)
 
@@ -300,6 +311,9 @@ class Model(ABC):
             Model.query_direct() docs for spec.  If None, will not filter.
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.update()`.  See those docstrings for more details.
+
+        Raises:
+          [Pass through expected]
         """
         orm.update(cls, data, where, **kwargs)
 
@@ -324,6 +338,9 @@ class Model(ABC):
             (assuming there are no bugs...).
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.delete()`.  See those docstrings for more details.
+
+        Raises:
+          [Pass through expected]
         """
         orm.delete(cls, where, **kwargs)
 
@@ -437,6 +454,9 @@ class Model(ABC):
               Empty list if no matching results.
           If return_as == ReturnAs.PANDAS:
             (pandas.dataframe): The pandas dataframe representing all results.
+
+        Raises:
+          [Pass through expected]
         """
         return orm.query(cls, return_as, columns_to_return, where, limit, order,
                 **kwargs)
@@ -452,6 +472,9 @@ class Model(ABC):
         Args:
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.add()`.  See those docstrings for more details.
+
+        Raises:
+          [Pass through expected]
         """
         self.add_direct(self._orm, self._get_active_data_as_dict(), **kwargs)
 
@@ -466,6 +489,9 @@ class Model(ABC):
         Args:
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.update()`.  See those docstrings for more details.
+
+        Raises:
+          [Pass through expected]
         """
         self.update_direct(self._orm, self._get_active_data_as_dict(),
                 self._get_where_self_id(), **kwargs)
@@ -479,6 +505,9 @@ class Model(ABC):
         Args:
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.delete()`.  See those docstrings for more details.
+
+        Raises:
+          [Pass through expected]
         """
         self.delete_direct(self._orm, self._get_where_self_id(), **kwargs)
 
@@ -511,6 +540,11 @@ class Model(ABC):
           ((str, LogicOp, int)): The tuple that represents the full structured
             where clause to identify this model's own record in the database
             table.
+
+        Raises:
+          (ValueError): Raised if the `id` column is None.  If using this
+            method, it is expected that it is trying to match on exact `id`
+            value.
         """
         if self.id is None:
             err_msg = 'Cannot generate where clause with ID being None'

@@ -62,6 +62,9 @@ class Database(ABC):
     def orm(self):
         """
         Gets the Orm for this database in a read-only fashion.
+
+        Returns:
+          _orm (Orm<>): The Orm for this database.
         """
         return self._orm
 
