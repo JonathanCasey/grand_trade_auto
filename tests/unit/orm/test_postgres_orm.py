@@ -67,6 +67,8 @@ def _test_create_schema_enum(orm, test_func, enum_name, enum_cls,
         complete.  Drop is cascaded, so dependent tables would also be dropped,
         but they should have already been dropped at start of this test.
     """
+    #pylint: disable=too-many-locals
+
     def _drop_own_enum():
         """
         Drop the enum being created in this subtest.
