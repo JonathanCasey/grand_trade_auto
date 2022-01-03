@@ -577,6 +577,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
     - `Company`
     - `DatafeedSrc`
     - `Exchange`
+    - `Security`
 
 
 ### Docs: CHANGELOG

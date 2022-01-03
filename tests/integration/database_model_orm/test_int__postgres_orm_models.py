@@ -29,6 +29,40 @@ from grand_trade_auto.model import security
 
 
 
+def _create_and_get_model_from_db(pg_test_orm, model_cls, init_data, col_match):
+    """
+    Creates a model, adds it to the database, then retrieves it back from the
+    database based on the provided configuration information.  This allows the
+    usage of generated columns such as the typical `id`.  Intended to be called
+    from fixtures, but could be called in general.
+
+    Args:
+      pg_test_orm (PostgresOrm): A PostgresOrm to use, likely the fixture.
+      model_cls (Class<Model<>>): The reference to a subclass of `Model` that is
+        to be created, added to db, then retrieved back.
+      init_data ({str:str/int/etc}): The data to initialize the model when
+        adding to the database.
+      col_match (str): The column on which to match this model in the database
+        in order to concisely retrieve it.  Likely the longest field that uses a
+        string/uuid, but may need to improvise sometimes.  Can be anything, but
+        it will always be a strict equals comparison.
+
+    Returns:
+      (model_cls): The model with the provided data, but as it is retrieved back
+        from the database with any generated fields also populated.
+    """
+    conn = pg_test_orm._db.connect(False)
+    model_cls.add_direct(pg_test_orm, init_data, conn=conn)
+    where = (col_match, model_meta.LogicOp.EQ, init_data[col_match])
+    models = model_cls.query_direct(pg_test_orm, 'model', where=where,
+            conn=conn)
+    conn.close()
+    # Sanity check that there isn't a weird test collision
+    assert len(models) == 1
+    return models[0]
+
+
+
 @pytest.fixture(name='company_from_db')
 def fixture_company_from_db(pg_test_orm, datafeed_src_from_db):
     """
@@ -39,16 +73,8 @@ def fixture_company_from_db(pg_test_orm, datafeed_src_from_db):
         'name': str(uuid.uuid4())[:50],
         'datafeed_src_id': datafeed_src_from_db.id,
     }
-    conn = pg_test_orm._db.connect(False)
-
-    company.Company.add_direct(pg_test_orm, init_data, conn=conn)
-    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
-    models = company.Company.query_direct(pg_test_orm, 'model',
-            where=where, conn=conn)
-    conn.close()
-    # Sanity check that there isn't a weird test collision
-    assert len(models) == 1
-    return models[0]
+    return _create_and_get_model_from_db(pg_test_orm, company.Company,
+            init_data, 'name')
 
 
 
@@ -61,16 +87,8 @@ def fixture_datafeed_src_from_db(pg_test_orm):
     init_data = {
         'config_parser': str(uuid.uuid4()),
     }
-    conn = pg_test_orm._db.connect(False)
-
-    datafeed_src.DatafeedSrc.add_direct(pg_test_orm, init_data, conn=conn)
-    where = ('config_parser', model_meta.LogicOp.EQ, init_data['config_parser'])
-    models = datafeed_src.DatafeedSrc.query_direct(pg_test_orm, 'model',
-            where=where, conn=conn)
-    conn.close()
-    # Sanity check that there isn't a weird test collision
-    assert len(models) == 1
-    return models[0]
+    return _create_and_get_model_from_db(pg_test_orm, datafeed_src.DatafeedSrc,
+            init_data, 'config_parser')
 
 
 
@@ -85,16 +103,53 @@ def fixture_exchange_from_db(pg_test_orm, datafeed_src_from_db):
         'acronym': str(uuid.uuid4())[:50],
         'datafeed_src_id': datafeed_src_from_db.id,
     }
-    conn = pg_test_orm._db.connect(False)
+    return _create_and_get_model_from_db(pg_test_orm, exchange.Exchange,
+            init_data, 'name')
 
-    exchange.Exchange.add_direct(pg_test_orm, init_data, conn=conn)
-    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
-    models = exchange.Exchange.query_direct(pg_test_orm, 'model',
-            where=where, conn=conn)
-    conn.close()
-    # Sanity check that there isn't a weird test collision
+
+
+def _test_int__model_crud(pg_test_orm, model_cls, init_data, col_match):
+    """
+    A generic set of steps to run through to test that the given model can be
+    created, retrieved, updated, and deleted (in that order).
+
+    Ensures compatibility between python and database representations of
+    information.
+
+    This will use the cached connection of the Orm's db, so the caller must
+    handle closing that connection.
+
+    Args:
+      pg_test_orm (PostgresOrm): A PostgresOrm to use, likely the fixture.
+      model_cls (Class<Model<>>): The reference to a subclass of `Model` that is
+        to be CRUD tested.
+      init_data ({str:str/int/etc}): The data to initialize the model when
+        adding to the database.
+      col_match (str): The column on which to match this model in the database
+        in order to concisely retrieve it.  Likely the longest field that uses a
+        string/uuid, but may need to improvise sometimes.  Can be anything, but
+        it will always be a strict equals comparison.
+    """
+    # Ensure add works with all columns (except id / auto-generated)
+    py_model = model_cls(pg_test_orm, init_data)
+    py_model.add()
+
+    # Ensure can pull exact model back from db and data format is valid
+    where = (col_match, model_meta.LogicOp.EQ, init_data[col_match])
+    models = model_cls.query_direct(pg_test_orm, 'model', where=where)
     assert len(models) == 1
-    return models[0]
+    db_model = models[0]
+    assert int(db_model.id) > 0
+    for k, v in init_data.items():
+        assert getattr(db_model, k) == v
+
+    # Ensure can write same data back unchanged with all columns active
+    db_model.update()
+
+    # Ensure can delete this and confirm
+    db_model.delete()
+    models = model_cls.query_direct(pg_test_orm, 'model', where=where)
+    assert len(models) == 0
 
 
 
@@ -117,26 +172,7 @@ def test_int__model_crud__company(pg_test_orm, datafeed_src_from_db):
         'sic': str(uuid.uuid4())[:4],
         'datafeed_src_id': datafeed_src_from_db.id,
     }
-    py_company = company.Company(pg_test_orm, init_data)
-    py_company.add()
-
-    # Ensure can pull exact model back from db and data format is valid
-    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
-    models = company.Company.query_direct(pg_test_orm, 'model', where=where)
-    assert len(models) == 1
-    db_company = models[0]
-    assert int(db_company.id) > 0
-    for k, v in init_data.items():
-        assert getattr(db_company, k) == v
-
-    # Write same data back unchanged with all columns active
-    db_company.update()
-
-    # Delete this and confirm
-    db_company.delete()
-    models = company.Company.query_direct(pg_test_orm, 'model', where=where)
-    assert len(models) == 0
-
+    _test_int__model_crud(pg_test_orm, company.Company, init_data, 'name')
     pg_test_orm._db._conn.close()
 
 
@@ -156,28 +192,8 @@ def test_int__model_crud__datafeed_src(pg_test_orm):
         'is_init_complete': False,
         'progress_marker': str(uuid.uuid4()),
     }
-    py_datafeed_src = datafeed_src.DatafeedSrc(pg_test_orm, init_data)
-    py_datafeed_src.add()
-
-    # Ensure can pull exact model back from db and data format is valid
-    where = ('config_parser', model_meta.LogicOp.EQ, init_data['config_parser'])
-    models = datafeed_src.DatafeedSrc.query_direct(pg_test_orm, 'model',
-            where=where)
-    assert len(models) == 1
-    db_datafeed_src = models[0]
-    assert int(db_datafeed_src.id) > 0
-    for k, v in init_data.items():
-        assert getattr(db_datafeed_src, k) == v
-
-    # Write same data back unchanged with all columns active
-    db_datafeed_src.update()
-
-    # Delete this and confirm
-    db_datafeed_src.delete()
-    models = datafeed_src.DatafeedSrc.query_direct(pg_test_orm, 'model',
-            where=where)
-    assert len(models) == 0
-
+    _test_int__model_crud(pg_test_orm, datafeed_src.DatafeedSrc, init_data,
+            'config_parser')
     pg_test_orm._db._conn.close()
 
 
@@ -197,26 +213,7 @@ def test_int__model_crud__exchange(pg_test_orm, datafeed_src_from_db):
         'acronym': str(uuid.uuid4())[:50],
         'datafeed_src_id': datafeed_src_from_db.id,
     }
-    py_exchange = exchange.Exchange(pg_test_orm, init_data)
-    py_exchange.add()
-
-    # Ensure can pull exact model back from db and data format is valid
-    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
-    models = exchange.Exchange.query_direct(pg_test_orm, 'model', where=where)
-    assert len(models) == 1
-    db_exchange = models[0]
-    assert int(db_exchange.id) > 0
-    for k, v in init_data.items():
-        assert getattr(db_exchange, k) == v
-
-    # Write same data back unchanged with all columns active
-    db_exchange.update()
-
-    # Delete this and confirm
-    db_exchange.delete()
-    models = exchange.Exchange.query_direct(pg_test_orm, 'model', where=where)
-    assert len(models) == 0
-
+    _test_int__model_crud(pg_test_orm, exchange.Exchange, init_data, 'name')
     pg_test_orm._db._conn.close()
 
 
@@ -241,24 +238,5 @@ def test_int__model_crud__security(pg_test_orm, company_from_db,
         'currency': model_meta.Currency.USD,
         'datafeed_src_id': datafeed_src_from_db.id,
     }
-    py_security = security.Security(pg_test_orm, init_data)
-    py_security.add()
-
-    # Ensure can pull exact model back from db and data format is valid
-    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
-    models = security.Security.query_direct(pg_test_orm, 'model', where=where)
-    assert len(models) == 1
-    db_security = models[0]
-    assert int(db_security.id) > 0
-    for k, v in init_data.items():
-        assert getattr(db_security, k) == v
-
-    # Write same data back unchanged with all columns active
-    db_security.update()
-
-    # Delete this and confirm
-    db_security.delete()
-    models = security.Security.query_direct(pg_test_orm, 'model', where=where)
-    assert len(models) == 0
-
+    _test_int__model_crud(pg_test_orm, security.Security, init_data, 'name')
     pg_test_orm._db._conn.close()
