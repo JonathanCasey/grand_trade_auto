@@ -47,6 +47,7 @@ def test_model_attrs(model_cls, table_name, extra_attrs):
     assert model_cls._table_name is not None
     assert model_cls._table_name == table_name
     assert model_cls._columns is not None
+    assert model_cls._read_only_columns is not None
 
     class EmptyAbstract(ABC):            #pylint: disable=too-few-public-methods
         """
@@ -63,12 +64,15 @@ def test_model_attrs(model_cls, table_name, extra_attrs):
     std_attrs = {m[0] for m in inspect.getmembers(EmptyClass)
             if not inspect.isroutine(m[1])}
     col_attrs = set(model_cls._columns)
+    ro_col_attrs = set(model_cls._read_only_columns)
     other_req_attrs = {
         '_table_name',
         '_columns',
+        '_read_only_columns',
     }
     extra_attrs = set(extra_attrs)
 
+    assert ro_col_attrs.issubset(col_attrs)
     assert col_attrs.issubset(model_attrs)
     assert extra_attrs.issubset(model_attrs)
     assert std_attrs.issubset(model_attrs)

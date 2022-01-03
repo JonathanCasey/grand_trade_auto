@@ -20,6 +20,7 @@ import copy
 import logging
 
 import pandas as pd
+import psycopg2.errors
 import pytest
 
 from grand_trade_auto.model import model_meta
@@ -131,12 +132,18 @@ class ModelTest(model_meta.Model):
         'id',
         'col_1',
         'col_2',
+        'col_auto_ro',
+    )
+
+    _read_only_columns = (
+        'col_auto_ro',
     )
 
     # Column Attributes -- MUST match _columns!
     # id defined in super
     col_1 = None
     col_2 = None
+    col_auto_ro = None
     # End of Column Attributes
 
 
@@ -146,7 +153,7 @@ class ModelTest(model_meta.Model):
         Return an effective shallow copy for these testing purposes.
         """
         shallow_copy = ModelTest(self._orm)
-        for attr in ['id', 'col_1', 'col_2']:
+        for attr in ['id', 'col_1', 'col_2', 'col_auto_ro']:
             setattr(shallow_copy, attr, getattr(self, attr))
         return shallow_copy
 
@@ -223,6 +230,10 @@ class OrmTest(orm_meta.Orm):
         check afterwards.
         """
         OrmTest._validate_cols(data.keys(), model_cls)
+        if any([c in data for c in model_cls._read_only_columns]):
+            raise psycopg2.errors.GeneratedAlways(   # pylint: disable=no-member
+                    '...can only be updated to DEFAULT')
+
         res = {
             'model': model_cls(self, data),
             'extra_args': kwargs,
@@ -239,6 +250,10 @@ class OrmTest(orm_meta.Orm):
         OrmTest._validate_cols(data.keys(), model_cls)
         if where[1] is not model_meta.LogicOp.EQUALS:
             raise ValueError('Test Error: Provided LogicOp not supported')
+        if any([c in data for c in model_cls._read_only_columns]):
+            raise psycopg2.errors.GeneratedAlways(   # pylint: disable=no-member
+                    '...can only be updated to DEFAULT')
+
         for res in self._mock_db_results:
             if getattr(res['model'], where[0]) == where[2]:
                 for k, v in data.items():
@@ -367,10 +382,12 @@ def test_model_init():
 
 
 
-def test_model_setattr():
+def test_model_setattr(caplog):
     """
     Tests the `__setattr__()` method in `Model`.
     """
+    caplog.set_level(logging.WARNING)
+
     model = ModelTest('')
     assert model._active_cols == set()
 
@@ -381,6 +398,21 @@ def test_model_setattr():
     model._table_name = 'not active col'
     assert model._active_cols == set(['id'])
     assert model._table_name == 'not active col'
+
+    caplog.clear()
+    assert model.col_auto_ro is None
+    assert set(model._read_only_columns) == set(['col_auto_ro'])
+    model.col_auto_ro = '1st setting'
+    assert model.col_auto_ro == '1st setting'
+    with pytest.raises(AttributeError) as ex:
+        model.col_auto_ro = '2nd setting'
+    assert 'Cannot set a non-None read-only column more than' in str(ex.value)
+    assert caplog.record_tuples == [
+        ('grand_trade_auto.model.model_meta', logging.ERROR,
+            'Cannot set a non-None read-only column more than once:'
+            + ' ModelTest.col_auto_ro'),
+    ]
+    assert model.col_auto_ro == '1st setting'
 
 
 
@@ -401,8 +433,8 @@ def test_get_columns():
     """
     model = ModelTest('')
     model._columns = ('wrong col', 'fake_col')
-    assert ModelTest.get_columns() == ('id', 'col_1', 'col_2')
-    assert model.get_columns() == ('id', 'col_1', 'col_2')
+    assert ModelTest.get_columns() == ('id', 'col_1', 'col_2', 'col_auto_ro')
+    assert model.get_columns() == ('id', 'col_1', 'col_2', 'col_auto_ro')
 
 
 
@@ -441,9 +473,24 @@ def test_add_and_direct(caplog, monkeypatch):
     assert res['model'].col_2 == 4
     assert res['extra_args'] == {'cursor': 'fake_cursor', 'conn': 4}
 
+    data_3 = {
+        'col_1': 5,
+        'col_auto_ro': 'should fail direct',
+    }
+    model = ModelTest(orm, data_3)
+    model.add()
+    last_model = orm._mock_db_results[-1]['model']
+    assert last_model.col_1 == model.col_1
+    assert last_model.col_auto_ro is None
+    assert model.col_auto_ro == 'should fail direct'
+    with pytest.raises(
+            psycopg2.errors.GeneratedAlways) as ex:  # pylint: disable=no-member
+        ModelTest.add_direct(orm, data_3)
+    assert '...can only be updated to DEFAULT' in str(ex.value)
+
     caplog.clear()
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        ModelTest.add_direct(orm, {'bad_col': 5})
+        ModelTest.add_direct(orm, {'bad_col': 6})
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
         ('tests.unit.model.test_model_meta', logging.ERROR,
@@ -455,16 +502,16 @@ def test_add_and_direct(caplog, monkeypatch):
         Injects a bad col on purpose.
         """
         cols = {c: getattr(self, c) for c in self._active_cols}
-        cols['bad_col'] = 6
+        cols['bad_col'] = 7
         return cols
 
     caplog.clear()
     monkeypatch.setattr(ModelTest, '_get_active_data_as_dict',
             mock_get_active_data_as_dict)
-    data_3 = {
-        'col_1': 7,
+    data_4 = {
+        'col_1': 8,
     }
-    model = ModelTest(orm, data_3)
+    model = ModelTest(orm, data_4)
     with pytest.raises(orm_meta.NonexistentColumnError) as ex:
         model.add()
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
@@ -536,11 +583,17 @@ def test_update_and_direct(caplog, monkeypatch):
     assert res_2['model'].col_2 == 2
     assert res_2['extra_args'] == {'new_new_fake': 'yes'}
 
+    with pytest.raises(
+            psycopg2.errors.GeneratedAlways) as ex:  # pylint: disable=no-member
+        ModelTest.update_direct(orm, {'col_auto_ro': 'fail'}, where_2)
+    assert '...can only be updated to DEFAULT' in str(ex.value)
+
     # Create an effective semi-shallow copy of 1st db result...
     model_copy = copy.copy(orm._mock_db_results[0]['model'])
-    # ...then try modifying the data...
+    # ...then try modifying the data...including ro col since unused so far...
     model_copy.col_1 = 7
     model_copy.col_2 = 8
+    model_copy.col_auto_ro = 'allowed but ignored'
     # ...but act like one col not really active...
     model_copy._active_cols.remove('col_1')
     model_copy.update(another_fake=9)
@@ -550,6 +603,7 @@ def test_update_and_direct(caplog, monkeypatch):
     assert res_1['model'].id == 4
     assert res_1['model'].col_1 == 6
     assert res_1['model'].col_2 == 8
+    assert res_1['model'].col_auto_ro is None
     assert res_1['extra_args'] == {'another_fake': 9}
     assert res_2['model'].id is None
     assert res_2['model'].col_1 == 6
@@ -719,6 +773,8 @@ def test_query_direct(caplog):
     assert len(models) == len(data_orig)
     for i, model in enumerate(models):
         for col in ModelTest._columns:
+            if col == 'col_auto_ro':
+                continue
             assert data_orig[i][col] == getattr(model, col)
 
     rtn_cols = ['col_1', 'col_2']
@@ -738,6 +794,8 @@ def test_query_direct(caplog):
     data_expected = [data_orig[2], data_orig[3], data_orig[0]]
     for i in range(len(pd_df)):
         for col in ModelTest._columns:
+            if col == 'col_auto_ro':
+                continue
             assert pd_df.iloc[i].loc[col] == data_expected[i][col]
         assert pd_df.iloc[i].loc['extra_args'] == {'fake_extra': 'fake val'}
 
@@ -762,7 +820,10 @@ def test__get_active_data_as_dict():
 
     model.col_1 = 'v1'
     model.col_2 = 'v2'
+    model.col_auto_ro = 'ro'
     assert model._get_active_data_as_dict() == {'col_1': 'v1', 'col_2': 'v2'}
+    assert model._get_active_data_as_dict(False) \
+            ==  {'col_1': 'v1', 'col_2': 'v2', 'col_auto_ro': 'ro'}
 
     data = {
         'id': 3,
@@ -772,6 +833,7 @@ def test__get_active_data_as_dict():
     assert model._get_active_data_as_dict() == data
     model._active_cols.remove('id')
     assert model._get_active_data_as_dict() == {'col_2': 'four'}
+    assert model._get_active_data_as_dict(False) == {'col_2': 'four'}
 
 
 

@@ -120,9 +120,15 @@ python ci_support/dir_init_checker.py grand_trade_auto
 python ci_support/dir_init_checker.py ci_support
 python ci_support/dir_init_checker.py tests
 
-python -m pytest --cov=grand_trade_auto --run-only-alters-db-schema
-python -m pytest --cov=grand_trade_auto --cov-append --skip-alters-db-schema
+python -m pytest --cov=grand_trade_auto --run-only-alters-db-schema tests/unit
+python -m pytest --cov=grand_trade_auto --cov-append --skip-alters-db-schema tests/unit
+python -m pytest --run-only-alters-db-schema tests/integration
+python -m pytest --skip-alters-db-schema tests/integration
 ```
+
+Integration tests are intentionally omitted from code coverage reporting.  All
+code coverage should be 100% based on unit testing.  Integration testing is
+gravy!
 
 
 ## Postgres / psycopg2

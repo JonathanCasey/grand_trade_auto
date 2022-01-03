@@ -35,24 +35,11 @@ from grand_trade_auto.model import model_meta
 from grand_trade_auto.orm import orm_meta
 from grand_trade_auto.orm import postgres_orm
 
-from tests.unit import conftest as unit_conftest
+from tests import conftest as tests_conftest
 
 
 
 logger = logging.getLogger(__name__)
-
-
-
-@pytest.fixture(name='pg_test_orm')
-def fixture_pg_test_orm(pg_test_db):
-    """
-    Gets the test Orm handle for Postgres.
-
-    Returns:
-      (PostgresOrm): The test Postgres Orm object.
-    """
-    # This also tests init works and Postgres is properly integrated
-    return pg_test_db._orm
 
 
 
@@ -235,8 +222,8 @@ def fixture_create_test_table():
 
     This MUST match the TestModel class in this module.
     """
-    test_db = databases._get_database_from_config(unit_conftest._TEST_PG_DB_ID,
-            unit_conftest._TEST_PG_ENV)
+    test_db = databases._get_database_from_config(tests_conftest._TEST_PG_DB_ID,
+            tests_conftest._TEST_PG_ENV)
     conn = test_db.connect(False)
     sql = '''
         CREATE TABLE test_postgres_orm (
@@ -266,6 +253,10 @@ class ModelTest(model_meta.Model):
         'str_data',
         'int_data',
         'bool_data',
+    )
+
+    _read_only_columns = (
+        'id',
     )
 
     # Don't need the attributes for each column -- not used
@@ -334,7 +325,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
         'int_data': 1,
         'bool_data': True,
     }
-    bad_id = {
+    bad_id_ro = {
         'id': 2,
         'test_name': test_name,
         'str_data': str(uuid.uuid4()),
@@ -375,7 +366,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     with pytest.raises(
             psycopg2.errors.GeneratedAlways           #pylint: disable=no-member
             ) as ex:
-        pg_test_orm.add(ModelTest, bad_id)
+        pg_test_orm.add(ModelTest, bad_id_ro)
     assert 'cannot insert into column "id"' in str(ex.value)
     pg_test_orm._db._conn.rollback()
 
@@ -447,7 +438,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
             'str_data': str(uuid.uuid4()),
         },
     ]
-    bad_id = {
+    bad_id_ro = {
         'id': 3,
         'test_name': test_name,
         'str_data': str(uuid.uuid4()),
@@ -531,7 +522,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     with pytest.raises(
             psycopg2.errors.GeneratedAlways           #pylint: disable=no-member
             ) as ex:
-        pg_test_orm.update(ModelTest, bad_id, where_1)
+        pg_test_orm.update(ModelTest, bad_id_ro, where_1)
     assert 'column "id" can only be updated to DEFAULT\nDETAIL:  Column "id"' \
             + ' is an identity column defined as GENERATED ALWAYS.' \
             in str(ex.value)

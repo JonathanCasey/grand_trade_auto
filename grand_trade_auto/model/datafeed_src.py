@@ -26,15 +26,20 @@ class DatafeedSrc(model_meta.Model):
       [inherited from Model]:
         _table_name (str or None): The name of the table in the database.
           Subclasses should override and then never change...
-        _columns ([str] or None): The list of column names in the table.  These
+        _columns ((str) or None): The tuple of column names in the table.  These
           should each have a class attribute with a matching name for ease of
           access.  Subclasses should override this with the name of columns and
           then never change...
-        id (int or None): [Column var] The value of the id column in the table
-          for this record.  All tables MUST have an id field, at least until
-          some TSDB shows up.  As a class attribute, this is intended to hold
-          some default value.  It will be superseded its corresponding instance
-          variable upon being written to.  This is the practice for all
+        _read_only_columns ((str)): The tuple of column names in the table that
+          are read only.  These may be, for example, the `id` column that is
+          auto-incremented and cannot be written to by a user.  These should be
+          a subset of the `_columns`.  Subclasses should override this with the
+          name of columns (or an empty list) and then never change...
+        id (int or None): [RO Column var] The value of the id column in the
+          table for this record.  All tables MUST have an id field, at least
+          until some TSDB shows up.  As a class attribute, this is intended to
+          hold some default value.  It will be superseded its corresponding
+          instance variable upon being written to.  This is the practice for all
           column-related attributes.
 
     Instance Attributes:
@@ -56,6 +61,10 @@ class DatafeedSrc(model_meta.Model):
         'config_parser',
         'is_init_complete',
         'progress_marker',
+    )
+
+    _read_only_columns = (
+        'id',
     )
 
     # Column Attributes -- MUST match _columns!

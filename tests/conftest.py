@@ -75,3 +75,16 @@ def fixture_pg_test_db():
     """
     # This also ensures its support was added to databases.py
     return databases._get_database_from_config(_TEST_PG_DB_ID, _TEST_PG_ENV)
+
+
+
+@pytest.fixture(name='pg_test_orm')
+def fixture_pg_test_orm(pg_test_db):
+    """
+    Gets the test Orm handle for Postgres.
+
+    Returns:
+      (PostgresOrm): The test Postgres Orm object.
+    """
+    # This also tests init works and Postgres is properly integrated
+    return pg_test_db._orm

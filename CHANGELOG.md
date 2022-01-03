@@ -92,6 +92,9 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `pytest` execution commands updated to support new multiple runs
       required, with `run-only-alters-db-schema` and `skip-alters-db-schema`
       options supported ([#98][]).
+- [Added] `integration-tests` job added to be run after unit tests, with unit
+      tests now being sure to only run their specific dir of tests (codecov is
+      for unit test results only) ([#98][]).
 
 
 ### Project & Toolchain: CI Support
@@ -155,11 +158,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `d` added to `good-names` list in `.pylintrc` ([#98][]).
 
 
-### Project & Toolchain: Pytest, /conftest, /tests/unit/conftest
+### Project & Toolchain: Pytest, /conftest, /tests/conftest
 - [Added] `--run-only-alters-db-schema` and `--skip-alters-db-schema` CLI arga
       added to only run tests marked with or without `alters_db_schema`,
       respectively ([#98][]).
-- [Added] `tests/unit/conftest.py` added with generic fixtures to create test
+- [Added] `tests/conftest.py` added with generic fixtures to create test
       database and schema for postgres ([#98][]).
 
 
@@ -566,6 +569,14 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       content ([#11][]).
 
 
+### Tests: Integration: Postgres <-> Orm <-> Models
+- [Added] `tests/integration/test_int__postgres_orm_models.py` added to test
+      integration on both sides of ORM for all models to support all CRUD ops
+      with Postgres db ([#98][]).
+  - Models tested:
+    - `DatafeedSrc`
+
+
 ### Docs: CHANGELOG
 - [Added] This `CHANGELOG.md` file created and updated with all project work
       to-date (+1 self reference) ([#55][]).
@@ -592,6 +603,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       docs ([#98][]).
 - [Added] `Design Conventions` main section added, with notes on unit test order
       ([#98][]).
+- [Added] Workflow steps updated to include integration tests and clarified how
+      to run unit tests only ([#98][]).
 
 
 ### Docs: README

@@ -148,15 +148,20 @@ class Model(ABC):
     Class Attributes:
       _table_name (str or None): The name of the table in the database.
         Subclasses should override and then never change...
-      _columns ([str] or None): The list of column names in the table.  These
+      _columns ((str) or None): The tuple of column names in the table.  These
         should each have a class attribute with a matching name for ease of
         access.  Subclasses should override this with the name of columns and
         then never change...
-      id (int or None): [Column var] The value of the id column in the table
-        for this record.  All tables MUST have an id field, at least until
-        some TSDB shows up.  As a class attribute, this is intended to hold
-        some default value.  It will be superseded its corresponding instance
-        variable upon being written to.  This is the practice for all
+      _read_only_columns ((str)): The tuple of column names in the table that
+        are read only.  These may be, for example, the `id` column that is
+        auto-incremented and cannot be written to by a user.  These should be
+        a subset of the `_columns`.  Subclasses should override this with the
+        name of columns (or an empty list) and then never change...
+      id (int or None): [RO Column var] The value of the id column in the
+        table for this record.  All tables MUST have an id field, at least
+        until some TSDB shows up.  As a class attribute, this is intended to
+        hold some default value.  It will be superseded its corresponding
+        instance variable upon being written to.  This is the practice for all
         column-related attributes.
 
     Instance Attributes:
@@ -170,6 +175,7 @@ class Model(ABC):
     """
     _table_name = None
     _columns = None
+    _read_only_columns = None
 
     # Column Attributes -- MUST match _columns!
     id = None
@@ -208,11 +214,23 @@ class Model(ABC):
         otherwise still falls through to normal behavior (including for active
         columns).
 
-        name (str): The name of the instance attribute to update.
-        value (any): The value to set that instance attribute to.
+        Args:
+          name (str): The name of the instance attribute to update.
+          value (any): The value to set that instance attribute to.
+
+        Raises:
+          (AttributeError): Raised if an attribute for a read-only column is
+            attempted to be assigned a value after it is already set to a
+            non-None value (provides partial accidental write protection without
+            making it a huge pain for ORMs...yet).
         """
         if name in self._columns:
             self._active_cols.add(name)
+        if name in self._read_only_columns and getattr(self, name) is not None:
+            err_msg = 'Cannot set a non-None read-only column more than once:'
+            err_msg += f' {self.__class__.__name__}.{name}'
+            logger.error(err_msg)
+            raise AttributeError(err_msg)
         return super().__setattr__(name, value)
 
 
@@ -248,6 +266,9 @@ class Model(ABC):
         model object first, but rather will directly route the data to the ORM
         for better optimization.
 
+        It is the caller's responsibility to omit columns that are read-only
+        (e.g. an auto-generated `id` column).
+
         Args:
           orm (Orm): The ORM to use for this database interaction.
           data ({str:str/int/bool/datetime/enum/etc}): The data to be inserted,
@@ -266,6 +287,9 @@ class Model(ABC):
         Update an existing record for this data model.  This will NOT create a
         model object first, but rather will directly route the data to the ORM
         for better optimization.
+
+        It is the caller's responsibility to omit columns that are read-only
+        (e.g. an auto-generated `id` column).
 
         Args:
           orm (Orm): The ORM to use for this database interaction.
@@ -423,6 +447,8 @@ class Model(ABC):
         """
         Add/Insert this model as a new record.
 
+        Read-only columns will be omitted (e.g. an auto-generated `id` column).
+
         Args:
           **kwargs ({}): Any additional paramaters that may be used by other
             methods: `Orm.add()`.  See those docstrings for more details.
@@ -434,6 +460,8 @@ class Model(ABC):
     def update(self, **kwargs):
         """
         Update this model's record in the database.
+
+        Read-only columns will be omitted (e.g. an auto-generated `id` column).
 
         Args:
           **kwargs ({}): Any additional paramaters that may be used by other
@@ -456,15 +484,22 @@ class Model(ABC):
 
 
 
-    def _get_active_data_as_dict(self):
+    def _get_active_data_as_dict(self, omit_read_only=True):
         """
         Takes the active data columns only to generate a dict of column:value
         pairs for database entry.
 
+        Args:
+          omit_read_only (bool): True to omit read-only columns from the active
+            data returned; False to include all active columns, including those
+            that are read-only.
+
         Returns:
-          ({str:str/int/bool/datetime/enum/etc}): The active data in this model.
+          ({str:str/int/bool/datetime/enum/etc}): The active data in this model,
+            possibly with read-only columns omitted.
         """
-        return {c: getattr(self, c) for c in self._active_cols}
+        return {c: getattr(self, c) for c in self._active_cols
+                if (not omit_read_only or c not in self._read_only_columns)}
 
 
 
