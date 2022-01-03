@@ -230,7 +230,7 @@ class OrmTest(orm_meta.Orm):
         check afterwards.
         """
         OrmTest._validate_cols(data.keys(), model_cls)
-        if any([c in data for c in model_cls._read_only_columns]):
+        if any(c in data for c in model_cls._read_only_columns):
             raise psycopg2.errors.GeneratedAlways(   # pylint: disable=no-member
                     '...can only be updated to DEFAULT')
 
@@ -250,7 +250,7 @@ class OrmTest(orm_meta.Orm):
         OrmTest._validate_cols(data.keys(), model_cls)
         if where[1] is not model_meta.LogicOp.EQUALS:
             raise ValueError('Test Error: Provided LogicOp not supported')
-        if any([c in data for c in model_cls._read_only_columns]):
+        if any(c in data for c in model_cls._read_only_columns):
             raise psycopg2.errors.GeneratedAlways(   # pylint: disable=no-member
                     '...can only be updated to DEFAULT')
 
