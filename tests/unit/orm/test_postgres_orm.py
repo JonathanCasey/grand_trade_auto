@@ -43,8 +43,8 @@ logger = logging.getLogger(__name__)
 
 
 
-def _test_create_schema_enum(orm, test_func, enum_name,
-        schema_name=postgres_orm._SCHEMA_NAME, drop_enum_after=False):
+def _test_create_schema_enum(orm, test_func, enum_name, enum_cls,
+        type_namespace=postgres_orm._TYPE_NAMESPACE, drop_enum_after=False):
     """
     A generic set of steps to test enum creation.
 
@@ -61,8 +61,8 @@ def _test_create_schema_enum(orm, test_func, enum_name,
       test_func (function): The create schema enum function to test, probably
         from that Orm.
       enum_name (str): The name of the enum that is being created.
-      schema_name (str): The schema name of the enum that is being created.
-        Can likely use default unless it was changed elsewhere.
+      type_namespace (str): The name of the namespace of the enum that is being
+        created.  Can likely use default unless it was changed elsewhere.
       drop_enum_after (bool): Whether or not to drop the enum after testing is
         complete.  Drop is cascaded, so dependent tables would also be dropped,
         but they should have already been dropped at start of this test.
@@ -85,7 +85,7 @@ def _test_create_schema_enum(orm, test_func, enum_name,
         WITH namespace AS (
             SELECT oid
             FROM pg_namespace
-            WHERE nspname='{schema_name}'
+            WHERE nspname='{type_namespace}'
         ),
         type_name AS (
             SELECT 1 type_exists
@@ -106,6 +106,25 @@ def _test_create_schema_enum(orm, test_func, enum_name,
     assert cursor.fetchone()[0] is True
     cursor.close()
 
+    table_name = f'test_create_schema_enum__{enum_name}'
+    col_name = 'test_enum'
+    enum_item = list(enum_cls)[0]
+
+    sql_create_table = f'CREATE TABLE {table_name} ({col_name} {enum_name})'
+    orm._db.execute(sql_create_table)
+
+    sql_insert = f'INSERT INTO {table_name} ({col_name}) VALUES (%(val)s)'
+    orm._db.execute(sql_insert, {'val': enum_item})
+
+    sql_query = f'SELECT {col_name} FROM {table_name}'
+    cursor = orm._db.execute(sql_query, close_cursor=False)
+    assert cursor.rowcount == 1
+    assert cursor.fetchone()[0] is enum_item
+    cursor.close()
+
+    sql_drop_table = f'DROP TABLE {table_name}'
+    orm._db.execute(sql_drop_table)
+
     if drop_enum_after:
         _drop_own_enum()
 
@@ -114,20 +133,24 @@ def _test_create_schema_enum(orm, test_func, enum_name,
 @pytest.mark.alters_db_schema
 @pytest.mark.order(-2)      # After this, types exist, but maybe not tables/data
 # Order of parameters must match order in _create_schemas() due to dependencies
-@pytest.mark.parametrize('method_name, enum_name', [
-    ('_create_schema_enum_currency', 'currency'),
-    ('_create_schema_enum_market', 'market'),
-    ('_create_schema_enum_price_frequency', 'price_frequency'),
+@pytest.mark.parametrize('method_name, enum_name, enum_cls', [
+    ('_create_schema_enum_currency', 'currency', model_meta.Currency),
+    ('_create_schema_enum_market', 'market', model_meta.Market),
+    ('_create_schema_enum_price_frequency', 'price_frequency',
+            model_meta.PriceFrequency),
 ])
-def test__create_schemas_enums(pg_test_orm, method_name, enum_name):
+def test__create_schemas_enums(pg_test_orm, method_name, enum_name, enum_cls):
     """
     Tests the `_create_schema_enum_*()` methods in `PostgresOrm`.
+
+    This also effectively tests the `_create_and_register_type_enum()` method in
+    `PostgreOrm`.
 
     This should be run before any tests that drop the database (but can be run
     after any tests dropping tables).
     """
     _test_create_schema_enum(pg_test_orm, getattr(pg_test_orm, method_name),
-            enum_name)
+            enum_name, enum_cls)
     pg_test_orm._db._conn.close()
 
 

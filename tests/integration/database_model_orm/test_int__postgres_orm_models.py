@@ -25,6 +25,30 @@ from grand_trade_auto.model import company
 from grand_trade_auto.model import datafeed_src
 from grand_trade_auto.model import exchange
 from grand_trade_auto.model import model_meta
+from grand_trade_auto.model import security
+
+
+
+@pytest.fixture(name='company_from_db')
+def fixture_company_from_db(pg_test_orm, datafeed_src_from_db):
+    """
+    Creates a bare minimum company entry in the database so it can be used for
+    other models that require it as a foreign key.
+    """
+    init_data = {
+        'name': str(uuid.uuid4())[:50],
+        'datafeed_src_id': datafeed_src_from_db.id,
+    }
+    conn = pg_test_orm._db.connect(False)
+
+    company.Company.add_direct(pg_test_orm, init_data, conn=conn)
+    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
+    models = company.Company.query_direct(pg_test_orm, 'model',
+            where=where, conn=conn)
+    conn.close()
+    # Sanity check that there isn't a weird test collision
+    assert len(models) == 1
+    return models[0]
 
 
 
@@ -42,6 +66,30 @@ def fixture_datafeed_src_from_db(pg_test_orm):
     datafeed_src.DatafeedSrc.add_direct(pg_test_orm, init_data, conn=conn)
     where = ('config_parser', model_meta.LogicOp.EQ, init_data['config_parser'])
     models = datafeed_src.DatafeedSrc.query_direct(pg_test_orm, 'model',
+            where=where, conn=conn)
+    conn.close()
+    # Sanity check that there isn't a weird test collision
+    assert len(models) == 1
+    return models[0]
+
+
+
+@pytest.fixture(name='exchange_from_db')
+def fixture_exchange_from_db(pg_test_orm, datafeed_src_from_db):
+    """
+    Creates a bare minimum exchange entry in the database so it can be used for
+    other models that require it as a foreign key.
+    """
+    init_data = {
+        'name': str(uuid.uuid4())[:50],
+        'acronym': str(uuid.uuid4())[:50],
+        'datafeed_src_id': datafeed_src_from_db.id,
+    }
+    conn = pg_test_orm._db.connect(False)
+
+    exchange.Exchange.add_direct(pg_test_orm, init_data, conn=conn)
+    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
+    models = exchange.Exchange.query_direct(pg_test_orm, 'model',
             where=where, conn=conn)
     conn.close()
     # Sanity check that there isn't a weird test collision
@@ -167,6 +215,50 @@ def test_int__model_crud__exchange(pg_test_orm, datafeed_src_from_db):
     # Delete this and confirm
     db_exchange.delete()
     models = exchange.Exchange.query_direct(pg_test_orm, 'model', where=where)
+    assert len(models) == 0
+
+    pg_test_orm._db._conn.close()
+
+
+
+@pytest.mark.order(2)   # Model dependencies: company, datafeed_src, exchange
+def test_int__model_crud__security(pg_test_orm, company_from_db,
+        datafeed_src_from_db, exchange_from_db):
+    """
+    Tests that Security can be created, retrieved, updated, and deleted (in that
+    order).
+
+    Ensures compatibility between python and database representations of
+    information.
+    """
+    # Ensure add works with all columns (except id)
+    init_data = {
+        'exchange_id': exchange_from_db.id,
+        'ticker': str(uuid.uuid4())[:12],
+        'market': model_meta.Market.CRYPTO,
+        'name': str(uuid.uuid4())[:200],
+        'company_id': company_from_db.id,
+        'currency': model_meta.Currency.USD,
+        'datafeed_src_id': datafeed_src_from_db.id,
+    }
+    py_security = security.Security(pg_test_orm, init_data)
+    py_security.add()
+
+    # Ensure can pull exact model back from db and data format is valid
+    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
+    models = security.Security.query_direct(pg_test_orm, 'model', where=where)
+    assert len(models) == 1
+    db_security = models[0]
+    assert int(db_security.id) > 0
+    for k, v in init_data.items():
+        assert getattr(db_security, k) == v
+
+    # Write same data back unchanged with all columns active
+    db_security.update()
+
+    # Delete this and confirm
+    db_security.delete()
+    models = security.Security.query_direct(pg_test_orm, 'model', where=where)
     assert len(models) == 0
 
     pg_test_orm._db._conn.close()

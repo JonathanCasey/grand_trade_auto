@@ -21,6 +21,9 @@ Module Attributes:
   _SCHEMA_NAME (str): The name of the schema in which all of this exists in the
     database.  This is likely the default value and is just there to ensure unit
     tests will always match what is used here.
+  _TYPE_NAMESPACE (str): The name of the type namespace in which all the types
+    exist in the databse for this project.  This is likely the default value and
+    is just there to ensure unit tests will always match what is used there.
   logger (Logger): Logger for this module.
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
@@ -29,13 +32,15 @@ import logging
 from string import Template
 
 import pandas as pd
+import psycopg2.extensions
 
 from grand_trade_auto.model import model_meta
 from grand_trade_auto.orm import orm_meta
 
 
 
-_SCHEMA_NAME = 'public' # "public" is the default schema name is psql
+_SCHEMA_NAME = 'public' # Relying on 'public' being the default in psql
+_TYPE_NAMESPACE = 'public'  # Relying on 'public' being the default in psql
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +53,12 @@ class PostgresOrm(orm_meta.Orm):
 
     Class Attributes:
       _sql_exec_if_type_not_exists (string.Template): A wrapper for executing a
-        SQL command only if a type does not exist within a given schema.  Since
-        this is using template substitution rather than any kind of sanitized
-        input, this is intended for internal use ONLY, and NOT for any external
-        user input!
+        SQL command only if a type does not exist within a given namespace.
+        Since this is using template substitution rather than any kind of
+        sanitized input, this is intended for internal use ONLY, and NOT for any
+        external user input!
+      _sql_select_type_oid (str): A SQL statement to get the OID for a type in a
+        given namespace, with parameterization of the name and namespace.
 
     Instance Attributes:
       [inherited from Orm]:
@@ -64,12 +71,79 @@ class PostgresOrm(orm_meta.Orm):
                 FROM pg_type t
                     LEFT JOIN pg_namespace p ON t.typnamespace=p.oid
                 WHERE t.typname='$type_name'
-                    AND p.nspname='$schema_name'
+                    AND p.nspname='$type_namespace'
             ) THEN
                 $sql_exec_if_not_exists;
             END IF;
         END $$$$;
     ''')
+    _sql_select_type_oid = '''
+        SELECT t.oid
+        FROM pg_type t
+            LEFT JOIN pg_namespace p ON t.typnamespace=p.oid
+        WHERE t.typname=%(type_name)s
+            AND p.nspname=%(type_namespace)s
+    '''
+
+
+
+    def _create_and_register_type_enum(self, enum_cls, enum_name, sql_create):
+        """
+        Creates and then registers a new enum type for bidirection conversion
+        between python and PostgreSQL.
+
+        Args:
+          enum_cls (Class<Enum>): Reference to the enum class in python for
+            which to add and register.
+          enum_name (str): The name of the enum as it will appear in the
+            database as a type name.
+          sql_create (str): The SQL statement to execute to create the type.
+            This does NOT need to include anything to check if the type exists,
+            as that will be addressed here.
+        """
+        sql = self._sql_exec_if_type_not_exists.substitute(type_name=enum_name,
+                type_namespace=_TYPE_NAMESPACE,
+                sql_exec_if_not_exists=sql_create)
+        self._db.execute(sql)
+
+
+        def adapt_enum(enum_item):
+            """
+            Adapts a python enum type to a database value.
+
+            Args:
+              enum_item (enum_cls): The python enum item to convert.
+
+            Returns:
+              (ISLQuote): A SQL adaptation of the provided enum item.
+            """
+            return psycopg2.extensions.adapt(enum_cls(enum_item).value)
+
+        psycopg2.extensions.register_adapter(enum_cls, adapt_enum)
+
+
+        cursor = self._db.execute(self._sql_select_type_oid,
+                {'type_name': enum_name, 'type_namespace': _TYPE_NAMESPACE},
+                close_cursor=False)
+        assert cursor.rowcount == 1 # Sanity check
+        oid = cursor.fetchone()[0]
+        cursor.close()
+
+        def cast_enum(value, cursor):           #pylint: disable=unused-argument
+            """
+            Casts a database value to the python enum type.
+
+            Args:
+              value (?): The value retrieved from the database.
+              cursor (cursor): The database cursor that retrieved the data.
+
+            Returns:
+              (enum_cls): An python enum of the specified Enum class.
+            """
+            return enum_cls(value)
+
+        pgtype_enum = psycopg2.extensions.new_type((oid,), enum_name, cast_enum)
+        psycopg2.extensions.register_type(pgtype_enum)
 
 
 
@@ -89,9 +163,8 @@ class PostgresOrm(orm_meta.Orm):
                 'usd'
             )
         '''
-        sql = self._sql_exec_if_type_not_exists.substitute(type_name=enum_name,
-                schema_name=_SCHEMA_NAME, sql_exec_if_not_exists=sql_create)
-        self._db.execute(sql)
+        self._create_and_register_type_enum(model_meta.Currency,
+                enum_name, sql_create)
 
 
 
@@ -111,9 +184,8 @@ class PostgresOrm(orm_meta.Orm):
                 'crypto', 'forex', 'futures', 'stock'
             )
         '''
-        sql = self._sql_exec_if_type_not_exists.substitute(type_name=enum_name,
-                schema_name=_SCHEMA_NAME, sql_exec_if_not_exists=sql_create)
-        self._db.execute(sql)
+        self._create_and_register_type_enum(model_meta.Market,
+                enum_name, sql_create)
 
 
 
@@ -133,9 +205,8 @@ class PostgresOrm(orm_meta.Orm):
                 '1min', '5min', '10min', '15min', '30min', 'hourly', 'daily'
             )
         '''
-        sql = self._sql_exec_if_type_not_exists.substitute(type_name=enum_name,
-                schema_name=_SCHEMA_NAME, sql_exec_if_not_exists=sql_create)
-        self._db.execute(sql)
+        self._create_and_register_type_enum(model_meta.PriceFrequency,
+                enum_name, sql_create)
 
 
 
