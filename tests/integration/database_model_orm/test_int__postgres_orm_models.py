@@ -28,10 +28,12 @@ from grand_trade_auto.model import exchange
 from grand_trade_auto.model import model_meta
 from grand_trade_auto.model import security
 from grand_trade_auto.model import security_price
+from grand_trade_auto.model import stock_adjustment
 
 
 
-def _create_and_get_model_from_db(pg_test_orm, model_cls, init_data, col_match):
+def _create_and_get_model_from_db(pg_test_orm, model_cls, init_data,
+        cols_match):
     """
     Creates a model, adds it to the database, then retrieves it back from the
     database based on the provided configuration information.  This allows the
@@ -44,10 +46,10 @@ def _create_and_get_model_from_db(pg_test_orm, model_cls, init_data, col_match):
         to be created, added to db, then retrieved back.
       init_data ({str:str/int/etc}): The data to initialize the model when
         adding to the database.
-      col_match (str): The column on which to match this model in the database
-        in order to concisely retrieve it.  Likely the longest field that uses a
-        string/uuid, but may need to improvise sometimes.  Can be anything, but
-        it will always be a strict equals comparison.
+      cols_match ([str]): The columns on which to match this model in the
+        database in order to concisely retrieve it.  Likely the longest field
+        that uses a string/uuid, but may need to improvise sometimes.  Can be
+        anything, but it will always be a strict equals comparison.
 
     Returns:
       (model_cls): The model with the provided data, but as it is retrieved back
@@ -55,7 +57,15 @@ def _create_and_get_model_from_db(pg_test_orm, model_cls, init_data, col_match):
     """
     conn = pg_test_orm._db.connect(False)
     model_cls.add_direct(pg_test_orm, init_data, conn=conn)
-    where = (col_match, model_meta.LogicOp.EQ, init_data[col_match])
+
+    if len(cols_match) == 1:
+        where = (cols_match[0], model_meta.LogicOp.EQ, init_data[cols_match[0]])
+    else:
+        where_subs = []
+        for col in cols_match:
+            where_subs.append((col, model_meta.LogicOp.EQ, init_data[col]))
+        where = {model_meta.LogicCombo.AND: where_subs}
+
     models = model_cls.query_direct(pg_test_orm, 'model', where=where,
             conn=conn)
     conn.close()
@@ -76,7 +86,7 @@ def fixture_company_from_db(pg_test_orm, datafeed_src_from_db):
         'datafeed_src_id': datafeed_src_from_db.id,
     }
     return _create_and_get_model_from_db(pg_test_orm, company.Company,
-            init_data, 'name')
+            init_data, ['name'])
 
 
 
@@ -90,7 +100,7 @@ def fixture_datafeed_src_from_db(pg_test_orm):
         'config_parser': str(uuid.uuid4()),
     }
     return _create_and_get_model_from_db(pg_test_orm, datafeed_src.DatafeedSrc,
-            init_data, 'config_parser')
+            init_data, ['config_parser'])
 
 
 
@@ -106,7 +116,7 @@ def fixture_exchange_from_db(pg_test_orm, datafeed_src_from_db):
         'datafeed_src_id': datafeed_src_from_db.id,
     }
     return _create_and_get_model_from_db(pg_test_orm, exchange.Exchange,
-            init_data, 'name')
+            init_data, ['name'])
 
 
 
@@ -127,11 +137,12 @@ def fixture_security_from_db(pg_test_orm, company_from_db, datafeed_src_from_db,
         'datafeed_src_id': datafeed_src_from_db.id,
     }
     return _create_and_get_model_from_db(pg_test_orm, security.Security,
-            init_data, 'name')
+            init_data, ['name'])
 
 
 
-def _test_int__model_crud(pg_test_orm, model_cls, init_data, col_match):
+def _test_int__model_crud(pg_test_orm, model_cls, init_data,
+        cols_match):
     """
     A generic set of steps to run through to test that the given model can be
     created, retrieved, updated, and deleted (in that order).
@@ -148,17 +159,24 @@ def _test_int__model_crud(pg_test_orm, model_cls, init_data, col_match):
         to be CRUD tested.
       init_data ({str:str/int/etc}): The data to initialize the model when
         adding to the database.
-      col_match (str): The column on which to match this model in the database
-        in order to concisely retrieve it.  Likely the longest field that uses a
-        string/uuid, but may need to improvise sometimes.  Can be anything, but
-        it will always be a strict equals comparison.
+      cols_match ([str]): The columns on which to match this model in the
+        database in order to concisely retrieve it.  Likely the longest field
+        that uses a string/uuid, but may need to improvise sometimes.  Can be
+        anything, but it will always be a strict equals comparison.
     """
     # Ensure add works with all columns (except id / auto-generated)
     py_model = model_cls(pg_test_orm, init_data)
     py_model.add()
 
     # Ensure can pull exact model back from db and data format is valid
-    where = (col_match, model_meta.LogicOp.EQ, init_data[col_match])
+    if len(cols_match) == 1:
+        where = (cols_match[0], model_meta.LogicOp.EQ, init_data[cols_match[0]])
+    else:
+        where_subs = []
+        for col in cols_match:
+            where_subs.append((col, model_meta.LogicOp.EQ, init_data[col]))
+        where = {model_meta.LogicCombo.AND: where_subs}
+
     models = model_cls.query_direct(pg_test_orm, 'model', where=where)
     assert len(models) == 1
     db_model = models[0]
@@ -195,7 +213,7 @@ def test_int__model_crud__company(pg_test_orm, datafeed_src_from_db):
         'sic': str(uuid.uuid4())[:4],
         'datafeed_src_id': datafeed_src_from_db.id,
     }
-    _test_int__model_crud(pg_test_orm, company.Company, init_data, 'name')
+    _test_int__model_crud(pg_test_orm, company.Company, init_data, ['name'])
     pg_test_orm._db._conn.close()
 
 
@@ -216,7 +234,7 @@ def test_int__model_crud__datafeed_src(pg_test_orm):
         'progress_marker': str(uuid.uuid4()),
     }
     _test_int__model_crud(pg_test_orm, datafeed_src.DatafeedSrc, init_data,
-            'config_parser')
+            ['config_parser'])
     pg_test_orm._db._conn.close()
 
 
@@ -236,7 +254,7 @@ def test_int__model_crud__exchange(pg_test_orm, datafeed_src_from_db):
         'acronym': str(uuid.uuid4())[:50],
         'datafeed_src_id': datafeed_src_from_db.id,
     }
-    _test_int__model_crud(pg_test_orm, exchange.Exchange, init_data, 'name')
+    _test_int__model_crud(pg_test_orm, exchange.Exchange, init_data, ['name'])
     pg_test_orm._db._conn.close()
 
 
@@ -261,7 +279,7 @@ def test_int__model_crud__security(pg_test_orm, company_from_db,
         'currency': model_meta.Currency.USD,
         'datafeed_src_id': datafeed_src_from_db.id,
     }
-    _test_int__model_crud(pg_test_orm, security.Security, init_data, 'name')
+    _test_int__model_crud(pg_test_orm, security.Security, init_data, ['name'])
     pg_test_orm._db._conn.close()
 
 
@@ -295,5 +313,30 @@ def test_int__model_crud__security_price(pg_test_orm, datafeed_src_from_db,
         'datafeed_src_id': datafeed_src_from_db.id,
     }
     _test_int__model_crud(pg_test_orm, security_price.SecurityPrice, init_data,
-            'datetime')
+            ['datetime'])
+    pg_test_orm._db._conn.close()
+
+
+
+@pytest.mark.order(3)   # Model dependencies: datafeed_src, security
+def test_int__model_crud__stock_adjustment(pg_test_orm, datafeed_src_from_db,
+        security_from_db):
+    """
+    Tests that Security can be created, retrieved, updated, and deleted (in that
+    order).
+
+    Ensures compatibility between python and database representations of
+    information.
+    """
+    # Ensure add works with all columns (except id)
+    init_data = {
+        'security_id': security_from_db.id,
+        'date': dt.date.today(),
+        'factor': 1.1,
+        'dividend': 2.2,
+        'split_ratio': 3.3,
+        'datafeed_src_id': datafeed_src_from_db.id,
+    }
+    _test_int__model_crud(pg_test_orm, stock_adjustment.StockAdjustment,
+            init_data, ['date', 'security_id', 'datafeed_src_id'])
     pg_test_orm._db._conn.close()

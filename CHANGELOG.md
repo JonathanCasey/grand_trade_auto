@@ -579,6 +579,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
     - `Exchange`
     - `Security`
     - `SecurityPrice`
+    - `StockAdjustment`
 
 
 ### Docs: CHANGELOG
