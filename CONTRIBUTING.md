@@ -190,3 +190,9 @@ When it comes to `pytest.mark.alters_db_schema`, these tests have an order for
 the tests to do last, where the last test is the lowest level / most disruptive
 test (drop database), and the 2nd to last is the next lowest level (e.g. types),
 the 3rd to last is the next lowest (e.g. tables), etc.
+
+For db-orm-model integration tests, such as `test_int__postgres_orm_models.py`,
+there order for each `model_crud` test is based on dependencies.  1st tests
+without any dependencies are run, then 2nd are tests that may depend only on
+those models (since they will then require fixtures for those dependent models),
+and so on.

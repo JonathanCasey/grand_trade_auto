@@ -21,8 +21,74 @@ import uuid
 
 import pytest
 
+from grand_trade_auto.model import company
 from grand_trade_auto.model import datafeed_src
 from grand_trade_auto.model import model_meta
+
+
+
+@pytest.fixture(name='datafeed_src_from_db')
+def fixture_datafeed_src_from_db(pg_test_orm):
+    """
+    Creates a bare minimum datafeed_src entry in the database so it can be used
+    for other models that require it as a foreign key.
+    """
+    init_data = {
+        'config_parser': str(uuid.uuid4()),
+    }
+    conn = pg_test_orm._db.connect(False)
+
+    datafeed_src.DatafeedSrc.add_direct(pg_test_orm, init_data, conn=conn)
+    where = ('config_parser', model_meta.LogicOp.EQ, init_data['config_parser'])
+    models = datafeed_src.DatafeedSrc.query_direct(pg_test_orm, 'model',
+            where=where, conn=conn)
+    conn.close()
+    # Sanity check that there isn't a weird test collision
+    assert len(models) == 1
+    return models[0]
+
+
+
+@pytest.mark.order(1)   # Model dependencies: datafeed_src
+def test_int__model_crud__company(pg_test_orm, datafeed_src_from_db):
+    """
+    Tests that Company can be created, retrieved, updated, and deleted (in that
+    order).
+
+    Ensures compatibility between python and database representations of
+    information.
+    """
+    # Ensure add works with all columns (except id)
+    init_data = {
+        'name': str(uuid.uuid4())[:50],
+        'sector': str(uuid.uuid4())[:50],
+        'industry_group': str(uuid.uuid4())[:50],
+        'industry_category': str(uuid.uuid4())[:50],
+        'cik': str(uuid.uuid4())[:10],
+        'sic': str(uuid.uuid4())[:4],
+        'datafeed_src_id': datafeed_src_from_db.id,
+    }
+    py_company = company.Company(pg_test_orm, init_data)
+    py_company.add()
+
+    # Ensure can pull exact model back from db and data format is valid
+    where = ('name', model_meta.LogicOp.EQ, init_data['name'])
+    models = company.Company.query_direct(pg_test_orm, 'model', where=where)
+    assert len(models) == 1
+    db_company = models[0]
+    assert int(db_company.id) > 0
+    for k, v in init_data.items():
+        assert getattr(db_company, k) == v
+
+    # Write same data back unchanged with all columns active
+    db_company.update()
+
+    # Delete this and confirm
+    db_company.delete()
+    models = company.Company.query_direct(pg_test_orm, 'model', where=where)
+    assert len(models) == 0
+
+    pg_test_orm._db._conn.close()
 
 
 
@@ -30,8 +96,10 @@ from grand_trade_auto.model import model_meta
 def test_int__model_crud__datafeed_src(pg_test_orm):
     """
     Tests that DatafeedSrc can be created, retrieved, updated, and deleted (in
-    that order).  Ensures compatibility between python and database
-    representations of information.
+    that order).
+
+    Ensures compatibility between python and database representations of
+    information.
     """
     # Ensure add works with all columns (except id)
     init_data = {
@@ -48,7 +116,7 @@ def test_int__model_crud__datafeed_src(pg_test_orm):
             where=where)
     assert len(models) == 1
     db_datafeed_src = models[0]
-    assert db_datafeed_src.id is not None
+    assert int(db_datafeed_src.id) > 0
     for k, v in init_data.items():
         assert getattr(db_datafeed_src, k) == v
 

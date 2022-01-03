@@ -574,6 +574,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       integration on both sides of ORM for all models to support all CRUD ops
       with Postgres db ([#98][]).
   - Models tested:
+    - `Company`
     - `DatafeedSrc`
 
 
