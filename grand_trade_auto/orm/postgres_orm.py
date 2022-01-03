@@ -359,7 +359,7 @@ class PostgresOrm(orm_meta.Orm):
                 adj_high double precision,
                 adj_low double precision,
                 adj_volume double precision,
-                intraperiod boolean NOT NULL,
+                is_intraperiod boolean NOT NULL,
                 frequency price_frequency NOT NULL,
                 datafeed_src_id integer NOT NULL,
                 CONSTRAINT fk_datafeed_src

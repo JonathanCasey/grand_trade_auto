@@ -17,6 +17,7 @@ Module Attributes:
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
+import datetime as dt
 import uuid
 
 import pytest
@@ -26,6 +27,7 @@ from grand_trade_auto.model import datafeed_src
 from grand_trade_auto.model import exchange
 from grand_trade_auto.model import model_meta
 from grand_trade_auto.model import security
+from grand_trade_auto.model import security_price
 
 
 
@@ -104,6 +106,27 @@ def fixture_exchange_from_db(pg_test_orm, datafeed_src_from_db):
         'datafeed_src_id': datafeed_src_from_db.id,
     }
     return _create_and_get_model_from_db(pg_test_orm, exchange.Exchange,
+            init_data, 'name')
+
+
+
+@pytest.fixture(name='security_from_db')
+def fixture_security_from_db(pg_test_orm, company_from_db, datafeed_src_from_db,
+        exchange_from_db):
+    """
+    Creates a bare minimum security entry in the database so it can be used for
+    other models that require it as a foreign key.
+    """
+    init_data = {
+        'exchange_id': exchange_from_db.id,
+        'ticker': str(uuid.uuid4())[:12],
+        'market': model_meta.Market.STOCK,
+        'name': str(uuid.uuid4())[:200],
+        'company_id': company_from_db.id,
+        'currency': model_meta.Currency.USD,
+        'datafeed_src_id': datafeed_src_from_db.id,
+    }
+    return _create_and_get_model_from_db(pg_test_orm, security.Security,
             init_data, 'name')
 
 
@@ -239,4 +262,38 @@ def test_int__model_crud__security(pg_test_orm, company_from_db,
         'datafeed_src_id': datafeed_src_from_db.id,
     }
     _test_int__model_crud(pg_test_orm, security.Security, init_data, 'name')
+    pg_test_orm._db._conn.close()
+
+
+
+@pytest.mark.order(3)   # Model dependencies: datafeed_src, security
+def test_int__model_crud__security_price(pg_test_orm, datafeed_src_from_db,
+        security_from_db):
+    """
+    Tests that Security can be created, retrieved, updated, and deleted (in that
+    order).
+
+    Ensures compatibility between python and database representations of
+    information.
+    """
+    # Ensure add works with all columns (except id)
+    init_data = {
+        'security_id': security_from_db.id,
+        'datetime': dt.datetime.now(dt.timezone.utc),
+        'raw_open': 1.1,
+        'raw_close': 2.2,
+        'raw_high': 3.3,
+        'raw_low': 4.4,
+        'raw_volume': 5.5,
+        'adj_open': 6.6,
+        'adj_close': 7.7,
+        'adj_high': 8.8,
+        'adj_low': 9.9,
+        'adj_volume': 10.10,
+        'is_intraperiod': False,
+        'frequency': model_meta.PriceFrequency.DAILY,
+        'datafeed_src_id': datafeed_src_from_db.id,
+    }
+    _test_int__model_crud(pg_test_orm, security_price.SecurityPrice, init_data,
+            'datetime')
     pg_test_orm._db._conn.close()

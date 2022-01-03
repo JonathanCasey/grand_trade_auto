@@ -578,6 +578,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
     - `DatafeedSrc`
     - `Exchange`
     - `Security`
+    - `SecurityPrice`
 
 
 ### Docs: CHANGELOG
