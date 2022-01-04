@@ -10,4 +10,5 @@ psycopg2
 pylint
 pytest
 pytest-cov
+pytest-order
 uvicorn

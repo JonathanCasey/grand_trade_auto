@@ -18,20 +18,27 @@ import psycopg2
 import pytest
 
 from grand_trade_auto.database import postgres
-from grand_trade_auto.database import databases
 
 
 
-@pytest.fixture(name='pg_test_db')
-def fixture_pg_test_db():
+def test_postgres_init():
     """
-    Gets the test database handle for postgres.
-
-    Returns:
-      (Postgres): The test postgres database handle.
+    Tests the `__init__()` method in `Postgres`.
     """
-    # This also ensures its support was added to databases.py
-    return databases._get_database_from_config('postgres-test', 'test')
+    params = {
+        'env': 'test',
+        'db_id': 'test_db_id',
+        'host': 'test_host',
+        'port': 0,
+        'database': 'test_database',
+        'user': 'test_user',
+        'password': 'test_password',
+    }
+    pg_test = postgres.Postgres(**params)
+    for k, v in params.items():
+        assert pg_test.__getattribute__(f'_{k}') == v
+    assert pg_test._conn is None
+    assert pg_test._orm._db == pg_test
 
 
 
@@ -74,6 +81,8 @@ def test_connect(pg_test_db):
 
 
 
+@pytest.mark.alters_db_schema
+@pytest.mark.order(-1)  # After this, db exists, but maybe not types/tables/data
 def test_create_drop_check_if_db_exists(pg_test_db):
     """
     Tests the `create_db()`, `_drop_db()`, and `_check_if_db_exists()` methods
@@ -106,3 +115,204 @@ def test_create_drop_check_if_db_exists(pg_test_db):
 
     pg_test_db._drop_db()
     assert not pg_test_db._check_if_db_exists()
+
+
+
+def test__get_conn(pg_test_db):
+    """
+    Tests the `_get_conn()` method in `Postgres`.
+    """
+    cached_conn = 'cached conn'
+    other_conn = 'other conn'
+    extra_args = {
+        'extra_arg_1': 'extra_val_1',
+        'extra_arg_2': 'extra_val_2',
+    }
+
+    assert pg_test_db._conn is None
+    assert pg_test_db._get_conn(other_conn) == other_conn
+
+    pg_test_db._conn = cached_conn
+    assert pg_test_db._get_conn() == cached_conn
+    assert pg_test_db._get_conn(other_conn) == other_conn
+    assert pg_test_db._get_conn(**extra_args) == cached_conn
+    assert pg_test_db._get_conn(other_conn, **extra_args) == other_conn
+
+
+
+def test_cursor(pg_test_db):
+    """
+    Tests the `cursor()` method in `Postgres`.
+    """
+    conn_2 = pg_test_db.connect(False)
+
+    assert pg_test_db._conn is None
+    cursor = pg_test_db.cursor()
+    assert pg_test_db._conn is not None
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name is None
+    cursor.close()
+
+    cursor = pg_test_db.cursor(conn=conn_2)
+    assert pg_test_db._conn is not None
+    assert pg_test_db._conn != conn_2
+    assert cursor.connection == conn_2
+    assert cursor.name is None
+    cursor.close()
+
+    test_cursor_name = 'test_cursor'
+    cursor = pg_test_db.cursor(test_cursor_name)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name == test_cursor_name
+    cursor.close()
+
+    cursor = pg_test_db.cursor(conn=conn_2, cursor_name=test_cursor_name,
+            extra_arg='extra_val_1')
+    assert cursor.connection == conn_2
+    assert cursor.name == test_cursor_name
+    cursor.close()
+
+    pg_test_db._conn.close()
+    conn_2.close()
+
+
+
+def test_execute(pg_test_db):               #pylint: disable=too-many-statements
+    """
+    Tests the `execute()` method in `Postgres`.
+
+    While this does alter DB schema, it does it only for its own isolated
+    purposes that won't conflict with other tests, so does not need to be
+    marked as alters_db_schema.
+    """
+    # Test with cached connection to test database
+    pg_test_db.connect()
+
+    test_table_name = 'test_postgres__test_execute'
+
+    def _drop_test_table():
+        """
+        Drops the test table for this test.
+        """
+        sql_drop_table = f'DROP TABLE IF EXISTS {test_table_name}'
+        cursor = pg_test_db.connect().cursor()
+        cursor.execute(sql_drop_table)
+        cursor.connection.commit()
+        cursor.close()
+
+    # Ensure test table does not exist
+    _drop_test_table()
+
+    # Want to test parameter-less command works
+    sql_create_table = f'''
+        CREATE TABLE {test_table_name} (
+        id serial PRIMARY KEY,
+        test_col_a integer,
+        test_col_b text
+    )
+    '''
+    cursor = pg_test_db.execute(sql_create_table)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name is None
+    assert cursor.closed is True
+
+    # Want to test that normal insertion works
+    sql_insert_data = f'''
+        INSERT INTO {test_table_name}
+        (test_col_a, test_col_b)
+        VALUES (%(test_val_a)s, %(test_val_b)s)
+    '''
+    test_vals_1 = {
+        'test_val_a': 1,
+        'test_val_b': 'one',
+    }
+    cursor = pg_test_db.execute(sql_insert_data, val_vars=test_vals_1)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name is None
+    assert cursor.closed is True
+
+    # Want to test select and named cursors without commit and close works
+    sql_select_where_data = f'''
+        SELECT test_col_b
+        FROM {test_table_name}
+        WHERE test_col_a=%(test_val_a)s
+    '''
+    test_cursor_name = 'test_execute'
+    cursor = pg_test_db.execute(sql_select_where_data, val_vars=test_vals_1,
+            cursor_name=test_cursor_name, commit=False, close_cursor=False)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name == test_cursor_name
+    assert cursor.closed is False
+    # assert cursor.rowcount == 1
+    assert cursor.fetchone()[0] == test_vals_1['test_val_b']
+    cursor.close()
+
+    # Want to test that not committing an insertion truly does not commit...
+    test_vals_2 = {
+        'test_val_a': 2,
+        'test_val_b': 'two',
+    }
+    cursor = pg_test_db.execute(sql_insert_data, val_vars=test_vals_2,
+            commit=False)
+    assert cursor.connection == pg_test_db._conn
+    assert cursor.name is None
+    assert cursor.closed is True
+    cursor.close()
+
+    # ...by verifying does not show up on a select, while also trying a 2nd conn
+    sql_select_data = f'''
+        SELECT test_col_b
+        FROM {test_table_name}
+        ORDER BY id
+    '''
+    conn_2 = pg_test_db.connect(False)
+    assert conn_2 != pg_test_db._conn
+    cursor = pg_test_db.execute(sql_select_data, val_vars=test_vals_1,
+            close_cursor=False, conn=conn_2)
+    assert cursor.connection == conn_2
+    assert cursor.name is None
+    assert cursor.closed is False
+    assert cursor.rowcount == 1
+    assert cursor.fetchone()[0] == test_vals_1['test_val_b']
+    cursor.close()
+
+    # ...but committing 1st conn does show 2nd row, while also providing cursor
+    # (and conn arg ignored if cursor provided)
+    pg_test_db._conn.commit()
+    cursor = pg_test_db.cursor()
+    cursor_2 = pg_test_db.execute(sql_select_data, val_vars=test_vals_1,
+            close_cursor=False, cursor=cursor, conn=conn_2)
+    assert cursor_2 == cursor
+    assert cursor.connection == pg_test_db._conn
+    assert pg_test_db._conn != conn_2
+    assert cursor.name is None
+    assert cursor.closed is False
+    assert cursor.rowcount == 2
+    assert cursor.fetchone()[0] == test_vals_1['test_val_b']
+    assert cursor.fetchone()[0] == test_vals_2['test_val_b']
+    cursor.close()
+
+    # Finally, ensure commit happens on correct connection
+    cursor = pg_test_db.execute(sql_select_data, close_cursor=False,
+            conn=conn_2)
+    assert cursor.connection == conn_2
+    assert cursor.rowcount == 2
+    test_vals_3 = {
+        'test_val_a': 3,
+        'test_val_b': 'three',
+    }
+    cursor_2 = pg_test_db.cursor(conn=conn_2)
+    pg_test_db.execute(sql_insert_data, val_vars=test_vals_3,
+            cursor=cursor_2, close_cursor=False)
+    cursor = pg_test_db.execute(sql_select_data, close_cursor=False)
+    assert cursor.rowcount == 3
+    assert cursor.fetchone()[0] == test_vals_1['test_val_b']
+    assert cursor.fetchone()[0] == test_vals_2['test_val_b']
+    assert cursor.fetchone()[0] == test_vals_3['test_val_b']
+    cursor.close()
+    cursor_2.close()
+
+    # Ensure cleaned up for this test
+    conn_2.close()
+    _drop_test_table()
+    pg_test_db._conn.close()

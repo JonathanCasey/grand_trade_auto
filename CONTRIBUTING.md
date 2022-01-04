@@ -9,6 +9,7 @@ Respect the CI and the CI will respect you.
 
 - [One-time Setup](#one-time-setup)
 - [Usage](#usage)
+- [Design Conventions](#design-conventions)
 
 
 
@@ -53,7 +54,15 @@ python 3.7, for example.  Now this can be evoked with `python3.7`.
 
 While the admin prompt is open, this might be the best time to install
 required pacakges with pip (can use `pip3.7` in this example) as installing as a
-user can cause some headaches...
+user can cause some headaches...  It has been observed that after installing
+`pytest-order` as admin, the first run of `pytest` needs to be run as an admin
+to finish some sort of init it seems -- after that, it should work as a user.
+
+In the `python.testing.pytestArgs` list above, it is likely desireable to put
+some pytest args.  In particular, using `--skip-alters-db-schema` will run the
+most tests.  This does mean other args needs to be tested separately.  Without
+this, there may be inconsistent test results since some tests can be mutually
+exclusive.
 
 
 ### CircleCI
@@ -104,8 +113,22 @@ run.  In short, this is largely running from the repo root:
 ```
 python -m pylint grand_trade_auto
 python -m pylint tests
-pytest
+python -m pylint ci_support
+python -m pylint conftest
+
+python ci_support/dir_init_checker.py grand_trade_auto
+python ci_support/dir_init_checker.py ci_support
+python ci_support/dir_init_checker.py tests
+
+python -m pytest --cov=grand_trade_auto --run-only-alters-db-schema tests/unit
+python -m pytest --cov=grand_trade_auto --cov-append --skip-alters-db-schema tests/unit
+python -m pytest --run-only-alters-db-schema tests/integration
+python -m pytest --skip-alters-db-schema tests/integration
 ```
+
+Integration tests are intentionally omitted from code coverage reporting.  All
+code coverage should be 100% based on unit testing.  Integration testing is
+gravy!
 
 
 ## Postgres / psycopg2
@@ -154,3 +177,22 @@ The following is the color scheme used for this project.
  Primary   | ![#85BB65](https://via.placeholder.com/15/85BB65/000000?text=+) `#85BB65` | Pistachio / Dollar bill
  Secondary | ![#363636](https://via.placeholder.com/15/363636/000000?text=+) `#363636` | Jet
  Tertiary  | ![#7D869C](https://via.placeholder.com/15/7D869C/000000?text=+) `#7D869C` | Roman Silver
+
+
+
+# Design Conventions
+
+## Unit Test Order
+As much as possible, this is avoided; but with some tests that interact with
+persistent data such as a database, this can be important.
+
+When it comes to `pytest.mark.alters_db_schema`, these tests have an order for
+the tests to do last, where the last test is the lowest level / most disruptive
+test (drop database), and the 2nd to last is the next lowest level (e.g. types),
+the 3rd to last is the next lowest (e.g. tables), etc.
+
+For db-orm-model integration tests, such as `test_int__postgres_orm_models.py`,
+there order for each `model_crud` test is based on dependencies.  1st tests
+without any dependencies are run, then 2nd are tests that may depend only on
+those models (since they will then require fixtures for those dependent models),
+and so on.

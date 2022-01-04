@@ -89,6 +89,12 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       intended, so syntax adjusted again ([#93][]).
 - [Changed] `lint-and-test` workflow split into separate `lint` and `test`
       workflows to more easily see results separately on GitHub ([#93][]).
+- [Changed] `pytest` execution commands updated to support new multiple runs
+      required, with `run-only-alters-db-schema` and `skip-alters-db-schema`
+      options supported ([#98][]).
+- [Added] `integration-tests` job added to be run after unit tests, with unit
+      tests now being sure to only run their specific dir of tests (codecov is
+      for unit test results only) ([#98][]).
 
 
 ### Project & Toolchain: CI Support
@@ -132,6 +138,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `alpha_vantage` added to `requirements.txt` ([#88][]).
 - [Changed] `alpaca-trade-api` fixed version upgraded from `0.51.0` to `1.4.3`
       ([#95][]).
+- [Added] `pytest-order` added to `requirements.txt` ([#98][]).
 
 
 ### Project & Toolchain: Pylint
@@ -148,6 +155,15 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `min-similarity-lines` config added, set to `5` ([#84][]).
 - [Changed] `min-similarity-lines` increased to `8` ([#88][]).
 - [Fixed] Code made compliant with latest version of pylint (v2.12) ([#96][]).
+- [Added] `d` added to `good-names` list in `.pylintrc` ([#98][]).
+
+
+### Project & Toolchain: Pytest, /conftest, /tests/conftest
+- [Added] `--run-only-alters-db-schema` and `--skip-alters-db-schema` CLI arga
+      added to only run tests marked with or without `alters_db_schema`,
+      respectively ([#98][]).
+- [Added] `tests/conftest.py` added with generic fixtures to create test
+      database and schema for postgres ([#98][]).
 
 
 ### Project & Toolchain: Tmp Main
@@ -304,6 +320,16 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Removed] `_cp_secrets_id` no longer stored in `Database`, and secrets no
       longer loaded and passed in `_get_database_from_config()` ([#82][]).
 - [Changed] `_cp_db_id` is now `_db_id` in `Database` ([#82][]).
+- [Added] `_orm` class attribute added to `Database` (with intention subclasses
+      override in instance) along with an `orm` accessor `@property` ([#98][]).
+- [Added] `connect()` added to `Database` as non-abstract in case any subclasses
+      do not need a true connection (will return `None`) ([#98][]).
+- [Added] Abstract methods `cursor()` and `execute()` added to `Database`
+      ([#98][]).
+
+##### Unit Tests
+- [Changed] Refactored to have a shared `MockDatabaseChild` class rather than
+      defining a new one for every test ([#98][]).
 
 
 ### Database: Postgres
@@ -321,6 +347,22 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `db_type` is now `dbms` ([#84][]).
 - [Changed] Secrets passed in at `__init__()` and stored as `_user`,
       `_password`; loaded from conf at creation rather than on demand ([#82][]).
+- [Added] `_orm` instance attribute in `Postgres` initialized to new instance of
+      `PostgresOrm` ([#98][]).
+- [Added] A helper function `_get_conn()` added to facilitate parsing possible
+      `conn` parameter in other function `kwargs`, with fallback to get cached
+      connection ([#98][]).
+- [Added] Implemented `cursor()` to get a new cursor based on a connection
+      ([#98][]).
+- [Added] Implemented `execute()` to execute a SQL statement, returning cursor
+      ([#98][]).
+
+##### Unit Tests
+- [Changed] `fixture_pg_test_db()` moved to `tests/unit/conftest.py` so it can
+      be shared with other tests in `orm` subpackage ([#98][]).
+- [Changed] Order added and some tests marked with `alters_db_schema` so that
+      tests do not make database changes that break other tests and cannot be
+      resolved in another way ([#98][]).
 
 
 ### Datafeeds / Meta
@@ -396,6 +438,92 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       of code otherwise not easily reachable, if at all ([#63][]).
 
 
+### Models / Meta
+- [Added] `model_meta.py` added to define generic and shared components for
+      models ([#98][]).
+- [Added] `ReturnAs` enum added to define ways models can be returned ([#98][]).
+- [Added] `LogicOp` enum added to define logical operators that can be used in
+      building structured "where" subclasues ([#98][]).
+- [Added] `LogicCombo` enum added to define logical combiners/conjunctions that
+      can be used in building structured "where" subclauses ([#98][]).
+- [Added] `SortOrder` enum added to define the way to specify how to sort a
+      column to be used in structured "order" subclauses ([#98][]).
+- [Added] `Model` abstract class added to define essential elements for
+      concrete models as well as generic functionality, including CRUD
+      operations acting either on an object instance or generically ([#98][]).
+  - `__setattr__()` overridden to allow marking columns that are actively being
+        used.
+  - Structured "where" and "order" format defined in `query_direct()` method's
+        docstring.
+- [Added] `Currency` enum added to define currency values as they appear in the
+      database ([#98][]).
+- [Added] `Market` enum added to define market options as they appear in the
+      database ([#98][]).
+- [Added] `PriceFrequency` enum added to define options for security price
+      frequency as they appear in the database ([#98][]).
+
+
+### Model: Company
+- [Added] `company.py` added with `Company` subclasses from `Model`, defining
+      table name and columns ([#98][]).
+
+
+### Model: DatafeedSrc
+- [Added] `datafeed_src.py` added with `DatafeedSrc` subclasses from `Model`,
+      defining table name and columns ([#98][]).
+
+
+### Model: Exchange
+- [Added] `exchange.py` added with `Exchange` subclasses from `Model`, defining
+      table name and columns ([#98][]).
+
+
+### Model: Security
+- [Added] `security.py` added with `Security` subclasses from `Model`, defining
+      table name and columns ([#98][]).
+
+
+### Model: SecurityPrice
+- [Added] `security_price.py` added with `SecurityPrice` subclasses from
+      `Model`, defining table name and columns ([#98][]).
+
+
+### Model: StockAdjustment
+- [Added] `stock_adjustment.py` added with `StockAdjustment` subclasses from
+      `Model`, defining table name and columns ([#98][]).
+
+
+### ORMs / Meta
+- [Added] `orm_meta.py` added to define `Orm` generic interface to be
+      implemented by each database to support all models for object-relational
+      mapping ([#98][]).
+- [Added] `NonexistentColumnError` exception added to be raised when attempting
+      to access an invalid column name ([#98][]).
+
+
+### ORM: Postgres
+- [Added] `postgres_orm.py` added with `PostgresOrm` defined to implement all
+      SQL operations needed to support generic `Model` interface as well as
+      create all tables for all concrete models ([#98][]).
+  - Enums implemented:
+    - `Currency`
+    - `Market`
+    - `PriceFrequency`
+  - Model tables implemented:
+    - `Company`
+    - `DatafeedSrc`
+    - `Exchange`
+    - `Security`
+    - `SecurityPrice`
+    - `StockAdjustment`
+- [Added] `_SCHEMA_NAME` added to define an overall schema name used for
+      everything.  This is set to `public` to match the default; primarily to
+      ensure unit tests always match code ([#98][]).
+- [Added] `_TYPE_NAMESPACE` added to define an overall namespace used for types.
+      This is set to `public` to match the default; primarily to ensure unit
+      tests always match code ([#98][]).
+
+
 ### Web: Backend / Meta
 
 ##### Unit Tests: Standard
@@ -444,6 +572,19 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       content ([#11][]).
 
 
+### Tests: Integration: Postgres <-> Orm <-> Models
+- [Added] `tests/integration/test_int__postgres_orm_models.py` added to test
+      integration on both sides of ORM for all models to support all CRUD ops
+      with Postgres db ([#98][]).
+  - Models tested:
+    - `Company`
+    - `DatafeedSrc`
+    - `Exchange`
+    - `Security`
+    - `SecurityPrice`
+    - `StockAdjustment`
+
+
 ### Docs: CHANGELOG
 - [Added] This `CHANGELOG.md` file created and updated with all project work
       to-date (+1 self reference) ([#55][]).
@@ -463,6 +604,15 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       warning that API calls may be consumed in unit tests ([#88][]).
 - [Added] Notes on config for Windows to use an older system version and
       installing packages with right permissions added ([#96][]).
+- [Added] Notes on installing python packages in Windows added ([#98][]).
+- [Added] Notes on `pytestArgs` in VS Code added ([#98][]).
+- [Changed] Workflow steps updated with additional steps for multiple pytest
+      runs to support all options, as well as some steps previously missing in
+      docs ([#98][]).
+- [Added] `Design Conventions` main section added, with notes on unit test order
+      ([#98][]).
+- [Added] Workflow steps updated to include integration tests and clarified how
+      to run unit tests only ([#98][]).
 
 
 ### Docs: README
@@ -539,6 +689,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#93][]
 - [#95][]
 - [#96][]
+- [#98][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -576,6 +727,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#92][] for [#91][]
 - [#94][] for [#93][]
 - [#97][] for [#95][], [#96][]
+- [#101][] for [#98][]
 
 
 ---
@@ -621,6 +773,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#93]: https://github.com/JonathanCasey/grand_trade_auto/issues/93 'Issue #93'
 [#95]: https://github.com/JonathanCasey/grand_trade_auto/issues/95 'Issue #95'
 [#96]: https://github.com/JonathanCasey/grand_trade_auto/issues/96 'Issue #96'
+[#98]: https://github.com/JonathanCasey/grand_trade_auto/issues/98 'Issue #98'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -657,3 +810,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#92]: https://github.com/JonathanCasey/grand_trade_auto/pull/92 'PR #92'
 [#94]: https://github.com/JonathanCasey/grand_trade_auto/pull/94 'PR #94'
 [#97]: https://github.com/JonathanCasey/grand_trade_auto/pull/97 'PR #97'
+[#101]: https://github.com/JonathanCasey/grand_trade_auto/pull/101 'PR #101'

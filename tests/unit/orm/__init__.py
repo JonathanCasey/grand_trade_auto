@@ -1,4 +1,5 @@
 # pylint: disable=missing-module-docstring
 __all__ = [
-    'conftest',
+    'test_orm_meta',
+    'test_postgres_orm',
 ]
