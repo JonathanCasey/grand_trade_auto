@@ -107,6 +107,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       ([#81][]).
 - [Changed] Database `type` parameter is now `dbms` ([#84][]).
 - [Added] Alpha Vantage support added to conf files for CI ([#88][]).
+- [Added] `trailing_commas.py` added for pylint checker plugin for multi-line
+      lists and trailing commas ([#103][]).
+  - Ported from `asana_extensions` and some tuple and list-access tokenizing
+        fixed, but originally from groboclown.
+  - Source code updated with fixes, but no functional changes.
 
 
 ### Project & Toolchain: CodeCov
@@ -156,6 +161,10 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Changed] `min-similarity-lines` increased to `8` ([#88][]).
 - [Fixed] Code made compliant with latest version of pylint (v2.12) ([#96][]).
 - [Added] `d` added to `good-names` list in `.pylintrc` ([#98][]).
+- [Added] `trailing_commas` plugin added, with options to ignore `if`, tuples,
+      and functions ([#103][]).
+- [Changed] `init-hook` changed to only include repo root, as this seems to be
+      the only necessity (but is necessary) ([#103][]).
 
 
 ### Project & Toolchain: Pytest, /conftest, /tests/conftest
@@ -690,6 +699,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#95][]
 - [#96][]
 - [#98][]
+- [#103][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -728,6 +738,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#94][] for [#93][]
 - [#97][] for [#95][], [#96][]
 - [#101][] for [#98][]
+- [#105][] for [#103][]
 
 
 ---
@@ -774,6 +785,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#95]: https://github.com/JonathanCasey/grand_trade_auto/issues/95 'Issue #95'
 [#96]: https://github.com/JonathanCasey/grand_trade_auto/issues/96 'Issue #96'
 [#98]: https://github.com/JonathanCasey/grand_trade_auto/issues/98 'Issue #98'
+[#103]: https://github.com/JonathanCasey/grand_trade_auto/issues/103 'Issue #103'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -811,3 +823,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#94]: https://github.com/JonathanCasey/grand_trade_auto/pull/94 'PR #94'
 [#97]: https://github.com/JonathanCasey/grand_trade_auto/pull/97 'PR #97'
 [#101]: https://github.com/JonathanCasey/grand_trade_auto/pull/101 'PR #101'
+[#105]: https://github.com/JonathanCasey/grand_trade_auto/pull/105 'PR #105'
