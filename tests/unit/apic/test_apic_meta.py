@@ -63,7 +63,8 @@ def test_apic_init(caplog):
     MockApicChild('mock_env', 'mock_apic_id', **extra_kwargs)
     assert caplog.record_tuples == [
             ('grand_trade_auto.apic.apic_meta', logging.WARNING,
-                'Discarded excess kwargs provided to MockApicChild: key1, key2')
+                'Discarded excess kwargs provided to MockApicChild:'
+                + ' key1, key2'),
     ]
 
     # Using Alpaca to test grandchild with multiple/diamond inheritance pattern
@@ -76,7 +77,7 @@ def test_apic_init(caplog):
     alpaca.Alpaca('paper', 'mock_key_id', 'mock_secret_key', **kwargs)
     assert caplog.record_tuples == [
             ('grand_trade_auto.apic.apic_meta', logging.WARNING,
-                'Discarded excess kwargs provided to Alpaca: key1, key2')
+                'Discarded excess kwargs provided to Alpaca: key1, key2'),
     ]
 
 

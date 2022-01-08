@@ -362,7 +362,7 @@ def test_add(monkeypatch, caplog, pg_test_orm):
         'str_data': str(uuid.uuid4()),
         'int_data': 3,
         'bool_data': True,
-        'bad_col': 'nonexistent col'
+        'bad_col': 'nonexistent col',
     }
     bad_type = {
         'test_name': test_name,
@@ -475,7 +475,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         'str_data': str(uuid.uuid4()),
         'int_data': 4,
         'bool_data': True,
-        'bad_col': 'nonexistent col'
+        'bad_col': 'nonexistent col',
     }
     bad_type = {
         'test_name': test_name,

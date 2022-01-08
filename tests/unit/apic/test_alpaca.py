@@ -70,7 +70,7 @@ def test_connect(caplog, monkeypatch, alpaca_test):
     assert alpaca_test._rest_api is not None
     assert caplog.record_tuples == [
             ('grand_trade_auto.apic.alpaca', logging.INFO,
-                'Established connection to Alpaca via REST.')
+                'Established connection to Alpaca via REST.'),
     ]
 
     caplog.clear()
@@ -158,7 +158,7 @@ def test_connect_env(caplog, monkeypatch, alpaca_test):
     assert alpaca_test._rest_api is not None
     assert caplog.record_tuples == [
             ('grand_trade_auto.apic.alpaca', logging.INFO,
-                'Established connection to Alpaca via REST.')
+                'Established connection to Alpaca via REST.'),
     ]
 
 
