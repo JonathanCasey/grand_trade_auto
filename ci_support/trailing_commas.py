@@ -241,6 +241,13 @@ class BracketContext:  # pylint: disable=too-many-instance-attributes
                 starting_token.token_text == '('
         ):
             self._expression_type = 'tuple'
+        elif (
+                prev and
+                prev.token_type == tokenize.NAME and
+                starting_token.token_text == '['
+        ):
+            # Only defining as list_access so it is not interpreted as a list
+            self._expression_type = 'list_access'
         # else:
         #     print(f"Found list start, not if or elif or tuple, {prev} / {starting_token}")
 
@@ -367,7 +374,10 @@ class BracketContext:  # pylint: disable=too-many-instance-attributes
         # the syntax checking rules don't apply, except for the tuple stuff.
         # If the token is multi-line (like a concatenated string), then
         # it will be considered for this logic, too.
-        if token.end_line_no != self._starting_token_line_no:
+        if (
+                token.end_line_no != self._starting_token_line_no and
+                self._expression_type != 'list_access'
+        ):
             if (
                     len(self._current_line_items) > 0 and
                     self._is_expression_enabled()
