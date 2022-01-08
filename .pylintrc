@@ -10,6 +10,7 @@ init-hook='from pylint.config import find_pylintrc;
                         os.path.join(os.path.dirname(find_pylintrc()),
                                 'grand_trade_auto'), 'general'));'
 
+load-plugins=ci_support.trailing_commas
 max-args=10
 
 
@@ -21,3 +22,9 @@ disable=
 
 [SIMILARITIES]
 min-similarity-lines=8
+
+
+[trailing-comma]
+ignore-multi-line-if=yes
+ignore-multi-line-tuple=no
+ignore-function-def=yes
