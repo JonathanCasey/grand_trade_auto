@@ -82,7 +82,7 @@ def test_database_init(caplog):
     assert caplog.record_tuples == [
             ('grand_trade_auto.database.database_meta', logging.WARNING,
                 'Discarded excess kwargs provided to MockDatabaseChild:'
-                + ' key1, key2')
+                + ' key1, key2'),
     ]
 
     # Using Postgres to test inheritance consumption
@@ -96,7 +96,7 @@ def test_database_init(caplog):
             'mock_password', **kwargs)
     assert caplog.record_tuples == [
             ('grand_trade_auto.database.database_meta', logging.WARNING,
-                'Discarded excess kwargs provided to Postgres: key1, key2')
+                'Discarded excess kwargs provided to Postgres: key1, key2'),
     ]
 
 

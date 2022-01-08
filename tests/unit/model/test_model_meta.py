@@ -93,6 +93,8 @@ def test_enum_logic_op():
     """
     Tests the essential items of the `LogicOp` Enum in `model_meta`.
     """
+    #pylint: disable=multi-line-list-first-line-item, multi-line-list-eol-close
+    #pylint: disable=closing-comma
     # Do not need to test values since access by value unsupported
     names = {'EQUAL', 'EQUALS', 'EQ', 'LESS_THAN', 'LT',
             'LESS_THAN_OR_EQUAL', 'LTE', 'GREATER_THAN', 'GT',
@@ -543,7 +545,7 @@ def test_add_and_direct(caplog, monkeypatch):
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
         ('tests.unit.model.test_model_meta', logging.ERROR,
-            'Invalid column(s) for ModelTest: `bad_col`')
+            'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
     def mock_get_active_data_as_dict(self):
@@ -566,7 +568,7 @@ def test_add_and_direct(caplog, monkeypatch):
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
         ('tests.unit.model.test_model_meta', logging.ERROR,
-            'Invalid column(s) for ModelTest: `bad_col`')
+            'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
 
@@ -667,7 +669,7 @@ def test_update_and_direct(caplog, monkeypatch):
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
         ('tests.unit.model.test_model_meta', logging.ERROR,
-            'Invalid column(s) for ModelTest: `bad_col`')
+            'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
     def mock_get_active_data_as_dict(self):
@@ -691,7 +693,7 @@ def test_update_and_direct(caplog, monkeypatch):
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
         ('tests.unit.model.test_model_meta', logging.ERROR,
-            'Invalid column(s) for ModelTest: `bad_col`')
+            'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
 
@@ -854,7 +856,7 @@ def test_query_direct(caplog):
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
         ('tests.unit.model.test_model_meta', logging.ERROR,
-            'Invalid column(s) for ModelTest: `bad_col`')
+            'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
 
@@ -901,5 +903,5 @@ def test__get_where_self_id(caplog):
     assert 'Cannot generate where clause with ID being None' in str(ex.value)
     assert caplog.record_tuples == [
         ('grand_trade_auto.model.model_meta', logging.ERROR,
-            'Cannot generate where clause with ID being None')
+            'Cannot generate where clause with ID being None'),
     ]
