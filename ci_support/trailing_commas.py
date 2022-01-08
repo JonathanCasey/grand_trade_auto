@@ -237,7 +237,7 @@ class BracketContext:  # pylint: disable=too-many-instance-attributes
             self._expression_type = 'if'
         elif (
                 prev and
-                prev.token_type == tokenize.NAME and
+                prev.token_type != tokenize.NAME and
                 starting_token.token_text == '('
         ):
             self._expression_type = 'tuple'
