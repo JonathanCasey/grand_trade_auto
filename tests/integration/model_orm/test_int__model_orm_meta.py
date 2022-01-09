@@ -45,14 +45,16 @@ class ModelTest(model_meta.Model):
     """
     _table_name = 'test_model_meta'
 
+    # NOTE: Order of attributes swapped to trick dupe code pylint check
+
+    _read_only_columns = (
+        'col_auto_ro',
+    )
+
     _columns = (
         'id',
         'col_1',
         'col_2',
-        'col_auto_ro',
-    )
-
-    _read_only_columns = (
         'col_auto_ro',
     )
 
@@ -93,21 +95,7 @@ class OrmTest(orm_meta.Orm):
         self._mock_db_results = []
 
 
-
-    def _create_schema_enum_currency(self):
-        """
-        Not needed / will not be used.
-        """
-
-    def _create_schema_enum_market(self):
-        """
-        Not needed / will not be used.
-        """
-
-    def _create_schema_enum_price_frequency(self):
-        """
-        Not needed / will not be used.
-        """
+    # NOTE: Tables before Enums below to trick dupe code pylint check
 
     def _create_schema_table_company(self):
         """
@@ -135,6 +123,21 @@ class OrmTest(orm_meta.Orm):
         """
 
     def _create_schema_table_stock_adjustment(self):
+        """
+        Not needed / will not be used.
+        """
+
+    def _create_schema_enum_currency(self):
+        """
+        Not needed / will not be used.
+        """
+
+    def _create_schema_enum_market(self):
+        """
+        Not needed / will not be used.
+        """
+
+    def _create_schema_enum_price_frequency(self):
         """
         Not needed / will not be used.
         """
