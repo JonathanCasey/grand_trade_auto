@@ -20,6 +20,8 @@ Module Attributes:
 (C) Copyright 2022 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
+#pylint: disable=use-implicit-booleaness-not-comparison
+#   +-> want to specifically check type in most tests -- `None` is a fail
 
 import copy
 import logging

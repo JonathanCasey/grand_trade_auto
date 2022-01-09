@@ -22,14 +22,12 @@ Module Attributes:
 #pylint: disable=protected-access  # Allow for purpose of testing those elements
 
 import logging
-import re
 import uuid
 
 import psycopg2.errors
 import pytest
 
 from grand_trade_auto.database import databases
-from grand_trade_auto.database import postgres
 from grand_trade_auto.model import model_meta
 from grand_trade_auto.orm import orm_meta
 
@@ -89,21 +87,6 @@ class ModelTest(model_meta.Model):
 
 
 
-def mock_execute_log(self, command, val_vars=None, cursor=None, commit=True,
-            close_cursor=True, **kwargs):
-    """
-    Simply logs the mogrified SQL statement for inspection.
-    """
-    #pylint: disable=unused-argument
-    cursor = self.connect().cursor()
-    sql = cursor.mogrify(command, val_vars)
-    self.connect().commit()
-    cursor.close()
-    sql_formatted = re.sub(rb'\n\s+', b' ', sql.strip())
-    logger.warning(sql_formatted)
-
-
-
 def _confirm_all_data(orm, data, sql_select, select_var_vals):
     """
     Confirms the data struct is loaded in the table and is the only thing loaded
@@ -136,7 +119,7 @@ def _load_data_and_confirm(orm, data, sql_select, select_var_vals):
 
 
 
-def test_add(monkeypatch, caplog, pg_test_orm):
+def test_add(caplog, pg_test_orm):
     """
     Tests the `add()` method in `PostgresOrm`.
     """
@@ -157,13 +140,6 @@ def test_add(monkeypatch, caplog, pg_test_orm):
         'str_data': str(uuid.uuid4()),
         'int_data': 2,
         'bool_data': True,
-    }
-    bad_col = {
-        'test_name': test_name,
-        'str_data': str(uuid.uuid4()),
-        'int_data': 3,
-        'bool_data': True,
-        'bad_col': 'nonexistent col',
     }
     bad_type = {
         'test_name': test_name,
@@ -197,16 +173,6 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     assert 'cannot insert into column "id"' in str(ex.value)
     pg_test_orm._db._conn.rollback()
 
-    # Ensure bad col in new data caught
-    caplog.clear()
-    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        pg_test_orm.add(ModelTest, bad_col)
-    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
-    assert caplog.record_tuples == [
-        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
-            "Invalid column(s) for ModelTest: `bad_col`"),
-    ]
-
     # Ensure bad type in new data is caught
     with pytest.raises(
             psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
@@ -214,25 +180,12 @@ def test_add(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.add(ModelTest, bad_type)
     assert 'invalid input syntax for type integer: "four"' in str(ex.value)
 
-    # Ensure SQL generated as expected
-    monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
-    caplog.clear()
-    pg_test_orm.add(ModelTest, good_data)
-    assert caplog.record_tuples == [
-        ('tests.integration.database_orm.test_int__postgres_orm',
-            logging.WARNING,
-            'b"INSERT INTO test_int__postgres_orm'
-            + ' (test_name,str_data,int_data,bool_data)'
-            + ' VALUES (\'test_add\','
-            + f' \'{str(good_data["str_data"])}\', 1, true)"'),
-    ]
-
     conn_2.close()
     pg_test_orm._db._conn.close()
 
 
 
-def test_update(monkeypatch, caplog, pg_test_orm):
+def test_update(caplog, pg_test_orm):
     """
     Tests the `update()` method in `PostgresOrm`.
     """
@@ -272,13 +225,6 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         'str_data': str(uuid.uuid4()),
         'int_data': 3,
         'bool_data': True,
-    }
-    bad_col = {
-        'test_name': test_name,
-        'str_data': str(uuid.uuid4()),
-        'int_data': 4,
-        'bool_data': True,
-        'bad_col': 'nonexistent col',
     }
     bad_type = {
         'test_name': test_name,
@@ -356,16 +302,6 @@ def test_update(monkeypatch, caplog, pg_test_orm):
             in str(ex.value)
     pg_test_orm._db._conn.rollback()
 
-    # Ensure bad col in new data caught
-    caplog.clear()
-    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        pg_test_orm.update(ModelTest, bad_col, where_1)
-    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
-    assert caplog.record_tuples == [
-        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
-            "Invalid column(s) for ModelTest: `bad_col`"),
-    ]
-
     # Ensure bad type in new data is caught
     with pytest.raises(
             psycopg2.errors.InvalidTextRepresentation #pylint: disable=no-member
@@ -373,24 +309,12 @@ def test_update(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.update(ModelTest, bad_type, where_1)
     assert 'invalid input syntax for type integer: "five"' in str(ex.value)
 
-    # Ensure SQL generated as expected
-    monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
-    caplog.clear()
-    pg_test_orm.update(ModelTest, new_data[1], where_1_2)
-    assert caplog.record_tuples == [
-        ('tests.integration.database_orm.test_int__postgres_orm',
-            logging.WARNING,
-            'b"UPDATE test_int__postgres_orm SET str_data = \''
-            + f'{new_data[1]["str_data"]}\', bool_data = false WHERE'
-            + ' (int_data = 1 OR int_data = 2)"'),
-    ]
-
     conn_2.close()
     pg_test_orm._db._conn.close()
 
 
 
-def test_delete(monkeypatch, caplog, pg_test_orm):
+def test_delete(caplog, pg_test_orm):
     """
     Tests the `delete()` method in `PostgresOrm`.
     """
@@ -457,21 +381,8 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     assert cursor.rowcount == 0
     cursor.close()
 
-    # Ensure delete all fails without explicit delete all
-    _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
-    caplog.clear()
-    with pytest.raises(ValueError) as ex:
-        pg_test_orm.delete(ModelTest, {})
-    assert 'Invalid delete parameters: `where` empty, but' in str(ex.value)
-    assert caplog.record_tuples == [
-        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
-            'Invalid delete parameters: `where` empty, but did not'
-                    + ' set `really_delete_all` to confirm delete all.'
-                    + '  Likely intended to specify `where`?'),
-    ]
-
     # Ensure delete all works with explicit delete all
-    _confirm_all_data(pg_test_orm, init_data, sql_select, select_var_vals)
+    _load_data_and_confirm(pg_test_orm, init_data, sql_select, select_var_vals)
     pg_test_orm.delete(ModelTest, None, really_delete_all=True)
     cursor = pg_test_orm._db.execute(sql_select, select_var_vals,
             close_cursor=False)
@@ -497,23 +408,12 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.delete(ModelTest, where_bad_type)
     assert 'invalid input syntax for type integer: "nan"' in str(ex.value)
 
-    # Ensure SQL generated as expected
-    monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
-    caplog.clear()
-    pg_test_orm.delete(ModelTest, where_2_3)
-    assert caplog.record_tuples == [
-        ('tests.integration.database_orm.test_int__postgres_orm',
-            logging.WARNING,
-            "b'DELETE FROM test_int__postgres_orm WHERE"
-            + " (int_data = 2 OR int_data = 3)'"),
-    ]
-
     conn_2.close()
     pg_test_orm._db._conn.close()
 
 
 
-def test_query(monkeypatch, caplog, pg_test_orm):
+def test_query(caplog, pg_test_orm):
     """
     Tests the `query()` method in `PostgresOrm`.
     """
@@ -630,16 +530,6 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.query(ModelTest, 'invalid-return-as')
     assert "'invalid-return-as' is not a valid ReturnAs" in str(ex.value)
 
-    # Ensure bad col in return cols caught
-    caplog.clear()
-    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        pg_test_orm.query(ModelTest, 'model', ['bad_col'])
-    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
-    assert caplog.record_tuples == [
-        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
-            "Invalid column(s) for ModelTest: `bad_col`"),
-    ]
-
     # Ensure bad col in where caught
     caplog.clear()
     where_bad_col = ('bad_col', model_meta.LogicOp.NOT_NULL)
@@ -651,28 +541,6 @@ def test_query(monkeypatch, caplog, pg_test_orm):
             "Invalid column(s) for ModelTest: `bad_col`"),
     ]
 
-    # Ensure bad col in order caught
-    caplog.clear()
-    order_bad_col = [('bad_col', model_meta.SortOrder.ASC)]
-    with pytest.raises(orm_meta.NonexistentColumnError) as ex:
-        pg_test_orm.query(ModelTest, 'model', order=order_bad_col)
-    assert "Invalid column(s) for ModelTest: `bad_col`" in str(ex.value)
-    assert caplog.record_tuples == [
-        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
-            "Invalid column(s) for ModelTest: `bad_col`"),
-    ]
-
-    # Ensure bad limit arg caught
-    caplog.clear()
-    with pytest.raises(ValueError) as ex:
-        pg_test_orm.query(ModelTest, 'model', limit='nan')
-    assert "Failed to parse limit, likely not a number:" in str(ex.value)
-    assert caplog.record_tuples == [
-        ('grand_trade_auto.orm.postgres_orm', logging.ERROR,
-            "Failed to parse limit, likely not a number:"
-            + " invalid literal for int() with base 10: 'nan'"),
-    ]
-
     # Ensure bad type anywhere is caught
     where_bad_type = ('id', model_meta.LogicOp.GTE, 'nan')
     with pytest.raises(
@@ -680,21 +548,6 @@ def test_query(monkeypatch, caplog, pg_test_orm):
             ) as ex:
         pg_test_orm.query(ModelTest, 'pandas', where=where_bad_type)
     assert 'invalid input syntax for type integer: "nan"' in str(ex.value)
-
-    # Ensure SQL generated as expected
-    monkeypatch.setattr(postgres.Postgres, 'execute', mock_execute_log)
-    caplog.clear()
-    # Don't really care about exception -- just side effect of mock
-    with pytest.raises(AttributeError):
-        pg_test_orm.query(ModelTest, 'model', where=where_2_3, limit=100,
-                order=order_bool_asc_int_desc)
-    assert caplog.record_tuples == [
-        ('tests.integration.database_orm.test_int__postgres_orm',
-            logging.WARNING,
-            "b'SELECT * FROM test_int__postgres_orm WHERE (int_data = 2 OR"
-            + " int_data = 3) ORDER BY bool_data ASC, int_data DESC"
-            + " LIMIT 100'"),
-    ]
 
     conn_2.close()
     pg_test_orm._db._conn.close()
