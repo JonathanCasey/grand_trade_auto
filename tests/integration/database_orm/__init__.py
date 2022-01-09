@@ -1,4 +1,4 @@
 # pylint: disable=missing-module-docstring
 __all__ = [
-        'test_int__postgres_models',
+        'test_int__postgres_orm',
 ]

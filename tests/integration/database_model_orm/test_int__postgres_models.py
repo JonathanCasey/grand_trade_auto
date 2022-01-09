@@ -5,6 +5,11 @@ Tests the integration between:
 - grand_trade_auto.orm.postgres_orm
 - grand_trade_auto.database.postgres
 
+While unit tests already test this integration to some degree, this is to a more
+exhaustive degree.  Those unit tests are mostly using integrative approaches due
+to minimizing mock complexity and making tests practically useful, but do aim to
+minimize how much of the integration is invoked.
+
 Per [pytest](https://docs.pytest.org/en/reorganize-docs/new-docs/user/naming_conventions.html),
 all tiles, classes, and methods will be prefaced with `test_/Test` to comply
 with auto-discovery (others may exist, but will not be part of test suite
