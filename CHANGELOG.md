@@ -471,6 +471,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `PriceFrequency` enum added to define options for security price
       frequency as they appear in the database ([#98][]).
 
+##### Unit Tests
+- [Changed] Existing tests that were really integration tests moved to
+      `test_int__model_orm_meta.py`, with proper unit tests put in their place,
+      largely for testing CRUD ops ([#104][]).
+
 
 ### Model: Company
 - [Added] `company.py` added with `Company` subclasses from `Model`, defining
@@ -532,6 +537,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       This is set to `public` to match the default; primarily to ensure unit
       tests always match code ([#98][]).
 
+##### Unit Tests
+- [Changed] Existing tests that were really integration tests moved to
+      `test_int__postgres_orm.py`, with proper unit tests put in their place,
+      largely for testing CRUD ops ([#104][]).
+
 
 ### Web: Backend / Meta
 
@@ -581,10 +591,11 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       content ([#11][]).
 
 
-### Tests: Integration: Postgres <-> Orm <-> Models
-- [Added] `tests/integration/test_int__postgres_orm_models.py` added to test
-      integration on both sides of ORM for all models to support all CRUD ops
-      with Postgres db ([#98][]).
+### Tests: Integration: Database <-> Orm <-> Model: Postgres Models
+- [Added]
+      `tests/integration/database_model_orm/test_int__postgres_orm_models.py`
+      added to test integration on both sides of ORM for all models to support
+      all CRUD ops with Postgres db ([#98][]).
   - Models tested:
     - `Company`
     - `DatafeedSrc`
@@ -592,6 +603,21 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
     - `Security`
     - `SecurityPrice`
     - `StockAdjustment`
+- [Changed] `test_int__postgres_orm_models.py` in
+      `tests/integration/database_model_orm` renamed to
+      `test_int__postgres_models.py` ([#104][]).
+
+
+### Tests: Integration: Database <-> Orm: Postgres
+- [Added] `tests/integration/database_orm/test_int__postgres_orm.py`
+      added to test integration between `Postgres` and `PostgresOrm`of ORM for
+      all CRUD ops generically (migrated from unit tests) ([#104][]).
+
+
+### Tests: Integration: Model <-> Orm: Model Orm Meta
+- [Added] `tests/integration/model_orm/test_int__model_orm_meta.py`
+      added to test integration between `Model` and `Orm`of ORM for
+      all CRUD ops generically (migrated from unit tests) ([#104][]).
 
 
 ### Docs: CHANGELOG
@@ -700,6 +726,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#96][]
 - [#98][]
 - [#103][]
+- [#104][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -739,6 +766,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#97][] for [#95][], [#96][]
 - [#101][] for [#98][]
 - [#105][] for [#103][]
+- [#106][] for [#104][]
 
 
 ---
@@ -786,6 +814,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#96]: https://github.com/JonathanCasey/grand_trade_auto/issues/96 'Issue #96'
 [#98]: https://github.com/JonathanCasey/grand_trade_auto/issues/98 'Issue #98'
 [#103]: https://github.com/JonathanCasey/grand_trade_auto/issues/103 'Issue #103'
+[#104]: https://github.com/JonathanCasey/grand_trade_auto/issues/104 'Issue #104'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -824,3 +853,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#97]: https://github.com/JonathanCasey/grand_trade_auto/pull/97 'PR #97'
 [#101]: https://github.com/JonathanCasey/grand_trade_auto/pull/101 'PR #101'
 [#105]: https://github.com/JonathanCasey/grand_trade_auto/pull/105 'PR #105'
+[#106]: https://github.com/JonathanCasey/grand_trade_auto/pull/106 'PR #106'
