@@ -365,7 +365,7 @@ def test_add_and_direct(caplog, monkeypatch):
         ModelTest.add_direct(orm, {'bad_col': 6})
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_model_meta', logging.ERROR,
+        ('tests.integration.model_orm.test_int__model_orm_meta', logging.ERROR,
             'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
@@ -388,7 +388,7 @@ def test_add_and_direct(caplog, monkeypatch):
         model.add()
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_model_meta', logging.ERROR,
+        ('tests.integration.model_orm.test_int__model_orm_meta', logging.ERROR,
             'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
@@ -489,7 +489,7 @@ def test_update_and_direct(caplog, monkeypatch):
         ModelTest.update_direct(orm, {'bad_col': 5}, None)
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_model_meta', logging.ERROR,
+        ('tests.integration.model_orm.test_int__model_orm_meta', logging.ERROR,
             'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
@@ -513,7 +513,7 @@ def test_update_and_direct(caplog, monkeypatch):
         model.update()
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_model_meta', logging.ERROR,
+        ('tests.integration.model_orm.test_int__model_orm_meta', logging.ERROR,
             'Invalid column(s) for ModelTest: `bad_col`'),
     ]
 
@@ -676,6 +676,6 @@ def test_query_direct(caplog):
         ModelTest.query_direct(orm, 'model', ['bad_col'])
     assert 'Invalid column(s) for ModelTest: `bad_col`' in str(ex.value)
     assert caplog.record_tuples == [
-        ('tests.unit.model.test_model_meta', logging.ERROR,
+        ('tests.integration.model_orm.test_int__model_orm_meta', logging.ERROR,
             'Invalid column(s) for ModelTest: `bad_col`'),
     ]

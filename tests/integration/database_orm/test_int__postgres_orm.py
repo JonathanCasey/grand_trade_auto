@@ -52,7 +52,7 @@ def fixture_create_test_table():
             tests_conftest._TEST_PG_ENV)
     conn = test_db.connect(False)
     sql = '''
-        CREATE TABLE test_postgres_orm (
+        CREATE TABLE test_int__postgres_orm (
             id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             test_name text,
             str_data text,
@@ -71,7 +71,7 @@ class ModelTest(model_meta.Model):
 
     This MUST match with the `fixture_create_test_table` in this module.
     """
-    _table_name = 'test_postgres_orm'
+    _table_name = 'test_int__postgres_orm'
 
     _columns = (
         'id',
@@ -174,7 +174,8 @@ def test_add(monkeypatch, caplog, pg_test_orm):
 
     conn_2 = pg_test_orm._db.connect(False)
     cursor_2 = pg_test_orm._db.cursor(conn=conn_2)
-    sql_select = 'SELECT * FROM test_postgres_orm WHERE test_name=%(test_name)s'
+    sql_select = 'SELECT * FROM test_int__postgres_orm' \
+            + ' WHERE test_name=%(test_name)s'
     select_var_vals = {'test_name': test_name}
 
     # Ensure single row add; can supply a cursor, keep it open
@@ -218,8 +219,9 @@ def test_add(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     pg_test_orm.add(ModelTest, good_data)
     assert caplog.record_tuples == [
-        ('tests.unit.orm.test_postgres_orm', logging.WARNING,
-            'b"INSERT INTO test_postgres_orm'
+        ('tests.integration.database_orm.test_int__postgres_orm',
+            logging.WARNING,
+            'b"INSERT INTO test_int__postgres_orm'
             + ' (test_name,str_data,int_data,bool_data)'
             + ' VALUES (\'test_add\','
             + f' \'{str(good_data["str_data"])}\', 1, true)"'),
@@ -286,7 +288,7 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     }
 
     sql_select = '''
-        SELECT * FROM test_postgres_orm
+        SELECT * FROM test_int__postgres_orm
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
@@ -376,8 +378,9 @@ def test_update(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     pg_test_orm.update(ModelTest, new_data[1], where_1_2)
     assert caplog.record_tuples == [
-        ('tests.unit.orm.test_postgres_orm', logging.WARNING,
-            'b"UPDATE test_postgres_orm SET str_data = \''
+        ('tests.integration.database_orm.test_int__postgres_orm',
+            logging.WARNING,
+            'b"UPDATE test_int__postgres_orm SET str_data = \''
             + f'{new_data[1]["str_data"]}\', bool_data = false WHERE'
             + ' (int_data = 1 OR int_data = 2)"'),
     ]
@@ -417,7 +420,7 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     ]
 
     sql_select = '''
-        SELECT * FROM test_postgres_orm
+        SELECT * FROM test_int__postgres_orm
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
@@ -499,8 +502,9 @@ def test_delete(monkeypatch, caplog, pg_test_orm):
     caplog.clear()
     pg_test_orm.delete(ModelTest, where_2_3)
     assert caplog.record_tuples == [
-        ('tests.unit.orm.test_postgres_orm', logging.WARNING,
-            "b'DELETE FROM test_postgres_orm WHERE"
+        ('tests.integration.database_orm.test_int__postgres_orm',
+            logging.WARNING,
+            "b'DELETE FROM test_int__postgres_orm WHERE"
             + " (int_data = 2 OR int_data = 3)'"),
     ]
 
@@ -545,7 +549,7 @@ def test_query(monkeypatch, caplog, pg_test_orm):
     ]
 
     sql_select = '''
-        SELECT * FROM test_postgres_orm
+        SELECT * FROM test_int__postgres_orm
         WHERE test_name=%(test_name)s
         ORDER BY id
     '''
@@ -685,8 +689,9 @@ def test_query(monkeypatch, caplog, pg_test_orm):
         pg_test_orm.query(ModelTest, 'model', where=where_2_3, limit=100,
                 order=order_bool_asc_int_desc)
     assert caplog.record_tuples == [
-        ('tests.unit.orm.test_postgres_orm', logging.WARNING,
-            "b'SELECT * FROM test_postgres_orm WHERE (int_data = 2 OR"
+        ('tests.integration.database_orm.test_int__postgres_orm',
+            logging.WARNING,
+            "b'SELECT * FROM test_int__postgres_orm WHERE (int_data = 2 OR"
             + " int_data = 3) ORDER BY bool_data ASC, int_data DESC"
             + " LIMIT 100'"),
     ]
