@@ -50,6 +50,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [Added] `.editorconfig`, `.gitignore` added to `.editorconfig` ([#73][]).
 - [Added] `.coveragerc`, `.editorconfig`, `.gitattributes`, `.gitignore`, and
       `.pylintrc` added to `.gitattributes` ([#73][]).
+- [Added] `.json` support added to `.editorconfig`, `.gitattributes` ([#107][]).
 
 
 ### Project & Toolchain: CircleCI
@@ -648,6 +649,8 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
       ([#98][]).
 - [Added] Workflow steps updated to include integration tests and clarified how
       to run unit tests only ([#98][]).
+- [Changed] Env variable setup, particularly in VSCode updated to more foolproof
+      method ([#107][]).
 
 
 ### Docs: README
@@ -727,6 +730,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#98][]
 - [#103][]
 - [#104][]
+- [#107][]
 
 #### PRs
 - [#29][] for [#26][]
@@ -767,6 +771,7 @@ Compare to [stable](https://github.com/JonathanCasey/grand_trade_auto/compare/st
 - [#101][] for [#98][]
 - [#105][] for [#103][]
 - [#106][] for [#104][]
+- [#108][] for [#107][]
 
 
 ---
@@ -815,6 +820,7 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#98]: https://github.com/JonathanCasey/grand_trade_auto/issues/98 'Issue #98'
 [#103]: https://github.com/JonathanCasey/grand_trade_auto/issues/103 'Issue #103'
 [#104]: https://github.com/JonathanCasey/grand_trade_auto/issues/104 'Issue #104'
+[#107]: https://github.com/JonathanCasey/grand_trade_auto/issues/107 'Issue #107'
 
 [#29]: https://github.com/JonathanCasey/grand_trade_auto/pull/26 'PR #29'
 [#30]: https://github.com/JonathanCasey/grand_trade_auto/pull/30 'PR #30'
@@ -854,3 +860,4 @@ Reference-style links here (see below, only in source) in develop-merge order.
 [#101]: https://github.com/JonathanCasey/grand_trade_auto/pull/101 'PR #101'
 [#105]: https://github.com/JonathanCasey/grand_trade_auto/pull/105 'PR #105'
 [#106]: https://github.com/JonathanCasey/grand_trade_auto/pull/106 'PR #106'
+[#108]: https://github.com/JonathanCasey/grand_trade_auto/pull/108 'PR #108'

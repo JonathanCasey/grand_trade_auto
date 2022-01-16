@@ -15,36 +15,34 @@ Respect the CI and the CI will respect you.
 
 # One-time Setup
 
-### Python environment in VSC
-To support pytest, add the following to `.vscode/settings.json` in the root of
-the repo:
+### Python environment and VSCode Setup
+In general the repo root should be added to the python path environment
+variable.  Python automatically adds the directory of the module being executed
+to the path, but elements of this project will not work unless the repo root is
+in the path, and there are no modules that execute from the repo root.
+
+Save this workspace, and edit the workspace settings (Ctrl+Shift+P >
+`Preferences: Open Workspace Settings (JSON)`) and ADD the following to the
+existing settings.  This workspace file should be the one opened everytime
+evelopment is being started.  The workspace will need to be closed and reopened
+after editing these workspace settings:
 ```json
 {
-    "python.envFile": "${workspaceFolder}/.env",
-    "python.testing.pytestArgs": [
-        "."
-    ],
-    "python.testing.pytestEnabled": true,
-    "terminal.integrated.env.windows": {
-        "PYTHONPATH": "${workspaceFolder}/grand_trade_auto;${env:PYTHONPATH}",
-    }
+	"settings": {
+		"terminal.integrated.env.linux": {               // If developing on Linux
+			"PYTHONPATH": "/path/to/repo/root"
+		},
+    "terminal.integrated.env.osx": {                 // If developing on Mac OSX
+			"PYTHONPATH": "/path/to/repo/root"
+		},
+    "terminal.integrated.env.windows": {             // If developing on Windows
+			"PYTHONPATH": "C:/path/to/repo/root",
+			"WSLENV": "PYTHONPATH/l"                       // If using WSL in Windows
+		}
+	}
 }
 ```
 
-Also create a `.env` file in the root of the repo with the following line:
-```
-PYTHONPATH=C:\path\to\the\repo\root;${PYTHONPATH}
-```
-
-Note that in the above, if not on Windows, the semicolon `;` separator should be
-replaced with a colon `:`.
-
-This only works when opening the folder.  If opened as part of a multi-folder
-project, the `"terminal.integrated.env.windows"` will not be applied.  While not
-the most elegant, running
-`$env:PYTHONPATH = 'C:\path\to\repo\grand_trade_auto;' + $env:PYTHONPATH` will
-do the trick (the last part for the plus `+` sign and onwards can be omitted if
-it is not set at all yet).
 
 In Windows, one way of using a specific version of python is to open a cmd
 prompt (not powershell) -- probably as admin -- and navigate to the desired
@@ -57,6 +55,19 @@ required pacakges with pip (can use `pip3.7` in this example) as installing as a
 user can cause some headaches...  It has been observed that after installing
 `pytest-order` as admin, the first run of `pytest` needs to be run as an admin
 to finish some sort of init it seems -- after that, it should work as a user.
+
+
+To support pytest and pylint, add the following to `.vscode/settings.json` in
+the root of the repo:
+```json
+{
+    "python.linting.pylintEnabled": true,
+    "python.testing.pytestArgs": [
+        "."
+    ],
+    "python.testing.pytestEnabled": true
+}
+```
 
 In the `python.testing.pytestArgs` list above, it is likely desireable to put
 some pytest args.  In particular, using `--skip-alters-db-schema` will run the
