@@ -11,6 +11,8 @@ As of right now, this is hard-coded to access configuration files at a specific
 name and path.
 
 Module Attributes:
+  PICKLE_PROTOCOL (int): The pickle protocol to use for all pickle operations in
+    the project.
   logger (Logger): Logger for this module.
 
 (C) Copyright 2020 Jonathan Casey.  All Rights Reserved Worldwide.
@@ -25,6 +27,8 @@ import os.path
 from grand_trade_auto.general import dirs
 
 
+
+PICKLE_PROTOCOL = 4
 
 logger = logging.getLogger(__name__)
 
@@ -205,6 +209,37 @@ def parse_list_from_conf_string(conf_str, val_type, delim=',',
             pass
 
     return list_out
+
+
+
+def parse_datetime(datetime_str):
+    """
+    """
+    # TODO: Define this
+
+
+
+def get_parsed_datetime_from_confg(parser, section_id, option_key,
+        fallback_to_none=True):
+    """
+    """
+    if fallback_to_none:
+        datetime_str = parser.get(section_id, option_key, fallback=None)
+    else:
+        datetime_str = parser.get(section_id, option_key)
+    if datetime_str is not None:
+        datetime = parse_datetime(datetime_str)
+    else:
+        datetime = None
+    return datetime
+
+
+
+def get_parsed_time_from_config(parser, section_id, option_key,
+        fallback_to_none=True):
+    """
+    """
+    # TODO: Define this
 
 
 
