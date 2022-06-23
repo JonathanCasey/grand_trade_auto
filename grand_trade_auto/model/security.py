@@ -73,6 +73,9 @@ class Security(model_meta.Model):
         'name',
         'company_id',
         'currency',
+        # 'listing_date',
+        # 'delisting_date',
+        # TODO: Add date retired/removed or whatever (need start too?) (terms are listing/delisting)
         'datafeed_src_id',
     )
 

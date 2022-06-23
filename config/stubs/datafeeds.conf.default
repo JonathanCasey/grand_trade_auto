@@ -1,0 +1,54 @@
+
+# Configures data to get from datafeeds and store in databases
+# See apics.conf and databases.conf to configure actual connections
+
+
+[datafeed-friendly-name]
+env : <prod / dev / test>
+apic src : <apics.conf section name>
+database dst : <databases.conf section name> # Could be different section with different db name for different data
+# database table : <name of table to use> # Omit to use name based on data cat
+# unique id in db : <any unique id> # Omit to default to section name
+old unique id in db : <previous unique id> # Only include if renaming to migrate
+
+# Data category and general config
+data category : <time series pricing >
+when to run : <periodic / one shot>
+include fk datafeeds : <datafeed section names>
+exclude fk datafeeds : <datafeed section names>
+
+# Options for when to run : periodic (init only), one shot (init only)
+start datetime for init : <yy.mm.dd-hh:mm:ss> # Omit to not get historical data
+end datetime for init : <yy.mm.dd-hh:mm:ss> # Omit to default to today (only valid with start datetime)
+
+# Options for when to run : periodic
+run interval : <daily / ???>
+run offset : <time> # Will run this offset from midnight offset from UTC
+# For daily, it dictates the time it will run
+# For sub-daily, it will start at this offset and continue at interval for rest of day (probably skip this)
+# For super-daily, not yet supported (in general, super-daily isn't supported at all)
+# Defaults to midnight UTC
+
+# Options for data category : time series pricing
+save raw prices : <true / false> # Default is true
+save adjusted prices : <true / false> # Default is true
+data interval : <1min / 5min / 15min / 30min / 60min / daily / weekly? / monthly?>
+# If all include options skipped for an item, will query API for full list and fill in any missing
+include exchanges : <exchange name if want to filter>
+exclude exchanges : <exchange name if want to filter>
+include tickers : <ticker name / exchange:ticker if needed>
+exclude tickers : <ticker name / exchange:ticker if needed>
+# (list may get set by screener somehow? or from db?)
+# screener : <screener.conf section name> # Use instead of exchanges/tickers
+
+
+
+
+
+# Screener section?
+
+
+# Live streaming option instead of save to db?
+
+
+# TODO: Add db table to link datafeed_src_ids to apic_ids?

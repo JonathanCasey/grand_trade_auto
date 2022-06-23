@@ -249,6 +249,7 @@ class PostgresOrm(orm_meta.Orm):
 
         Subclass must define and execute SQL/etc.
         """
+        # TODO: Add column for name (section name), make that the unique key
         sql = '''
             CREATE TABLE IF NOT EXISTS datafeed_src (
                 id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -274,7 +275,7 @@ class PostgresOrm(orm_meta.Orm):
         sql = '''
             CREATE TABLE IF NOT EXISTS exchange (
                 id integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                name varchar(50) NOT NULL,
+                name varchar(50),
                 acronym varchar(50) NOT NULL,
                 datafeed_src_id integer NOT NULL,
                 CONSTRAINT fk_datafeed_src
@@ -282,7 +283,7 @@ class PostgresOrm(orm_meta.Orm):
                     REFERENCES datafeed_src (id)
                     ON DELETE SET NULL
                     ON UPDATE CASCADE,
-                UNIQUE (name)
+                UNIQUE (acronym)
             )
         '''
         self._db.execute(sql)

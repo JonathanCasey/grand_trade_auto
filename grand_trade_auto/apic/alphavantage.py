@@ -8,7 +8,7 @@ Module Attributes:
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
-from grand_trade_auto.datafeed import datafeed_meta
+# from grand_trade_auto.datafeed import datafeed_meta
 from grand_trade_auto.general import config
 
 
@@ -92,3 +92,9 @@ class Alphavantage(datafeed_meta.Datafeed):
         """
         # No connection to maintain
         return
+
+
+    # def get_security_price(start_time, end_time, interval, exchanges, tickers, include_raw, include_adjusted):
+    #     """
+    #     Query API, return model (or raw data to bypass model).
+    #     """

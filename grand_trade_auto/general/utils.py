@@ -55,3 +55,8 @@ def bypass_for_test(scope_ref, sub_id):  # pylint: disable=unused-argument
       (bool): Always returns False.  Only unit test mocking may change this.
     """
     return False
+
+
+
+def list_to_quoted_element_str(items):
+    return ", ".join([f"'{str(item)}'" for item in items])

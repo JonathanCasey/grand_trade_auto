@@ -72,3 +72,27 @@ class Exchange(model_meta.Model):
     acronym = None
     datafeed_src_id = None
     # End of Column Attributes
+
+
+
+
+    @classmethod
+    def get_by_acronyms(cls, orm, include_acronyms=None, exclude_acronyms=None,
+            where_and=None, include_missing=False):
+        """
+        """
+        where_acronyms = cls.build_where_for_column('acronym', include_acronyms,
+                exclude_acronyms)
+        where = cls.combine_wheres([where_and, where_acronyms],
+                model_meta.LogicCombo.AND)
+        exchanges_in_db = cls.query_direct(orm, where=where)
+
+        if not include_missing:
+            return exchanges_in_db
+
+        exchanges_missing = []
+        if include_acronyms is not None:
+            for acronym in include_acronyms:
+                if acronym not in [e.acronym for e in exchanges_in_db]:
+                    exchanges_missing.append(cls(orm, {'acronym': acronym}))
+        return exchanges_in_db, exchanges_missing

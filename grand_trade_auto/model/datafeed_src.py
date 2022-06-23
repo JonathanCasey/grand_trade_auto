@@ -69,7 +69,9 @@ class DatafeedSrc(model_meta.Model):
 
     # Column Attributes -- MUST match _columns!
     # id defined in super
-    config_parser = None
+    name = None
+    config_data = None # TODO: Rename to config data officially
     is_init_complete = None
-    progress_marker = None
+    queued_jobs = None # TODO: Rename to queued_jobs officially
+    # TODO: Add last run datetime
     # End of Column Attributes

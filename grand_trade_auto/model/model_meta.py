@@ -100,6 +100,10 @@ class LogicOp(Enum):
     EQUALS = '='
     EQ = '= '
 
+    NOT_EQUAL = '!='
+    NOT_EQUALS = '!='
+    NEQ = '!='
+
     LESS_THAN = '<'
     LT = '< '
 
@@ -458,8 +462,36 @@ class Model(ABC):
         Raises:
           [Pass through expected]
         """
+        # TODO: Add return list of dictionaries (keys are columns, values are...values)
         return orm.query(cls, return_as, columns_to_return, where, limit, order,
                 **kwargs)
+
+
+
+    # @classmethod
+    # def build_fk_lookup(cls, orm, lookup_columns, where=None, **kwargs):
+    #     """
+    #     Get foreign key id lookup dict, keyed by lookup_column.  Value will be
+    #     foreign key id; None if no match; list of ids if multiple matches.
+    #     """
+    #     fk_results = cls.query_direct(orm, ReturnAs.DICT,
+    #             ['id'] + lookup_columns, where, **kwargs)
+    #     return {r[tuple(lookup_columns)]: r['id'] for r in fk_results}
+
+
+
+    # def get_ensured_fk_lookup(orm, lookup_columns, required_data_conditions, where=None, **kwargs):
+    #     """
+
+    #     """
+    #     for d in required_data:
+    #         and_conditions = []
+    #     or_condition = []
+    #     for d in data:
+
+
+
+
 
 
 
@@ -551,3 +583,223 @@ class Model(ABC):
             logger.error(err_msg)
             raise ValueError(err_msg)
         return ('id', LogicOp.EQUALS, self.id)
+
+
+
+    @classmethod
+    def build_where_for_column(cls, column, include_vals=None,
+            exclude_vals=None, include_logic_op=LogicOp.EQ,
+            exclude_logic_op=LogicOp.NEQ, **kwargs):
+        """
+        kwargs is to catch extras that do not apply and discard
+        """
+        if include_vals is None:
+            include_vals = []
+        if exclude_vals is None:
+            exclude_vals = None
+
+        include_conds = []
+        exclude_conds = []
+        parse_sets = [
+            (include_vals, include_conds, include_logic_op),
+            (exclude_vals, exclude_conds, exclude_logic_op),
+        ]
+
+        for vals, conds, logic_op in parse_sets:
+            for val in vals:
+                cond = (column, logic_op, val)
+                conds.append(cond)
+
+        # where_clauses = []
+        # for conds in [include_conds, exclude_conds]:
+        #     if len(conds) == 0:
+        #         continue
+        #     if len(conds) == 1:
+        #         where = conds[0]
+        #     else:
+        #         where = {LogicCombo.OR: conds}
+        #     where_clauses.append(where)
+        where_clauses = cls.combine_wheres([include_conds, exclude_conds],
+                LogicCombo.OR)
+        return cls.combine_wheres(where_clauses, LogicCombo.AND)
+
+
+
+    @classmethod
+    def build_where_for_columns(cls, columns, include_val_sets=None,
+            exclude_val_sets=None, include_logic_ops=None,
+            exclude_logic_ops=None, **kwargs):
+        """
+        kwargs is to catch extras that do not apply and discard
+        """
+        if include_val_sets is None:
+            include_val_sets = []
+        if exclude_val_sets is None:
+            exclude_val_sets = None
+        if include_logic_ops is None:
+            include_logic_ops = [LogicOp.EQ] * len(columns)
+        if exclude_logic_ops is None:
+            exclude_logic_ops = [LogicOp.NEQ] * len(columns)
+
+        include_conds = []
+        exclude_conds = []
+        parse_sets = [
+            (include_val_sets, include_conds, include_logic_ops),
+            (exclude_val_sets, exclude_conds, exclude_logic_ops),
+        ]
+
+        for val_sets, conds, logic_ops in parse_sets:
+            for val_set in val_sets:
+                set_conds = []
+                for i in range(len(columns)):
+                    set_cond = (columns[i], logic_ops[i], val_set[i])
+                    set_conds.append(set_cond)
+                cond = cls.combine_wheres(set_conds, LogicCombo.AND)
+                conds.append(cond)
+
+        # where_clauses = []
+        # for conds in [include_conds, exclude_conds]:
+        #     if len(conds) == 0:
+        #         continue
+        #     if len(conds) == 1:
+        #         where = conds[0]
+        #     else:
+        #         where = {LogicCombo.OR: conds}
+        #     where_clauses.append(where)
+        where_clauses = cls.combine_wheres([include_conds, exclude_conds],
+                LogicCombo.OR)
+        return cls.combine_wheres(where_clauses, LogicCombo.AND)
+
+
+
+    # @staticmethod
+    # def and_wheres(where_clauses):
+    #     """
+    #     """
+    #     valid_wheres = [w for w in where_clauses if w is not None]
+    #     if len(valid_wheres) == 0:
+    #         full_where = None
+    #     elif len(valid_wheres) == 1:
+    #         full_where = valid_wheres[0]
+    #     else:
+    #         full_where = {LogicCombo.AND: valid_wheres}
+    #     return full_where
+
+
+
+    # @staticmethod
+    # def or_wheres(where_clauses):
+    #     """
+    #     """
+    #     valid_wheres = [w for w in where_clauses if w is not None]
+    #     if len(valid_wheres) == 0:
+    #         full_where = None
+    #     elif len(valid_wheres) == 1:
+    #         full_where = valid_wheres[0]
+    #     else:
+    #         full_where = {LogicCombo.AND: valid_wheres}
+    #     return full_where
+
+
+
+    @staticmethod
+    def combine_wheres(where_clauses, logic_combo):
+        """
+        """
+        valid_wheres = [w for w in where_clauses if w is not None]
+        if len(valid_wheres) == 0:
+            full_where = None
+        elif len(valid_wheres) == 1:
+            full_where = valid_wheres[0]
+        else:
+            full_where = {logic_combo: valid_wheres}
+        return full_where
+
+
+
+    @classmethod
+    def get_by_column(cls, orm, column, include_vals=None, exclude_vals=None,
+            where_and=None, include_missing=False, **kwargs):
+        """
+        """
+        # TODO: Support ReturnAs
+        where_vals = cls.build_where_for_column(column, include_vals,
+                exclude_vals, **kwargs)
+        where = cls.combine_wheres([where_and, where_vals], LogicCombo.AND)
+        models_in_db = cls.query_direct(orm, where=where)
+
+        if not include_missing:
+            return models_in_db
+
+        models_missing = []
+        if include_vals is not None:
+            for val in include_vals:
+                if val not in [getattr(m, column) for m in models_in_db]:
+                    models_missing.append(cls(orm, {column: val}))
+        return models_in_db, models_missing
+
+
+    @classmethod
+    def get_by_columns(cls, orm, columns, include_val_sets=None,
+            exclude_val_sets=None, where_and=None, include_missing=False,
+            **kwargs):
+        """
+        """
+        # TODO: Support ReturnAs
+        where_vals = cls.build_where_for_columns(columns, include_val_sets,
+                exclude_val_sets, **kwargs)
+        where = cls.combine_wheres([where_and, where_vals], LogicCombo.AND)
+        models_in_db = cls.query_direct(orm, where=where)
+
+        if not include_missing:
+            return models_in_db
+
+        models_missing = []
+        if include_val_sets is not None:
+            for val_set in include_val_sets:
+                for i in range(len(columns)):
+                    if val_set[i] not in [getattr(m, columns[i])
+                            for m in models_in_db]:
+                        models_missing.append(cls(orm,
+                                dict(zip(columns, val_set))))
+                        break
+        return models_in_db, models_missing
+
+
+
+
+
+
+    # @staticmethod
+    # def build_where_for_ids(include_ids=None, exclude_ids=None):
+    #     """
+    #     """
+
+    #     include_conds = []
+    #     exclude_conds = []
+    #     for ids, conds in [(include_ids, include_conds),
+    #             (exclude_ids, exclude_conds)]:
+    #         if ids is None:
+    #             continue
+    #         for id in ids:
+    #             cond = ('id', LogicOp.EQ, id)
+    #             conds.append(cond)
+
+    #     where_clauses = []
+    #     for conds in [include_conds, exclude_conds]:
+    #         if len(conds) == 0:
+    #             continue
+    #         elif len(conds) == 1:
+    #             where = conds[0]
+    #         else:
+    #             where = {LogicCombo.OR: conds}
+    #         where_clauses.append(where)
+
+    #     if len(where_clauses) == 0:
+    #         full_where = None
+    #     elif len(where_clauses) == 1:
+    #         full_where = where_clauses[0]
+    #     else:
+    #         full_where = {LogicCombo.AND: where_clauses}
+
+    #     return full_where

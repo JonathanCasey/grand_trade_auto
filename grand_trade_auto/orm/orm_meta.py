@@ -51,6 +51,7 @@ class Orm(ABC):
           db (Database): The database instance that this interfaces with.
         """
         self._db = db
+        # TODO: assert self._db.orm == self ...somehow
 
 
 
