@@ -39,7 +39,7 @@ def load_email_conf():
 
     data['recipients'] = config.parse_list_from_conf_string(
             gta_cp.get('email', 'recipients'), config.CastType.STRING,
-            strip_quotes=True)
+            delim_newlines=True, strip_quotes=True)
 
     return data
 

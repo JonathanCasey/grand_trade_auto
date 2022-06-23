@@ -103,7 +103,8 @@ def test_parse_list_from_conf_string():
     """
     conf_list_strs = ['one', 'two', 'three']
     conf_str_simple = 'one, two, three'
-    conf_str_newlines = 'one,\r\ntwo,  \r\n\r\n  three'
+    conf_str_newlines = 'one\ntwo  \r\n\r\n  three'
+    conf_str_newlines_and_commas = 'one,\r\ntwo,  \r\n\r\n  three'
     conf_str_quotes = 'one, "two", \'three\''
     conf_str_delim = 'one | two | three'
     delim_char = '|'
@@ -118,7 +119,16 @@ def test_parse_list_from_conf_string():
     assert conf_list_strs == config.parse_list_from_conf_string(
             conf_str_simple, config.CastType.STRING)
     assert conf_list_strs == config.parse_list_from_conf_string(
-            conf_str_newlines, config.CastType.STRING)
+            conf_str_newlines_and_commas, config.CastType.STRING)
+    assert conf_list_strs == config.parse_list_from_conf_string(
+            conf_str_newlines_and_commas, config.CastType.STRING,
+            delim_newlines=True)
+    assert conf_list_strs == config.parse_list_from_conf_string(
+            conf_str_newlines, config.CastType.STRING,
+            delim_newlines=True)
+    assert conf_list_strs == config.parse_list_from_conf_string(
+            conf_str_newlines, config.CastType.STRING, delim=None,
+            delim_newlines=True)
     assert conf_list_strs != config.parse_list_from_conf_string(
             conf_str_quotes, config.CastType.STRING)
     assert conf_list_strs == config.parse_list_from_conf_string(
