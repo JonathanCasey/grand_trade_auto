@@ -17,8 +17,8 @@ from grand_trade_auto.general import config
 
 
 _APIC_PROVIDERS = (
-    alpaca.Alpaca,
-    alphavantage.Alphavantage,
+    alpaca.AlpacaApic,
+    alphavantage.AlphavantageApic,
 )
 
 _apics_loaded = {}

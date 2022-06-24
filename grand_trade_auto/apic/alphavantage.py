@@ -8,12 +8,12 @@ Module Attributes:
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
-# from grand_trade_auto.datafeed import datafeed_meta
+from grand_trade_auto.apic import apic_meta
 from grand_trade_auto.general import config
 
 
 
-class Alphavantage(datafeed_meta.Datafeed):
+class AlphavantageApic(apic_meta.Apic):
     """
     The Alpha Vantage broker API Client functionality.
 
@@ -67,7 +67,7 @@ class Alphavantage(datafeed_meta.Datafeed):
 
         kwargs['api_key'] = secrets_cp.get(secrets_id, 'api key', fallback=None)
 
-        alphav = Alphavantage(**kwargs)
+        alphav = cls(**kwargs)
         return alphav
 
 

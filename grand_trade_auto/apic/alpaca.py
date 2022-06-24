@@ -12,8 +12,7 @@ import logging
 
 import alpaca_trade_api as tradeapi
 
-from grand_trade_auto.broker import broker_meta
-from grand_trade_auto.datafeed import datafeed_meta
+from grand_trade_auto.apic import apic_meta
 from grand_trade_auto.general import config
 
 
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 
-class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
+class AlpacaApic(apic_meta.Apic):
     """
     The Alpaca broker API Client functionality.
 
@@ -103,7 +102,7 @@ class Alpaca(broker_meta.Broker, datafeed_meta.Datafeed):
         kwargs['secret_key'] = secrets_cp.get(secrets_id, 'secret key',
                 fallback=None)
 
-        alpaca = Alpaca(**kwargs)
+        alpaca = cls(**kwargs)
         return alpaca
 
 
