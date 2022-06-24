@@ -11,4 +11,5 @@ pylint
 pytest
 pytest-cov
 pytest-order
+pytz
 uvicorn

@@ -1,6 +1,7 @@
 
 
 
+
 import logging
 
 from grand_trade_auto.datafeed.jobs import datafeed_job
@@ -10,9 +11,6 @@ from grand_trade_auto.model import model_meta
 from grand_trade_auto.model.datafeed_src import DatafeedSrc
 from grand_trade_auto.model.exchange import Exchange
 from grand_trade_auto.model.security import Security
-from grand_trade_auto.model.security_price import SecurityPrice
-
-
 
 
 
@@ -20,20 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 
-
-
-class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
-
-    # primary_model:model_meta.Model # TODO: Should this be plural?
-
-    # TODO: Model should define these dependencies
-    # model_and_dependencies = {
-    #     SecurityPrice : {
-    #         Security : {
-    #         },
-    #         DatafeedSrc : {}, # Or None?
-    #     }
-    # }
+class ExchangesSecuritiesInfoJob(datafeed_job.DatafeedJob):
+    """
+    """
 
     @classmethod
     def load_data_from_config(cls, df_cp, df_id):
@@ -77,13 +64,6 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
                 'run offset')
         # TODO: Combine when to run, run interval, run offset into a run config data struct (with better name??)
 
-        data['should_save_raw'] = df_cp.getboolean(df_id, 'save raw prices',
-                fallback=True)
-        data['should_save_adjusted'] = df_cp.getboolean(df_id,
-                'save adjusted prices', fallback=True)
-        data['data_interval'] = model_meta.PriceFrequency(
-                df_cp[df_id]['data interval'])
-
         for option in ['include exchanges', 'include tickers',
                 'exclude exchanges', 'exclude tickers']:
             data[option.replace(' ', '_')] = config.parse_list_from_conf_string(
@@ -93,16 +73,16 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
         return data
 
 
+
     @classmethod
     def get_dc_names(cls):
         """
         The first will be used as storage for official reference and reporting.
         """
-        return ['time series pricing']
+        return ['exchanges and securities info']
 
 
 
-    # TODO: Refactor, especially with ExchangesSecuritiesInfoJob
     def execute(self, df):
         """
         """
@@ -138,10 +118,21 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
             where_df_ids = None
         where_this_df = ('id', model_meta.LogicOp.EQ, df.id)
 
+        # TODO: Should have separate job that reviews list/delist
+        #       ...and then this would not need to query exchanges from df
+        #      Should basically do below, but also review ones in db regardless
+        #        to catch delistings
+
+        # If already in db, will have an id set; if not, will be missing
         # TODO: Check if any in include and exclude, raise error (also for tickers)
-        exchanges, exchanges_missing, _ = Exchange.get_by_column(df._db.orm, 'acronym',
-                self.config_data['include_exchanges'],
-                self.config_data['exclude_exchanges'], where_df_ids, include_missing=True)
+        exchanges_in_db, exchanges_not_in_db = Exchange.get_by_column(
+                df._db.orm, 'acronym', self.config_data['include_exchanges'],
+                self.config_data['exclude_exchanges'], where_df_ids, True)
+        exchanges_matched, exchanges_missing, exchanges_extra = df.query_exchanges(
+                include=exchanges_not_in_db, exclude=exchanges_in_db, include_missing=True,
+                include_extras=not bool(self.config_data['include_exchanges']))
+        for exchange in exchanges_matched + exchanges_extra:
+            exchange.add()
         if exchanges_missing:
             logger.warning("Exchanges not in database could not be found in"
                     f" datafeed.  Datafeed section: '{df._id}'.  Exchanges: "
@@ -149,6 +140,10 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
                     + gen_utils.list_to_quoted_element_str(
                         [e.acronym for e in exchanges_missing])
                     + ".  These have been skipped.")
+        # exchanges = [e for e in exchanges if e.id is not None] + new_exchanges
+        exchanges = Exchange.get_by_column(df._db.orm, 'acronym',
+                self.config_data['include_exchanges'],
+                self.config_data['exclude_exchanges'], where_df_ids)
 
         # If no include/exclude or only exclude, will get all securities from
         #   apic for all possible exchanges, add missing to db
@@ -159,48 +154,7 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
         securities = self.parse_securities(df, exchanges, where_df_ids)
         # TODO: Also need to add company
 
-        for security in securities:
-            if self.resume_data['last_security_id'] is not None \
-                    and security.id \
-                        < self.resume_data['last_security_id']:
-                continue
-            # Starting next security -- update id, reset resume_data
-            # Otherwise, let resume_data stay as it is
-            # Not worth saving this to db yet -- would recover gracefully
-            if security.id != self.resume_data['last_security_id']:
-                self.resume_data['last_security_id'] = security.id
-                self.resume_data['datafeed_resume_data'] = None
-
-            security_finished = False
-            while not security_finished:
-                # Passing None for resume_data means start from beginning
-                # Getting None returned for resume_data means done
-                # Otherwise, do not care what resume_data is -- that's for df
-
-                # TODO: For this, want to add direct -- add flag as arg to
-                #        query_security_prices()
-                price_data, self.resume_data['datafeed_resume_data'] = \
-                        df.query_security_prices(security,
-                        self.config_data['start_datetime,'],
-                        self.config_data['end_datetime'],
-                        self.config_data['data_interval'],
-                        exchanges=exchanges,
-                        allow_chunking=True,
-                        resume_data=self.resume_data['datafeed_resume_data'])
-                for price_entry in price_data:
-                    # TODO: Catch if db add fails due to unique key, log warning
-                    #     With this, will make start/end inclusive (user should pick different run time)
-                    SecurityPrice.add_direct(df._db.orm, price_entry,
-                            commit=False)
-                # Do want the following db op to commit
-                DatafeedSrc.update_direct(df._db.orm,
-                        {'resume_data': self.resume_data}, where=where_this_df)
-                if self.resume_data['datafeed_resume_data'] is None:
-                    security_finished = True
-                    # Leave resume data as None for start of next security
-
         self.finish(df) # Remove job from queue, save to db
-
 
 
 
@@ -246,10 +200,75 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
             val_set = (e_id, t_name)
             exclude_exact_val_sets.append(val_set)
 
+        exact_in_db, exact_not_in_db = \
+                Security.get_by_columns(df._db.orm, ('exchange_id', 'ticker'),
+                    include_exact_val_sets, exclude_exact_val_sets, where_and,
+                    True)
+
         where_exchanges = Exchange.build_where_for_column('id',
                 exchanges_allowed_by_acronym.values())
         where_combined = Exchange.combine_wheres([where_and, where_exchanges],
                 model_meta.LogicCombo.AND)
+
+        vague_in_db = Security.get_by_column(df._db.orm, 'ticker',
+                include_without_exchange, exclude_without_exchange,
+                where_combined)
+        vague_in_db = [v for v in vague_in_db
+                if v.id not in [e.id for e in exact_in_db]]
+        vague_not_in_db = []
+        for e_id in [e.id for e in exchanges_allowed_by_acronym.values()]:
+            for t_name in include_without_exchange:
+                if (e_id, t_name) not in [(s.exchange_id, s.ticker)
+                        for s in vague_in_db + exact_in_db]:
+                    vague_not_in_db.append(Security(df._db.orm,
+                            {'exchange_id': e_id, 'ticker': t_name}))
+
+        securities_in_db = exact_in_db + vague_in_db
+        securities_not_in_db = exact_not_in_db + vague_not_in_db
+
+        securities_matched, securities_missing, securities_extra = \
+                df.query_securities(include=securities_not_in_db,
+                exclude=securities_in_db, include_missing=True,
+                include_extras=not bool(self.config_data['include_tickers']),
+                exchanges_allowed_by_acronym=exchanges_allowed_by_acronym)
+
+        securities_missing_exact = [s for s in securities_missing
+                if s in exact_not_in_db]
+        securities_missing_vague = [s for s in securities_missing
+                if s in vague_not_in_db]
+
+        for security in securities_matched + securities_extra:
+            security.add()
+        if securities_missing_exact:
+            e_by_id = {e.id: e for e in exchanges_allowed_by_acronym.values()}
+            error_list = [e_by_id[s.exchange_id].acronym + ':' + s.ticker
+                    for s in securities_missing_exact]
+            logger.warning("Fully qualified tickers not in database could not"
+                    f" be found in datafeed.  Datafeed section: '{df._id}'."
+                    + "  Tickers: "
+                    + gen_utils.list_to_quoted_element_str(error_list)
+                    + ".  These have been skipped.")
+        if securities_missing_vague:
+            ticker_names = []
+            for s in securities_missing_vague:
+                if s.ticker not in ticker_names:
+                    ticker_names.append(s.ticker)
+            fully_missing = [t for t in ticker_names
+                    if t not in [s.ticker
+                        for s in securities_matched + securities_extra]]
+            partial_missing = [t for t in ticker_names
+                    if t not in fully_missing]
+            logger.debug("Name-only tickers not in database could not be"
+                    " found in datafeed for some exchanges.  Datafeed section:"
+                    f" '{df._id}'.  Tickers completely missing: "
+                    + gen_utils.list_to_quoted_element_str(fully_missing)
+                    + ".  Tickers partially missing: "
+                    + gen_utils.list_to_quoted_element_str(partial_missing)
+                    + ".  For partial missing, these succeeded at least 1"
+                    " possible exchange, but have been skipped for other"
+                    " exchanges.  To mute this message, include tickers with"
+                    " fully qualified using exchange:ticker, such as"
+                    " 'NASDAQ:AAPL'.")
 
         exact_in_db = \
                 Security.get_by_columns(df._db.orm, ('exchange_id', 'ticker'),
@@ -258,11 +277,8 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
                 include_without_exchange, exclude_without_exchange,
                 where_combined)
 
-        # TODO: Re-add error warnings for missing
-
         return exact_in_db + vague_in_db
 
 
 
-
-datafeed_job.register_datafeed_job_cls(TimeSeriesPricingJob)
+datafeed_job.register_datafeed_job_cls(ExchangesSecuritiesInfoJob)

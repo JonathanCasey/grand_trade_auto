@@ -8,8 +8,20 @@ Module Attributes:
 
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
+from enum import Enum
+import json
+import requests
+
 from grand_trade_auto.apic import apic_meta
 from grand_trade_auto.general import config
+
+
+
+class DataType(Enum):
+    """
+    """
+    CSV = 'csv'
+    JSON = 'json'
 
 
 
@@ -94,7 +106,16 @@ class AlphavantageApic(apic_meta.Apic):
         return
 
 
-    # def get_security_price(start_time, end_time, interval, exchanges, tickers, include_raw, include_adjusted):
-    #     """
-    #     Query API, return model (or raw data to bypass model).
-    #     """
+
+    def call_api(self, url, return_type, add_secrets=True):
+        """
+        """
+        if return_type is DataType.CSV:
+            with requests.Session() as s:
+                download = s.get(url)
+                data = download.content.decode('utf-8')
+        elif return_type is DataType.JSON:
+            request = requests.get(url)
+            data = request.json()
+        # TODO: What are the errors??
+        return data, None

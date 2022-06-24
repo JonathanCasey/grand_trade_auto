@@ -219,6 +219,12 @@ def parse_datetime(datetime_str):
 
 
 
+def parse_time(time_str):
+    """
+    """
+    # TODO: Define this
+
+
 def get_parsed_datetime_from_confg(parser, section_id, option_key,
         fallback_to_none=True):
     """
@@ -228,10 +234,10 @@ def get_parsed_datetime_from_confg(parser, section_id, option_key,
     else:
         datetime_str = parser.get(section_id, option_key)
     if datetime_str is not None:
-        datetime = parse_datetime(datetime_str)
+        datetime_val = parse_datetime(datetime_str)
     else:
-        datetime = None
-    return datetime
+        datetime_val = None
+    return datetime_val
 
 
 
@@ -239,7 +245,15 @@ def get_parsed_time_from_config(parser, section_id, option_key,
         fallback_to_none=True):
     """
     """
-    # TODO: Define this
+    if fallback_to_none:
+        time_str = parser.get(section_id, option_key, fallback=None)
+    else:
+        time_str = parser.get(section_id, option_key)
+    if time_str is not None:
+        time_val = parse_time(time_str)
+    else:
+        time_val = None
+    return time_val
 
 
 

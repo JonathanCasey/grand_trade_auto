@@ -45,7 +45,6 @@ class DatafeedJob(ABC):
         self.config_data = config_data
         self.is_for_init = is_for_init
         self.resume_data = resume_data
-        # self.df = None
         self._init_nonserial()
 
 
@@ -53,18 +52,13 @@ class DatafeedJob(ABC):
     def _init_nonserial(self):
         """
         """
-        # TODO: Need to resolve the circular reference / file structure
-        #      ...probably need df passed as needed to functions by caller
-        # TODO: Avoid this by passing df when calling execute_job*?
-        # self.df = datafeeds.get_datafeed(self.config_data['df_id'],
-        #         self.config_data['env'])
 
 
 
     def _clear_nonserial(self):
         """
         """
-        # self.df = None
+
 
 
     @classmethod
@@ -75,6 +69,7 @@ class DatafeedJob(ABC):
             raise Exception('Invalid category in datafeed config:'
                     f'{data_cat_name}')
         return df_job_cls.load_data_from_config(df_cp, df_id)
+
 
 
     @staticmethod
@@ -140,6 +135,13 @@ class DatafeedJob(ABC):
     def execute(self, df):
         """
         """
+
+
+
+    def finish(self, df):
+        """
+        """
+        df.handle_finished_job(self)
 
 
 

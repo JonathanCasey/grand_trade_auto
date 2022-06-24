@@ -59,7 +59,7 @@ class Datafeed(ABC):
         self._config_data = config_data
         self._job_cls = datafeed_job.DatafeedJob.get_class_from_name(
                 self._config_data['data category'])
-        self._queued_jobs = self._load_and_validate_existing_jobs()
+        self._queued_jobs = self._load_and_validate_queued_jobs()
         self._save_config_data()
 
         # df_model = self._get_self_model()
@@ -97,10 +97,6 @@ class Datafeed(ABC):
         kwargs['config_data'] = data
         return cls(**kwargs)
 
-        # for chunk in data_cat.get_iterator():
-        #     data = apic.datafeed.get_data(data_cat, chunk, make_models=False)
-        #     data_cat.save_to_db(db, data)
-
 
 
     # TODO: Add caching?
@@ -115,6 +111,19 @@ class Datafeed(ABC):
         self_db_record = DatafeedSrc.query_direct(
                 self._db._orm, where=where)
         return self_db_record
+
+
+
+    def _add_db_self(self):
+        """
+        """
+        data = {}
+        data['name'] = self._df_id
+        data['config_data'] = self._convert_config_data_to_db()
+        data['is_init_complete'] = False
+        data['queued_jobs'] = None
+        self_db_record = DatafeedSrc(self._db.orm, data)
+        self_db_record.add()
 
 
 
@@ -140,6 +149,15 @@ class Datafeed(ABC):
 
 
 
+    def is_due_to_run(self):
+        """
+        """
+        # TODO: Check dependent datafeeds are init
+        # TODO: Check datetime good
+        return True
+
+
+
     def queue_jobs_due_to_run(self):
         """
         """
@@ -155,6 +173,18 @@ class Datafeed(ABC):
         new_update_job = self._job_cls(self._config_data)
         new_jobs.append(new_update_job)
         self._save_jobs(new_jobs)
+
+
+
+    def handle_finished_job(self, job):
+        """
+        """
+        try:
+            self._queued_jobs.remove(job)
+        except ValueError as ex:
+            logger.warning('Could not remove job since not loaded in queue.'
+                    f'  Original error message: {str(ex)}')
+        self._save_jobs()
 
 
 
