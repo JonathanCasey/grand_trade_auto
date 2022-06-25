@@ -51,6 +51,19 @@ class Apic(ABC):
 
 
 
+    @property
+    def apic_id(self):
+        """
+        Gets the API Client ID for this API Client in a read-only fashion.
+
+        Returns:
+          _apic_id (str): The id used as the section name in the API Client
+            conf.
+        """
+        return self._apic_id
+
+
+
     def matches_id_criteria(self, apic_id, env=None, provider=None):
         """
         Checks if this API Client is a match based on the provided criteria.

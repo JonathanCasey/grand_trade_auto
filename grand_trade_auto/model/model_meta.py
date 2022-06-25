@@ -19,8 +19,11 @@ Module Attributes:
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 from abc import ABC
+import datetime as dt
 from enum import Enum
 import logging
+
+import pytz
 
 
 
@@ -462,7 +465,7 @@ class Model(ABC):
         Raises:
           [Pass through expected]
         """
-        # TODO: Add return list of dictionaries (keys are columns, values are...values)
+        # TODO Future: Add return list of dictionaries (keys are columns, values are...values)
         return orm.query(cls, return_as, columns_to_return, where, limit, order,
                 **kwargs)
 
@@ -597,6 +600,10 @@ class Model(ABC):
             include_vals = []
         if exclude_vals is None:
             exclude_vals = None
+        if kwargs:
+            logger.debug('Ignore extra kwargs in `build_where_for_column()`'
+                    ' -- not used here, only allowed for call stack'
+                    ' convenience')
 
         include_conds = []
         exclude_conds = []
@@ -640,6 +647,10 @@ class Model(ABC):
             include_logic_ops = [LogicOp.EQ] * len(columns)
         if exclude_logic_ops is None:
             exclude_logic_ops = [LogicOp.NEQ] * len(columns)
+        if kwargs:
+            logger.debug('Ignore extra kwargs in `build_where_for_columns()`'
+                    ' -- not used here, only allowed for call stack'
+                    ' convenience')
 
         include_conds = []
         exclude_conds = []
@@ -722,7 +733,7 @@ class Model(ABC):
             where_and=None, include_missing=False, **kwargs):
         """
         """
-        # TODO: Support ReturnAs
+        # TODO Future: Support ReturnAs
         where_vals = cls.build_where_for_column(column, include_vals,
                 exclude_vals, **kwargs)
         where = cls.combine_wheres([where_and, where_vals], LogicCombo.AND)
@@ -745,7 +756,7 @@ class Model(ABC):
             **kwargs):
         """
         """
-        # TODO: Support ReturnAs
+        # TODO Future: Support ReturnAs
         where_vals = cls.build_where_for_columns(columns, include_val_sets,
                 exclude_val_sets, **kwargs)
         where = cls.combine_wheres([where_and, where_vals], LogicCombo.AND)
@@ -803,3 +814,14 @@ class Model(ABC):
     #         full_where = {LogicCombo.AND: where_clauses}
 
     #     return full_where
+
+
+
+def get_datetime_for_end_of_day(date, originating_timezone=None):
+    """
+    """
+    if originating_timezone is None:
+        originating_timezone = pytz.timezone('UTC')
+
+    time = dt.time(23, 59, 59)
+    return dt.datetime.combine(date, time, originating_timezone)

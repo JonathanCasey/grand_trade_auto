@@ -25,9 +25,6 @@ from grand_trade_auto.model.datafeed_src import DatafeedSrc
 logger = logging.getLogger(__name__)
 
 
-# TODO Tomorrow: Re-org everything to finish "design", fill in last missing functions / errors, commit, doc + unit test (same time)!
-# will keep datafeed, datafeedjob, and anything else abstract/general use here
-
 
 class Datafeed(ABC):
     """
@@ -75,10 +72,41 @@ class Datafeed(ABC):
 
 
 
-    def get_apic_id(self):
+    @property
+    def apic_id(self):
         """
+        Gets the API Client ID for this datafeed's API Client in a read-only
+        fashion.
+
+        Returns:
+          _apic_id (str): The id used as the section name in the API Client
+            conf that matches the one specified for this datafeed.
         """
-        return self._apic._apic_id
+        return self._apic.apic_id
+
+
+
+    @property
+    def db(self):
+        """
+        Gets the Database for this datafeed in a read-only fashion.
+
+        Returns:
+          _db (Database<>): The Database for this datafeeed.
+        """
+        return self._db
+
+
+
+    @property
+    def df_id(self):
+        """
+        Gets the Datafeed ID for this Datafeed in a read-only fashion.
+
+        Returns:
+          _df_id (str): The id used as the section name in the Datageed conf.
+        """
+        return self._df_id
 
 
 
@@ -105,11 +133,11 @@ class Datafeed(ABC):
         """
         where = ('section_name', model_meta.LogicOp.EQUALS, self._df_id)
         self_db_record = DatafeedSrc.query_direct(
-                self._db._orm, where=where)
+                self._db.orm, where=where)
         if self_db_record is None:
             self._add_db_self()
         self_db_record = DatafeedSrc.query_direct(
-                self._db._orm, where=where)
+                self._db.orm, where=where)
         return self_db_record
 
 

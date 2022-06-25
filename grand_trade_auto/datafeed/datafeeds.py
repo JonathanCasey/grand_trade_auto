@@ -2,7 +2,6 @@
 
 
 
-from pkgutil import get_data
 from grand_trade_auto.datafeed import alphavantage_df
 from grand_trade_auto.general import config
 
@@ -87,8 +86,8 @@ def _get_datafeed_from_config(df_id, env=None):
 
     df_sel = None
     for df in _DFS:
-        # TODO: If file client, compare that instead
-        if df_cp[df_id]['apic src'].strip() == df.get_apic_id():
+        # TODO Future: If file client, compare that instead
+        if df_cp[df_id]['apic src'].strip() == df.apic_id:
             df_sel = df
             break
 

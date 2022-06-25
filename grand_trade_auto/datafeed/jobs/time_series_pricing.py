@@ -24,16 +24,6 @@ logger = logging.getLogger(__name__)
 
 class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
 
-    # primary_model:model_meta.Model # TODO: Should this be plural?
-
-    # TODO: Model should define these dependencies
-    # model_and_dependencies = {
-    #     SecurityPrice : {
-    #         Security : {
-    #         },
-    #         DatafeedSrc : {}, # Or None?
-    #     }
-    # }
 
     @classmethod
     def load_data_from_config(cls, df_cp, df_id):
@@ -45,37 +35,10 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
             raise Exception('Programming error: Should not be here')
 
         data = {}
-        data['env'] = df_cp[df_id]['env'].strip()
-        data['apic_src'] = df_cp[df_id]['apic src'].strip()
-        data['database_dst'] = df_cp[df_id]['database dst'].strip()
-        data['dependent_datafeeds'] = config.parse_list_from_conf_string(
-                df_cp.get(df_id, 'dependent datafeeds', fallback=None),
-                config.CastType.STRING, delim_newlines=True, strip_quotes=True)
-
-        data['data_category'] = cls.get_dc_names()[0]
-        data['when_to_run'] = datafeed_job.WhenToRun(
-                df_cp[df_id]['when to run'])
-        data['include_fk_datafeeds'] = config.parse_list_from_conf_string(
-                df_cp.get(df_id, 'include fk_datafeeds', fallback=None),
-                config.CastType.STRING, delim_newlines=True, strip_quotes=True)
-        data['exclude_fk_datafeeds'] = config.parse_list_from_conf_string(
-                df_cp.get(df_id, 'exclude fk datafeeds', fallback=None),
-                config.CastType.STRING, delim_newlines=True, strip_quotes=True)
-
-        data['start_datetime'] = config.get_parsed_datetime_from_confg(df_cp,
-                df_id, 'start datetime')
-        data['end_datetime'] = config.get_parsed_datetime_from_confg(df_cp,
-                df_id, 'end datetime')
-        if data['end_datetime'] is not None \
-                and data['start_datetime'] is None:
-            raise Exception('If end datetime defined, must define start'
-                    f' datetime in datafeed config section: {df_id}')
-
-        data['run_interval'] = datafeed_job.RunInterval(
-                df_cp[df_id]['run interval'])
-        data['run_offset'] = config.get_parsed_time_from_config(df_cp, df_id,
-                'run offset')
-        # TODO: Combine when to run, run interval, run offset into a run config data struct (with better name??)
+        cls._load_from_config_id(df_cp, df_id, data, True)
+        cls._load_from_config_data_category(df_cp, df_id, data)
+        cls._load_from_config_run_options(df_cp, df_id, data, True)
+        # TODO: Fill in default start/end datetime somewhere?  In resume data?
 
         data['should_save_raw'] = df_cp.getboolean(df_id, 'save raw prices',
                 fallback=True)
@@ -84,13 +47,10 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
         data['data_interval'] = model_meta.PriceFrequency(
                 df_cp[df_id]['data interval'])
 
-        for option in ['include exchanges', 'include tickers',
-                'exclude exchanges', 'exclude tickers']:
-            data[option.replace(' ', '_')] = config.parse_list_from_conf_string(
-                    option, config.CastType.STRING, delim_newlines=True,
-                    strip_quotes=True)
-
+        cls._load_from_config_exchanges_tickers(df_cp, df_id, data, True)
         return data
+
+
 
 
     @classmethod
@@ -106,45 +66,18 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
     def execute(self, df):
         """
         """
-        if self.config_data['include_fk_datafeeds'] is not None \
-                or self.config_data['exclude_fk_datafeeds'] is not None:
-            dfs_allowed, include_dfs_missing = DatafeedSrc.get_by_column(
-                    df._db.orm, 'name',
-                    self.config_data['include_fk_datafeeds'],
-                    include_missing=True)
-            dfs_disallowed, exclude_dfs_missing = DatafeedSrc.get_by_column(
-                    df._db.orm, 'name',
-                    exclude_vals=self.config_data['exclude_fk_datafeeds'],
-                    include_missing=True)
-            if include_dfs_missing:
-                logger.warning('Skipping missing include fk datafeeds for'
-                        f" datafeed '{df._id}': "
-                        # ", ".join([f"'{d.name}'" for d in include_dfs_missing])
-                        + gen_utils.list_to_quoted_element_str(
-                            [d.name for d in include_dfs_missing])
-                        + ".")
-            if include_dfs_missing:
-                logger.warning('Skipping missing exclude fk datafeeds for'
-                        f" datafeed '{df._id}': "
-                        # ", ".join([f"'{d.name}'" for d in exclude_dfs_missing])
-                        + gen_utils.list_to_quoted_element_str(
-                            [d.name for d in exclude_dfs_missing])
-                        + ".")
-
-            where_df_ids = DatafeedSrc.build_where_for_column('id',
-                    [d.id for d in dfs_allowed],
-                    [d.id for d in dfs_disallowed])
-        else:
-            where_df_ids = None
+        where_df_ids = self._build_where_for_df_ids(df,
+                self.config_data['include_fk_datafeeds'],
+                self.config_data['exclude_fk_datafeeds'])
         where_this_df = ('id', model_meta.LogicOp.EQ, df.id)
 
         # TODO: Check if any in include and exclude, raise error (also for tickers)
-        exchanges, exchanges_missing, _ = Exchange.get_by_column(df._db.orm, 'acronym',
+        exchanges, exchanges_missing, _ = Exchange.get_by_column(df.db.orm, 'acronym',
                 self.config_data['include_exchanges'],
                 self.config_data['exclude_exchanges'], where_df_ids, include_missing=True)
         if exchanges_missing:
             logger.warning("Exchanges not in database could not be found in"
-                    f" datafeed.  Datafeed section: '{df._id}'.  Exchanges: "
+                    f" datafeed.  Datafeed section: '{df.df_id}'.  Exchanges: "
                     # ", ".join([f"'{e.acronym}'" for e in exchanges_missing])
                     + gen_utils.list_to_quoted_element_str(
                         [e.acronym for e in exchanges_missing])
@@ -190,10 +123,10 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
                 for price_entry in price_data:
                     # TODO: Catch if db add fails due to unique key, log warning
                     #     With this, will make start/end inclusive (user should pick different run time)
-                    SecurityPrice.add_direct(df._db.orm, price_entry,
+                    SecurityPrice.add_direct(df.db.orm, price_entry,
                             commit=False)
                 # Do want the following db op to commit
-                DatafeedSrc.update_direct(df._db.orm,
+                DatafeedSrc.update_direct(df.db.orm,
                         {'resume_data': self.resume_data}, where=where_this_df)
                 if self.resume_data['datafeed_resume_data'] is None:
                     security_finished = True
@@ -252,9 +185,9 @@ class TimeSeriesPricingJob(datafeed_job.DatafeedJob):
                 model_meta.LogicCombo.AND)
 
         exact_in_db = \
-                Security.get_by_columns(df._db.orm, ('exchange_id', 'ticker'),
+                Security.get_by_columns(df.db.orm, ('exchange_id', 'ticker'),
                     include_exact_val_sets, exclude_exact_val_sets, where_and)
-        vague_in_db = Security.get_by_column(df._db.orm, 'ticker',
+        vague_in_db = Security.get_by_column(df.db.orm, 'ticker',
                 include_without_exchange, exclude_without_exchange,
                 where_combined)
 

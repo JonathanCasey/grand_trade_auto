@@ -9,7 +9,6 @@ Module Attributes:
 (C) Copyright 2021 Jonathan Casey.  All Rights Reserved Worldwide.
 """
 from enum import Enum
-import json
 import requests
 
 from grand_trade_auto.apic import apic_meta
@@ -107,7 +106,7 @@ class AlphavantageApic(apic_meta.Apic):
 
 
 
-    def call_api(self, url, return_type, add_secrets=True):
+    def _call_api(self, url, return_type):
         """
         """
         if return_type is DataType.CSV:
@@ -117,5 +116,29 @@ class AlphavantageApic(apic_meta.Apic):
         elif return_type is DataType.JSON:
             request = requests.get(url)
             data = request.json()
-        # TODO: What are the errors??
+        # TODO (Future/as it comes up): What are the errors??
         return data, None
+
+
+    @staticmethod
+    def _convert_params_to_url_str(params):
+        """
+        """
+        return '&'.join([f'{k}={v}' for k, v in params.items()])
+
+
+    def call_api(self, base_url, params, return_type=None, add_secrets=True):
+        """
+        """
+        if add_secrets:
+            params['apikey'] = self._api_key
+        url = base_url + self._convert_params_to_url_str(params)
+        if 'datatype' in params:
+            if return_type is not None \
+                    and return_type != DataType(params['datatype']):
+                raise Exception('Conflicting return types...')
+            return_type = params['datatype']
+        if return_type is None:
+            raise Exception('datatype in params or return_type arg required')
+
+        return self._call_api(url, return_type)

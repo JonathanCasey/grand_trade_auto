@@ -36,6 +36,15 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
 
     _timezone = pytz.timezone('US/Eastern')
 
+    # Any not in this list are not intraday (daily) or unsupported (10min)
+    _interval_intraday_args = {
+        model_meta.PriceFrequency.MIN_1: '1min',
+        model_meta.PriceFrequency.MIN_5: '5min',
+        model_meta.PriceFrequency.MIN_15: '15min',
+        model_meta.PriceFrequency.MIN_30: '30min',
+        model_meta.PriceFrequency.HOURLY: '60min',
+    }
+
 
 
     # def __init__(self, **kwargs):
@@ -43,23 +52,6 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
     #     """
     #     super().__init__(**kwargs)
 
-
-
-    @staticmethod
-    def _convert_params_to_url_str(params):
-        """
-        """
-        return '&'.join([f'{k}={v}' for k, v in params.items()])
-
-
-
-    # def query_security_price(security, exchange, config_and_progress_marker):
-    #     if period is less_than_daily:
-    #         url, rtn_type = self.build_url_time_series_intraday(security.ticker, interval)
-    #     elif period is daily:
-    #         url, rtn_type = self.build_url_time_series_daily(security.ticker)
-
-    #     results = self.call_api(url)
 
 
     @classmethod
@@ -72,6 +64,15 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
         return datetime.astimezone(timezone)
 
 
+    @classmethod
+    def _parse_date_as_datetime(cls, date_str, timezone=None):
+        """
+        """
+        if timezone is None:
+            timezone = cls._timezone
+        time = dt.time.strftime(date_str, '%-m/%-d/%Y')
+        return model_meta.get_datetime_for_end_of_day(time, timezone)
+
 
 
     def query_security_prices(self, security, start_datetime, end_datetime,
@@ -82,16 +83,13 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
 
         if exchanges is not None:
             logger.debug('Exchanges not used by Alphavantage when getting prices.  Ignoring.')
-        if interval in [
-                    model_meta.PriceFrequency.MIN_1,
-                    model_meta.PriceFrequency.MIN_5,
-                    model_meta.PriceFrequency.MIN_15,
-                    model_meta.PriceFrequency.MIN_30,
-                    model_meta.PriceFrequency.HOURLY,
-                ]:
+        if interval in self._interval_intraday_args:
             return self._query_security_prices_intraday(security,
-                    start_datetime, end_datetime, interval,
-                    allow_chunking, resume_data)
+                    start_datetime, end_datetime, interval, allow_chunking,
+                    resume_data)
+        elif interval is model_meta.PriceFrequency.DAILY:
+            return self._query_security_prices_daily(security,
+                    start_datetime, end_datetime, allow_chunking, resume_data)
         else:
             raise Exception('Bad interval! Bad!')
 
@@ -165,9 +163,7 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
             resume_data = {
                 'last_datetime': None,
             }
-        # should_get_more_chunks = True
 
-        # TODO: Add warnings for dates out of range, etc.
         slice_start_datetime = resume_data['last_datetime'] or start_datetime
         slice_strs = self._get_slices_from_datetime_range(slice_start_datetime,
                 end_datetime)
@@ -181,24 +177,11 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
         new_last_datetime = resume_data['last_datetime'] or start_datetime
 
         data_from_api = {}
-        # while resume_data is not None and should_get_more_chunks:
         while resume_data is not None and slice_str is not None:
-            # slice_date = resume_data['last_date'] or start_datetime.date()
-            # if slice_str is None:
-            #     slice_str = self._get_slice_from_datetime(slice_date)
-            #     if slice_str is None:
-            #         slice_str = self._get_closest_slice_from_datetime(
-            #                 slice_date)
-            #     logger.warning('Skipped some dates as could not go back to start')
-            # else:
-            #     slice_str = self._get_newer_slice(slice_str)
-            #     if slice_str is None:
-            #         resume_data = None
-            #         break
             for adjusted in adjusted_options:
-                url = self._build_url_intraday_extended(security.ticker,
+                params = self._build_params_intraday_extended(security.ticker,
                         interval, slice_str, adjusted)
-                raw_data, err = self._apic.call_api(url,
+                raw_data, err = self._apic.call_api(self._url_base, params,
                         alphavantage.DataType.CSV)
                 if err is not None:
                     logger.error(f'Error: {str(err)}')
@@ -219,6 +202,7 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
                         }
                         if adjusted:
                             data = {f'adj_{k}': v for k, v in data.items()}
+                            # TODO Future: Set adjusted_datetime to now
                         else:
                             data = {f'raw_{k}': v for k, v in data.items()}
                         if datetime not in data_from_api:
@@ -234,42 +218,153 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
                         else:
                             data_from_api[datetime] |= data
 
-            # Moving from start to end, the slice for today must be the last slice
-            # if slice_str == _get_slice_from_datetime(dt.now()):
             try:
                 slice_str = next(slice_iter)
+                resume_data['last_datetime'] = new_last_datetime
             except StopIteration:
                 slice_str = None
                 resume_data = None
             if allow_chunking and data_from_api:
                 # If there is data, must have gotten at least 1 chunk, so pause
                 slice_str = None
-                # should_get_more_chunks = False
-            if slice_str is not None:
-                resume_data['last_datetime'] = new_last_datetime
 
-        return data_from_api.values(), resume_data
+        return sorted(data_from_api).values(), resume_data
 
 
 
-    def _build_url_intraday_extended(self, symbol, interval, slice_str,
+    @staticmethod
+    def _can_use_compact(interval, start_datetime):
+        """
+        """
+        limit_entries = 100 # From Alphavantage API for compact size
+        now = dt.datetime.now()
+        diff = now - start_datetime
+        interval_minutes = {
+            model_meta.PriceFrequency.MIN_1: 1,
+            model_meta.PriceFrequency.MIN_5: 5,
+            model_meta.PriceFrequency.MIN_15: 15,
+            model_meta.PriceFrequency.MIN_30: 30,
+            model_meta.PriceFrequency.HOURLY: 60,
+        }
+        # Will add 1 to max possible to compensate for partial intervals
+        if interval in interval_minutes:
+            max_possible_entries = math.ceil(
+                    diff.minutes / interval_minutes[interval]) + 1
+        elif interval is model_meta.PriceFrequency.DAILY:
+            # Assuming fewest possible weekends and no holidays
+            max_possible_entries = math.ceil(diff.days * 5 / 7) + 1
+        else:
+            raise Exception('Another bad interval!')
+        return max_possible_entries < limit_entries
+
+
+
+    def _query_security_prices_daily(self, security, start_datetime,
+            end_datetime, include_raw=True, include_adjusted=True,
+            allow_chunking=False, resume_data=None):
+        """
+        """
+        # TODO Future: Alphavantage can specify exchange for non-US
+        #   (e.g. TSCO.LON, DAI.DE), but limited data -- would need to investigate
+        # Alphavantage can't confirm exchange here, so ignore arg :(
+        # This means there is no way to catch same tickers on different exchanges!
+        adjusted_options = []
+        if include_raw:
+            adjusted_options.append(False)
+        if include_adjusted:
+            # adjusted_options.append(True)
+            raise Exception('Alphavantage does not support fully adjusted data'
+                    ' for daily -- it only adjusts the close.  This must be'
+                    ' queried as raw and a subsequent post-processing call'
+                    ' to adjust data must be done.')
+
+        if resume_data is not None:
+            logger.warning('Resume data passed to daily security prices in'
+                    ' Alphavantage, but it is not used in that function.')
+        if allow_chunking:
+            logger.debug('Ignoring option to allow chunking -- not used here.')
+
+        data_from_api = {}
+        for adjusted in adjusted_options:
+            params = self._build_params_daily(security.ticker, adjusted,
+                    start_datetime)
+            raw_data, err = self._apic.call_api(self._url_base, params)
+            if err is not None:
+                logger.error(f'Error: {str(err)}')
+                continue
+            csv_reader = csv.DictReader(raw_data.splitlines(), delimiter=',')
+            for row in csv_reader:
+                # TODO Future: Will need to update this for any exchanges in other timezone
+                datetime = self._parse_date_as_datetime(row['timestamp'],
+                        timezone=pytz.timezone('US/Eastern'))
+                if start_datetime.date() <= datetime.date() \
+                            <= end_datetime.date():
+                    data = {
+                        'open': row['open'],
+                        'close': row['close'],
+                        'high': row['high'],
+                        'low': row['low'],
+                        'volume': row['volume'],
+                    }
+                    if adjusted:
+                        data = {f'adj_{k}': v for k, v in data.items()}
+                    else:
+                        data = {f'raw_{k}': v for k, v in data.items()}
+                    if datetime not in data_from_api:
+                        data |= {
+                            'security_id': security.id,
+                            'datetime': datetime,
+                            'frequency': model_meta.PriceFrequency.DAILY,
+                            # All data here is not intraperiod
+                            'is_intraperiod': False,
+                            'datafeed_src_id': self._get_self_model().id,
+                        }
+                        data_from_api[datetime] = data
+                    else:
+                        data_from_api[datetime] |= data
+
+        return sorted(data_from_api).values(), resume_data
+
+
+
+    def _build_params_daily(self, symbol, adjusted=True, start_datetime=None,
+            datatype=alphavantage.DataType.CSV):
+        """
+        """
+        params = {
+            'symbol': symbol,
+            'datatype': datatype.value,
+        }
+        if adjusted:
+            params['function'] = 'TIME_SERIES_DAILY'
+        else:
+            params['function'] = 'TIME_SERIES_DAILY_ADJUSTED'
+        if start_datetime is not None and self._can_use_compact(
+                model_meta.PriceFrequency.DAILY, start_datetime):
+            params['outputsize'] = 'compact'
+        else:
+            params['outputsize'] = 'full'
+        return params
+
+
+
+    def _build_params_intraday_extended(self, symbol, interval, slice_str,
             adjusted=None):
         """
         """
-        # TODO: Assert interval 1, 5, 15, 30, 60 min (make enum for here to convert?)
         params = {
             'function': 'LISTING_STATUS',
             'symbol': symbol,
-            'interval': interval,
+            'interval': self._interval_intraday_args[interval],
             'slice': slice_str,
         }
         if adjusted is not None:
             params['adjusted'] = adjusted
-        return self._url_base + self._convert_params_to_url_str(params)
+        return params
 
 
 
-    def _build_url_listing_status(self, date=None, state=None):
+    def _build_params_listing_status(self, date=None, state=None):
         """
         """
         params = {
@@ -279,7 +374,7 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
             params['date'] = dt.date.strftime(date, '%Y-%m-%d')
         if state is not None:
             params['state'] = state.value
-        return self._url_base + self._convert_params_to_url_str(params)
+        return params
 
 
 
@@ -290,7 +385,7 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
             include_missing=False, include_extras=False):
         """
         """
-        # TODO: Have this also try returning another list that matched but
+        # TODO Future: Have this also try returning another list that matched but
         #   updated data (if flagged to include_update -- otherwise skip checks)?
         if include is None:
             include = []
@@ -299,8 +394,9 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
 
         data_from_api = {}
         for state in [ListingState.ACTIVE, ListingState.DELISTED]:
-            url = self._build_url_listing_status(state=state)
-            raw_data, err = self._apic.call_api(url, alphavantage.DataType.CSV)
+            params = self._build_params_listing_status(state=state)
+            raw_data, err = self._apic.call_api(self._url_base, params,
+                    alphavantage.DataType.CSV)
             if err is not None:
                 logger.error(f'Error: {str(err)}')
                 continue
@@ -346,7 +442,7 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
             include_extras=False, exchanges_allowed=None):
         """
         """
-        # TODO: Have this also try returning another list that matched but
+        # TODO Future: Have this also try returning another list that matched but
         #   updated data (if flagged to include_update -- otherwise skip checks)?
         if include is None:
             include = []
@@ -358,8 +454,9 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
 
         data_from_api = []
         for state in [ListingState.ACTIVE, ListingState.DELISTED]:
-            url = self._build_url_listing_status(state=state)
-            raw_data, err = self._apic.call_api(url, alphavantage.DataType.CSV)
+            params = self._build_params_listing_status(state=state)
+            raw_data, err = self._apic.call_api(self._url_base, params,
+                    alphavantage.DataType.CSV)
             if err is not None:
                 logger.error(f'Error: {str(err)}')
                 continue
@@ -373,8 +470,8 @@ class AlphavantageDatafeed(datafeed_meta.Datafeed):
                     'exchange_id': e_id,
                     'ticker': row['symbol'],
                     'name': row['name'],
-                    # TODO: Parse ipo/delisting dates
-                    # TODO: Parse assert type (stock vs etf)
+                    # TODO Future: Parse ipo/delisting dates
+                    # TODO Future: Parse assert type (stock vs etf)
                     'datafeed_src_id': self._df_id,
                 }
                 data_from_api.append(Security(self._db.orm, data))
